@@ -3,7 +3,7 @@
 # JUDI Laravel — production image for Render (and local docker compose).
 # Build context MUST be the repository root (the Laravel app lives in laravel/).
 #
-# PHP 8.3 matches laravel/composer.json ("php": "^8.3", Laravel 13).
+# PHP 8.4 — composer.lock / Laravel 13 + Symfony require ">= 8.4.1".
 # No Node/Vite build: production assets are Blade + public/css + public/js.
 
 # ---------------------------------------------------------------------------
@@ -33,12 +33,12 @@ RUN composer dump-autoload --optimize --no-dev --classmap-authoritative \
     && php artisan package:discover --ansi --no-interaction
 
 # ---------------------------------------------------------------------------
-# 2) Runtime: PHP-FPM 8.3 + Nginx (tuned for Render free-tier 512 MB)
+# 2) Runtime: PHP-FPM 8.4 + Nginx (tuned for Render free-tier 512 MB)
 # ---------------------------------------------------------------------------
-FROM php:8.3-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 LABEL org.opencontainers.image.title="JUDI Laravel" \
-      org.opencontainers.image.description="Production Laravel 13 / PHP 8.3 image for Render"
+      org.opencontainers.image.description="Production Laravel 13 / PHP 8.4 image for Render"
 
 ENV APP_ENV=production \
     APP_DEBUG=false \
