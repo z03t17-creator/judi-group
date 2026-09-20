@@ -1,0 +1,19 @@
+# Place this file at public_html/.htaccess when the Laravel app
+# lives inside public_html/ and the domain document root cannot
+# be changed to public_html/public.
+#
+# Layout expected:
+#   public_html/
+#     .htaccess          ← this file
+#     app/
+#     bootstrap/
+#     ...
+#     public/
+#       index.php
+#       .htaccess
+#       css/ ...
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

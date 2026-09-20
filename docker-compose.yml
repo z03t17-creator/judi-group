@@ -1,0 +1,91 @@
+# Local databases + optional Laravel image (same Dockerfile Render uses).
+#
+# Next.js reference (unchanged):
+#   docker compose up -d
+#   npm run db:up
+#
+# Laravel (this Docker / Render setup):
+#   docker compose --profile laravel up --build
+#   open http://localhost:8080
+#
+# First Laravel boot seeds demo users (RUN_SEED=true). Password: JudiAdmin!26
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: judi
+      POSTGRES_PASSWORD: judi
+      POSTGRES_DB: judi
+    ports:
+      - "5432:5432"
+    volumes:
+      - judi_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U judi -d judi"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mysql:
+    profiles: ["laravel"]
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: judi
+      MYSQL_USER: judi
+      MYSQL_PASSWORD: judi
+      MYSQL_ROOT_PASSWORD: judi
+    ports:
+      - "3307:3306"
+    volumes:
+      - judi_mysql:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-ujudi", "-pjudi"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  laravel:
+    profiles: ["laravel"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      APP_NAME: JUDI
+      APP_ENV: local
+      APP_KEY: base64:F44I9bRD4ee4E9XOoIOaU/Ys7vD9h3ys3uAe59Fug/w=
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080
+      APP_LOCALE: ckb
+      APP_FALLBACK_LOCALE: en
+      LOG_CHANNEL: stderr
+      LOG_LEVEL: debug
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_DATABASE: judi
+      DB_USERNAME: judi
+      DB_PASSWORD: judi
+      SESSION_DRIVER: database
+      SESSION_LIFETIME: "120"
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      FILESYSTEM_DISK: local
+      MAIL_MAILER: log
+      RUN_SEED: "true"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  judi_pg:
+  judi_mysql:

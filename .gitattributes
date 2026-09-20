@@ -1,0 +1,6 @@
+# Keep shell scripts executable with LF so Render/Linux entrypoints do not fail on CRLF.
+* text=auto
+docker/entrypoint.sh text eol=lf
+docker/healthcheck.sh text eol=lf
+*.sh text eol=lf
+Dockerfile text eol=lf

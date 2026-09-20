@@ -1,0 +1,816 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  WAREHOUSE_ACCOUNTANT
+  FIELD_DELEGATE
+  COLLECTOR_ACCOUNTANT
+}
+
+enum WarehouseType {
+  MAIN
+  BRANCH
+  VAN
+}
+
+enum InvoiceType {
+  CASH
+  DEBT
+  GIFT_PROMOTION
+  RETURN
+}
+
+enum InvoiceStatus {
+  COMPLETED
+  PENDING_APPROVAL
+  CANCELLED
+}
+
+enum StockMovementType {
+  RECEIVE
+  WRITE_OFF
+  TRANSFER_OUT
+  TRANSFER_IN
+  SALE
+  GIFT
+  RETURN
+  STORE_OUT
+  STORE_IN
+}
+
+enum StorePlacementDirection {
+  TO_STORE
+  FROM_STORE
+}
+
+enum StockTransferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum TransactionType {
+  SALE_PAYMENT
+  COLLECTION
+}
+
+enum ProductPriceCurrency {
+  IQD
+  USD
+  BOTH
+}
+
+enum DiscountRuleKind {
+  MONEY
+  PERCENT
+  GIFT
+  TIER_PRICE
+  SPECIAL
+}
+
+enum DiscountValueType {
+  PERCENT
+  MONEY
+}
+
+enum DiscountScope {
+  INVOICE
+  LINE
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  RECEIVED
+  CANCELLED
+}
+
+/// Company expense categories (Phase 7.5 CRUD; spoilage linked from 7.4 write-offs).
+enum ExpenseCategory {
+  RENT
+  FUEL
+  SALARIES
+  SPOILAGE
+  PURCHASE_FREIGHT
+  OTHER
+}
+
+/// Camera / gallery kinds — four capture contexts, not four devices.
+enum MediaKind {
+  STORE
+  PRODUCT
+  EMPLOYEE
+  STOCK
+}
+
+/// Singleton company branding + invoice numbering (id is always "default").
+model CompanyProfile {
+  id              String   @id @default("default")
+  nameEn          String   @default("Judi")
+  nameAr          String   @default("جودي")
+  nameCkb         String   @default("جودی")
+  taglineEn       String   @default("Distribution & Inventory ERP")
+  taglineAr       String   @default("نظام التوزيع والمخزون")
+  taglineCkb      String   @default("سیستەمی دابەشکردن و کۆگا")
+  address         String?
+  phone           String?
+  email           String?
+  taxId           String?
+  /// Public URL path for invoice logo (e.g. /api/media/file/….jpg). Null = default mark.
+  logoUrl         String?
+  invoicePrefix   String   @default("INV")
+  invoicePadWidth Int      @default(6)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model User {
+  id                  String        @id @default(uuid())
+  email               String        @unique
+  passwordHash        String
+  fullName            String
+  phone               String?
+  role                Role          @default(FIELD_DELEGATE)
+  maxDiscountAllowed  Decimal       @default(0.00) @db.Decimal(5, 2)
+  assignedWarehouseId String?
+  assignedWarehouse   Warehouse?    @relation(fields: [assignedWarehouseId], references: [id])
+  primaryMediaId      String?
+  primaryMedia        MediaAsset?   @relation("UserPrimaryMedia", fields: [primaryMediaId], references: [id], onDelete: SetNull)
+  mediaCaptured       MediaAsset[]  @relation("MediaCapturedBy")
+  invoicesCreated     Invoice[]
+  transactions        Transaction[]
+  auditLogs           AuditLog[]
+  stockMovements      StockMovement[]
+  stockAudits         StockAudit[]
+  transfersCreated    StockTransfer[]  @relation("TransferCreatedBy")
+  transfersDecided    StockTransfer[]  @relation("TransferDecidedBy")
+  purchaseOrdersCreated  PurchaseOrder[]   @relation("PurchaseCreatedBy")
+  purchaseOrdersReceived PurchaseOrder[]   @relation("PurchaseReceivedBy")
+  purchaseReceipts    PurchaseReceipt[]
+  storePlacements     StorePlacement[]
+  expensesCreated     Expense[]
+  notifications       UserNotification[] @relation("NotificationRecipient")
+  notificationsActed  UserNotification[] @relation("NotificationActor")
+  pushSubscriptions   PushSubscription[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@index([role])
+  @@index([assignedWarehouseId])
+  @@index([primaryMediaId])
+}
+
+model Warehouse {
+  id              String           @id @default(uuid())
+  name            Json
+  type            WarehouseType    @default(VAN)
+  licensePlate    String?
+  assignedUsers   User[]
+  inventories     StockInventory[]
+  stockMovements  StockMovement[]
+  stockAudits     StockAudit[]
+  invoices        Invoice[]
+  sourceTransfers StockTransfer[]  @relation("SourceWarehouse")
+  destTransfers   StockTransfer[]  @relation("DestinationWarehouse")
+  purchaseOrders  PurchaseOrder[]
+  purchaseReceipts PurchaseReceipt[]
+  storePlacements StorePlacement[]
+  stockLots       StockLot[]
+  expenses        Expense[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([type])
+}
+
+model ProductCategory {
+  id            String               @id @default(uuid())
+  name          Json
+  subcategories ProductSubcategory[]
+  products      Product[]
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+}
+
+model ProductSubcategory {
+  id         String          @id @default(uuid())
+  categoryId String
+  category   ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name       Json
+  products   Product[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([categoryId])
+}
+
+model Product {
+  id            String              @id @default(uuid())
+  sku           String              @unique
+  barcode       String?             @unique
+  name          Json
+  categoryId    String
+  category      ProductCategory     @relation(fields: [categoryId], references: [id])
+  subcategoryId String?
+  subcategory   ProductSubcategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+  priceCurrency ProductPriceCurrency @default(BOTH)
+  baseCost      Decimal             @db.Decimal(12, 4)
+  /// Optional hint for purchase/placement expiry (days from receive). Not enforced.
+  shelfLifeDays Int?
+  primaryMediaId String?
+  primaryMedia   MediaAsset?        @relation("ProductPrimaryMedia", fields: [primaryMediaId], references: [id], onDelete: SetNull)
+  units         ProductUnit[]
+  inventories   StockInventory[]
+  storeInventories StoreInventory[]
+  stockLots     StockLot[]
+  stockMovements StockMovement[]
+  stockAuditItems StockAuditItem[]
+  invoiceItems  InvoiceItem[]
+  transferItems StockTransferItem[]
+  purchaseOrderLines PurchaseOrderLine[]
+  storePlacementItems StorePlacementItem[]
+  expenses      Expense[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([sku])
+  @@index([barcode])
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([primaryMediaId])
+}
+
+model ProductUnit {
+  id              String        @id @default(uuid())
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  barcode         String?       @unique
+  unitName        Json
+  conversionRatio Decimal       @db.Decimal(10, 4)
+  isBaseUnit       Boolean       @default(false)
+  sellingPrice     Decimal       @db.Decimal(12, 4)
+  sellingPriceUsd  Decimal       @default(0) @db.Decimal(12, 4)
+  invoiceItems     InvoiceItem[]
+  stockMovements   StockMovement[]
+  transferItems    StockTransferItem[]
+  purchaseOrderLines PurchaseOrderLine[]
+  storePlacementItems StorePlacementItem[]
+
+  @@index([productId])
+  @@index([barcode])
+}
+
+model StockInventory {
+  id          String    @id @default(uuid())
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  baseQty        Decimal   @default(0.0000) @db.Decimal(14, 4)
+  customPrice    Decimal?  @db.Decimal(12, 4)
+  customPriceUsd Decimal?  @db.Decimal(12, 4)
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([warehouseId, productId])
+  @@index([warehouseId])
+  @@index([productId])
+}
+
+model Store {
+  id           String        @id @default(uuid())
+  storeName    String
+  ownerName    String?
+  phone        String
+  email        String?
+  address      String?
+  latitude     Float?
+  longitude    Float?
+  tier         String        @default("SUPERMARKET")
+  status       String        @default("ACTIVE")
+  creditLimit    Decimal       @default(0.00) @db.Decimal(14, 2)
+  currentDebt    Decimal       @default(0.00) @db.Decimal(14, 2)
+  creditLimitUsd Decimal       @default(0.00) @db.Decimal(14, 2)
+  currentDebtUsd Decimal       @default(0.00) @db.Decimal(14, 2)
+  primaryMediaId String?
+  primaryMedia   MediaAsset?   @relation("StorePrimaryMedia", fields: [primaryMediaId], references: [id], onDelete: SetNull)
+  invoices       Invoice[]
+  transactions Transaction[]
+  storeInventories StoreInventory[]
+  storePlacements  StorePlacement[]
+  stockLots        StockLot[]
+  expenses         Expense[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([phone])
+  @@index([storeName])
+  @@index([email])
+  @@index([status])
+  @@index([tier])
+  @@index([primaryMediaId])
+}
+
+model StoreInventory {
+  id        String   @id @default(uuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  baseQty   Decimal  @default(0.0000) @db.Decimal(14, 4)
+  updatedAt DateTime @updatedAt
+
+  @@unique([storeId, productId])
+  @@index([storeId])
+  @@index([productId])
+}
+
+model StorePlacement {
+  id          String                  @id @default(uuid())
+  storeId     String
+  store       Store                   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  warehouseId String
+  warehouse   Warehouse               @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  direction   StorePlacementDirection
+  createdById String
+  createdBy   User                    @relation(fields: [createdById], references: [id])
+  notes       String?
+  items       StorePlacementItem[]
+  movements   StockMovement[]
+  createdAt   DateTime                @default(now())
+
+  @@index([storeId, createdAt])
+  @@index([warehouseId, createdAt])
+  @@index([direction, createdAt])
+  @@index([createdById])
+}
+
+model StorePlacementItem {
+  id            String         @id @default(uuid())
+  placementId   String
+  placement     StorePlacement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product        @relation(fields: [productId], references: [id])
+  productUnitId String
+  productUnit   ProductUnit    @relation(fields: [productUnitId], references: [id])
+  quantity      Decimal        @db.Decimal(10, 2)
+  baseQuantity  Decimal        @db.Decimal(14, 4)
+  expiryDate    DateTime?      @db.Date
+  lotCode       String?
+
+  @@index([placementId])
+  @@index([productId])
+}
+
+model MediaAsset {
+  id           String    @id @default(uuid())
+  kind         MediaKind
+  entityType   String
+  entityId     String
+  url          String
+  fileName     String
+  caption      String?
+  isPrimary    Boolean   @default(false)
+  capturedById String
+  capturedBy   User      @relation("MediaCapturedBy", fields: [capturedById], references: [id])
+  primaryForUsers    User[]    @relation("UserPrimaryMedia")
+  primaryForProducts Product[] @relation("ProductPrimaryMedia")
+  primaryForStores   Store[]   @relation("StorePrimaryMedia")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([entityType, entityId])
+  @@index([kind])
+  @@index([capturedById])
+  @@index([createdAt])
+  @@index([fileName])
+}
+
+model Invoice {
+  id              String         @id @default(uuid())
+  invoiceNumber   String         @unique
+  storeId         String
+  store           Store          @relation(fields: [storeId], references: [id])
+  warehouseId     String
+  warehouse       Warehouse      @relation(fields: [warehouseId], references: [id])
+  createdById     String
+  createdBy       User           @relation(fields: [createdById], references: [id])
+  invoiceType     InvoiceType    @default(CASH)
+  status          InvoiceStatus  @default(COMPLETED)
+  subTotal        Decimal        @db.Decimal(14, 2)
+  discountPercent Decimal        @default(0.00) @db.Decimal(5, 2)
+  discountAmount  Decimal        @default(0.00) @db.Decimal(14, 2)
+  totalAmount     Decimal        @db.Decimal(14, 2)
+  paidAmount      Decimal        @default(0.00) @db.Decimal(14, 2)
+  debtAmount      Decimal        @default(0.00) @db.Decimal(14, 2)
+  currency        String         @default("IQD")
+  items           InvoiceItem[]
+  transactions    Transaction[]
+  createdAt       DateTime       @default(now())
+
+  @@index([storeId])
+  @@index([warehouseId])
+  @@index([createdById])
+  @@index([createdAt])
+  @@index([invoiceType])
+  @@index([storeId, createdAt, invoiceType])
+}
+
+model InvoiceItem {
+  id               String      @id @default(uuid())
+  invoiceId        String
+  invoice          Invoice     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId        String
+  product          Product     @relation(fields: [productId], references: [id])
+  productUnitId    String
+  productUnit      ProductUnit @relation(fields: [productUnitId], references: [id])
+  quantity         Decimal     @db.Decimal(10, 2)
+  baseUnitQuantity Decimal     @db.Decimal(14, 4)
+  unitPrice        Decimal     @db.Decimal(12, 4)
+  discountPercent  Decimal     @default(0.00) @db.Decimal(5, 2)
+  totalPrice       Decimal     @db.Decimal(14, 2)
+  isGift           Boolean     @default(false)
+
+  @@index([invoiceId])
+  @@index([productId])
+}
+
+model Transaction {
+  id            String          @id @default(uuid())
+  receiptNumber String          @unique
+  storeId       String
+  store         Store           @relation(fields: [storeId], references: [id])
+  invoiceId     String?
+  invoice       Invoice?        @relation(fields: [invoiceId], references: [id])
+  recordedById  String
+  recordedBy    User            @relation(fields: [recordedById], references: [id])
+  type          TransactionType @default(SALE_PAYMENT)
+  amount        Decimal         @db.Decimal(14, 2)
+  paymentMethod String          @default("CASH")
+  currency      String          @default("IQD")
+  notes         String?
+  createdAt     DateTime        @default(now())
+
+  @@index([storeId])
+  @@index([invoiceId])
+  @@index([createdAt])
+  @@index([type])
+  @@index([storeId, createdAt])
+}
+
+model StockTransfer {
+  id            String               @id @default(uuid())
+  sourceId      String
+  source        Warehouse            @relation("SourceWarehouse", fields: [sourceId], references: [id])
+  destinationId String
+  destination   Warehouse            @relation("DestinationWarehouse", fields: [destinationId], references: [id])
+  status        StockTransferStatus  @default(PENDING)
+  createdById   String
+  createdBy     User                 @relation("TransferCreatedBy", fields: [createdById], references: [id])
+  decidedById   String?
+  decidedBy     User?                @relation("TransferDecidedBy", fields: [decidedById], references: [id])
+  notes         String?
+  items         StockTransferItem[]
+  movements     StockMovement[]
+  createdAt     DateTime             @default(now())
+  decidedAt     DateTime?
+
+  @@index([status])
+  @@index([sourceId, createdAt])
+  @@index([destinationId, createdAt])
+}
+
+model StockTransferItem {
+  id            String       @id @default(uuid())
+  transferId    String
+  transfer      StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product       @relation(fields: [productId], references: [id])
+  productUnitId String
+  productUnit   ProductUnit   @relation(fields: [productUnitId], references: [id])
+  quantity      Decimal       @db.Decimal(10, 2)
+  baseQuantity  Decimal       @db.Decimal(14, 4)
+
+  @@index([transferId])
+  @@index([productId])
+}
+
+model StockMovement {
+  id            String             @id @default(uuid())
+  warehouseId   String
+  warehouse     Warehouse          @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product            @relation(fields: [productId], references: [id])
+  productUnitId String
+  productUnit   ProductUnit        @relation(fields: [productUnitId], references: [id])
+  recordedById  String
+  recordedBy    User               @relation(fields: [recordedById], references: [id])
+  transferId    String?
+  transfer      StockTransfer?     @relation(fields: [transferId], references: [id], onDelete: SetNull)
+  storePlacementId String?
+  storePlacement   StorePlacement? @relation(fields: [storePlacementId], references: [id], onDelete: SetNull)
+  type          StockMovementType
+  quantity      Decimal            @db.Decimal(10, 2)
+  baseQuantity  Decimal            @db.Decimal(14, 4)
+  notes         String?
+  lotMovements  StockLotMovement[]
+  createdAt     DateTime           @default(now())
+
+  @@index([warehouseId, createdAt])
+  @@index([productId, createdAt])
+  @@index([transferId])
+  @@index([storePlacementId])
+}
+
+/// Lot-aware inventory (FEFO). Either warehouseId or storeId is set (not both).
+model StockLot {
+  id               String             @id @default(uuid())
+  warehouseId      String?
+  warehouse        Warehouse?         @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  storeId          String?
+  store            Store?             @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  productId        String
+  product          Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  baseQty          Decimal            @default(0.0000) @db.Decimal(14, 4)
+  expiryDate       DateTime?          @db.Date
+  lotCode          String?
+  sourcePurchaseId String?
+  sourcePurchase   PurchaseOrder?     @relation(fields: [sourcePurchaseId], references: [id], onDelete: SetNull)
+  lotMovements     StockLotMovement[]
+  expenses         Expense[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([warehouseId, productId, expiryDate])
+  @@index([storeId, productId, expiryDate])
+  @@index([productId])
+  @@index([expiryDate])
+  @@index([lotCode])
+  @@index([sourcePurchaseId])
+}
+
+model StockLotMovement {
+  id              String        @id @default(uuid())
+  stockLotId      String
+  stockLot        StockLot      @relation(fields: [stockLotId], references: [id], onDelete: Cascade)
+  stockMovementId String
+  stockMovement   StockMovement @relation(fields: [stockMovementId], references: [id], onDelete: Cascade)
+  /// Positive base units moved into (+) or out of (−) the lot for this movement.
+  baseQuantity    Decimal       @db.Decimal(14, 4)
+
+  @@index([stockLotId])
+  @@index([stockMovementId])
+  @@unique([stockLotId, stockMovementId])
+}
+
+/// Company expense row — spoilage write-offs created in Phase 7.4; full CRUD in 7.5.
+model Expense {
+  id          String          @id @default(uuid())
+  date        DateTime        @db.Date
+  category    ExpenseCategory
+  amount      Decimal         @db.Decimal(14, 2)
+  currency    String          @default("IQD")
+  note        String?
+  productId   String?
+  product     Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  stockLotId  String?
+  stockLot    StockLot?       @relation(fields: [stockLotId], references: [id], onDelete: SetNull)
+  warehouseId String?
+  warehouse   Warehouse?      @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
+  storeId     String?
+  store       Store?          @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  createdById String
+  createdBy   User            @relation(fields: [createdById], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([date])
+  @@index([category])
+  @@index([productId])
+  @@index([stockLotId])
+  @@index([warehouseId])
+  @@index([storeId])
+  @@index([createdById])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String
+  entityType String
+  entityId   String
+  details    Json
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+}
+
+/// In-app + push alert for any logged-in employee (field or office).
+enum NotificationKind {
+  SYSTEM
+  INVOICE
+  COLLECTION
+  TRANSFER
+  STOCK
+  DEBT
+  USER
+}
+
+model UserNotification {
+  id         String           @id @default(uuid())
+  userId     String
+  user       User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  kind       NotificationKind @default(SYSTEM)
+  /// Localized { en, ar, ckb }
+  title      Json
+  /// Localized { en, ar, ckb }
+  body       Json?
+  href       String?
+  entityType String?
+  entityId   String?
+  thumbUrl   String?
+  actorId    String?
+  actor      User?            @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  readAt     DateTime?
+  createdAt  DateTime         @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+  @@index([kind])
+  @@index([entityType, entityId])
+}
+
+/// Web Push subscription — one row per device/browser (PWA install, shortcut, or tab).
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model StockAudit {
+  id          String           @id @default(uuid())
+  warehouseId String
+  warehouse   Warehouse        @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  auditDate   DateTime         @db.Date
+  recordedById String
+  recordedBy  User             @relation(fields: [recordedById], references: [id])
+  notes       String?
+  items       StockAuditItem[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([warehouseId, auditDate])
+  @@index([warehouseId, auditDate])
+}
+
+model StockAuditItem {
+  id              String     @id @default(uuid())
+  auditId         String
+  audit           StockAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product    @relation(fields: [productId], references: [id])
+  countedBaseQty  Decimal    @db.Decimal(14, 4)
+
+  @@unique([auditId, productId])
+  @@index([productId])
+}
+
+/// Admin discount / promo rules applied at invoice time (Phase 7.2).
+model DiscountRule {
+  id            String            @id @default(uuid())
+  name          String
+  kind          DiscountRuleKind
+  scope         DiscountScope     @default(INVOICE)
+  valueType     DiscountValueType @default(PERCENT)
+  /// Money amount, percent value, or suggested gift quantity (for GIFT).
+  amount        Decimal           @db.Decimal(14, 4)
+  /// For MONEY rules: IQD / USD; null = match invoice currency.
+  currency      String?
+  /// Empty = all store tiers (WHOLESALE / SUPERMARKET / MINIMARKET).
+  storeTiers    String[]          @default([])
+  /// Empty + empty categoryIds = all products (for LINE / GIFT / TIER_PRICE).
+  productIds    String[]          @default([])
+  categoryIds   String[]          @default([])
+  /// Inclusive window in absolute time (office enters Asia/Baghdad local).
+  startsAt      DateTime?
+  endsAt        DateTime?
+  priority      Int               @default(100)
+  active        Boolean           @default(true)
+  /// SPECIAL: can apply alongside gift suggestions (highest money/% still wins among peers).
+  stackWithGift Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([active])
+  @@index([priority])
+  @@index([startsAt, endsAt])
+  @@index([kind])
+}
+
+/// Vendor master for warehouse purchasing (Phase 7.3A).
+model Supplier {
+  id             String          @id @default(uuid())
+  name           String
+  phone          String?
+  email          String?
+  address        String?
+  notes          String?
+  active         Boolean         @default(true)
+  purchaseOrders PurchaseOrder[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([name])
+  @@index([active])
+  @@index([phone])
+}
+
+/// Supplier purchase into a warehouse — draft until received into stock.
+model PurchaseOrder {
+  id            String              @id @default(uuid())
+  orderNumber   String              @unique
+  supplierId    String
+  supplier      Supplier            @relation(fields: [supplierId], references: [id])
+  warehouseId   String
+  warehouse     Warehouse           @relation(fields: [warehouseId], references: [id])
+  status        PurchaseOrderStatus @default(DRAFT)
+  /// Default currency for new lines; each line may override.
+  currency      String              @default("IQD")
+  notes         String?
+  createdById   String
+  createdBy     User                @relation("PurchaseCreatedBy", fields: [createdById], references: [id])
+  receivedById  String?
+  receivedBy    User?               @relation("PurchaseReceivedBy", fields: [receivedById], references: [id], onDelete: SetNull)
+  receivedAt    DateTime?
+  lines         PurchaseOrderLine[]
+  receipt       PurchaseReceipt?
+  stockLots     StockLot[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([supplierId])
+  @@index([warehouseId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([createdById])
+}
+
+model PurchaseOrderLine {
+  id              String        @id @default(uuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id])
+  productUnitId   String
+  productUnit     ProductUnit   @relation(fields: [productUnitId], references: [id])
+  quantity        Decimal       @db.Decimal(10, 2)
+  unitCost        Decimal       @db.Decimal(12, 4)
+  currency        String        @default("IQD")
+  /// Lot / expiry carried into stock receive (feeds Phase 7.4 StockLot).
+  expiryDate      DateTime?     @db.Date
+  lotCode         String?
+  /// Filled on receive.
+  baseQuantity    Decimal?      @db.Decimal(14, 4)
+  stockMovementId String?
+
+  @@index([purchaseOrderId])
+  @@index([productId])
+  @@index([productUnitId])
+  @@index([lotCode])
+  @@index([expiryDate])
+}
+
+/// Posted receive document created when a purchase order is received into warehouse stock.
+model PurchaseReceipt {
+  id              String        @id @default(uuid())
+  receiptNumber   String        @unique
+  purchaseOrderId String        @unique
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  warehouseId     String
+  warehouse       Warehouse     @relation(fields: [warehouseId], references: [id])
+  receivedById    String
+  receivedBy      User          @relation(fields: [receivedById], references: [id])
+  notes           String?
+  receivedAt      DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+
+  @@index([warehouseId])
+  @@index([receivedAt])
+  @@index([receivedById])
+}
+

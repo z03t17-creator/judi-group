@@ -1,0 +1,781 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --canvas: 250 250 249; /* stone-50 */
+  --surface: 255 255 255;
+  --muted: 245 245 244; /* stone-100 */
+  --fg: 28 25 23; /* stone-900 */
+  --fg-muted: 87 83 78; /* stone-600 */
+  --fg-subtle: 120 113 108; /* stone-500 */
+  --line: 231 229 228; /* stone-200 */
+  --line-strong: 214 211 209; /* stone-300 */
+  --chart-grid: 231 229 228;
+  --chart-axis: 120 113 108;
+  --chart-tooltip-bg: 255 255 255;
+  --chart-tooltip-fg: 28 25 23;
+  --chart-2: 37 99 235; /* blue-600 */
+  --chart-3: 217 119 6; /* amber-600 */
+  --accent: 45 110 98; /* judi-600 */
+  --accent-soft: 220 238 230; /* judi-100 */
+  --success: 4 120 87; /* emerald-700 */
+  --success-soft: 209 250 229;
+  --success-fg: 6 78 59;
+  --warning: 180 83 9; /* amber-700 */
+  --warning-soft: 254 243 199;
+  --warning-fg: 120 53 15;
+  --danger: 190 18 60; /* rose-700 */
+  --danger-soft: 255 228 230;
+  --danger-fg: 136 19 55;
+  --info: 29 78 216; /* blue-700 */
+  --info-soft: 219 234 254;
+  --info-fg: 30 64 175;
+  --btn-important: 45 110 98;
+  --btn-important-hover: 39 88 80;
+  --btn-important-fg: 255 255 255;
+  --btn-regular: 255 255 255;
+  --btn-regular-hover: 245 245 244;
+  --btn-regular-fg: 28 25 23;
+  --btn-regular-border: 214 211 209;
+  --btn-success: 5 150 105;
+  --btn-success-hover: 4 120 87;
+  --btn-success-fg: 255 255 255;
+  --btn-danger: 225 29 72;
+  --btn-danger-hover: 190 18 60;
+  --btn-danger-fg: 255 255 255;
+  --btn-warning: 217 119 6;
+  --btn-warning-hover: 180 83 9;
+  --btn-warning-fg: 255 255 255;
+  --btn-info: 37 99 235;
+  --btn-info-hover: 29 78 216;
+  --btn-info-fg: 255 255 255;
+  color-scheme: light;
+}
+
+.dark {
+  --canvas: 15 36 34; /* judi-950 */
+  --surface: 35 71 66; /* judi-800 */
+  --muted: 39 88 80; /* judi-700 */
+  --fg: 240 247 244; /* judi-50 */
+  --fg-muted: 183 221 208; /* judi-200 */
+  --fg-subtle: 134 196 179; /* judi-300 */
+  --line: 39 88 80; /* judi-700 */
+  --line-strong: 45 110 98; /* judi-600 */
+  --chart-grid: 45 110 98;
+  --chart-axis: 183 221 208;
+  --chart-tooltip-bg: 35 71 66;
+  --chart-tooltip-fg: 240 247 244;
+  --chart-2: 96 165 250;
+  --chart-3: 251 191 36;
+  --accent: 86 165 146; /* judi-400 */
+  --accent-soft: 39 88 80; /* judi-700 */
+  --success: 52 211 153;
+  --success-soft: 6 78 59;
+  --success-fg: 167 243 208;
+  --warning: 251 191 36;
+  --warning-soft: 120 53 15;
+  --warning-fg: 253 230 138;
+  --danger: 251 113 133;
+  --danger-soft: 136 19 55;
+  --danger-fg: 254 205 211;
+  --info: 96 165 250;
+  --info-soft: 30 58 138;
+  --info-fg: 191 219 254;
+  --btn-important: 86 165 146;
+  --btn-important-hover: 134 196 179;
+  --btn-important-fg: 15 36 34;
+  --btn-regular: 35 71 66;
+  --btn-regular-hover: 39 88 80;
+  --btn-regular-fg: 240 247 244;
+  --btn-regular-border: 45 110 98;
+  --btn-success: 52 211 153;
+  --btn-success-hover: 110 231 183;
+  --btn-success-fg: 6 78 59;
+  --btn-danger: 251 113 133;
+  --btn-danger-hover: 253 164 175;
+  --btn-danger-fg: 136 19 55;
+  --btn-warning: 251 191 36;
+  --btn-warning-hover: 252 211 77;
+  --btn-warning-fg: 120 53 15;
+  --btn-info: 96 165 250;
+  --btn-info-hover: 147 197 253;
+  --btn-info-fg: 30 58 138;
+  color-scheme: dark;
+}
+
+html {
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: clip;
+}
+
+html[data-density="comfortable"] {
+  font-size: 16px;
+}
+
+html[data-density="compact"] {
+  font-size: 14px;
+}
+
+body {
+  @apply bg-canvas text-fg antialiased;
+  font-variant-numeric: lining-nums tabular-nums;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+/* Instant taps on phone / tablet — skip the 300ms delay and sticky-hover. */
+button,
+a,
+[role="button"],
+summary,
+label,
+select,
+input,
+textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgb(45 110 98 / 0.2);
+}
+
+@media (pointer: coarse) {
+  button:active,
+  a:active,
+  [role="button"]:active {
+    opacity: 0.82;
+  }
+}
+
+[dir="rtl"] .nav-progress {
+  transform-origin: right;
+}
+
+@keyframes nav-progress-run {
+  0% {
+    transform: scaleX(0.12);
+  }
+  50% {
+    transform: scaleX(0.72);
+  }
+  100% {
+    transform: scaleX(0.94);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:focus-visible {
+  @apply outline outline-2 outline-offset-2 outline-judi-600;
+}
+
+/* -------------------------------------------------------------------------- */
+/* DISPLAY — shared responsive / touch / thumbnail system                     */
+/* Breakpoints (Tailwind defaults): phone <sm · tablet sm–lg · desktop lg+    */
+/* -------------------------------------------------------------------------- */
+
+@layer components {
+  /**
+   * Thumbnails — use via <Thumb /> / <EntityAvatar /> or these classes.
+   * xs 32px table · sm 48px list · md 72px card · lg 112px hero
+   */
+  .thumb {
+    @apply inline-flex shrink-0 items-center justify-center overflow-hidden border border-line bg-muted text-fg-muted;
+  }
+
+  .thumb-xs {
+    @apply size-thumb-xs;
+  }
+
+  .thumb-sm {
+    @apply size-thumb-sm;
+  }
+
+  .thumb-md {
+    @apply size-thumb-md;
+  }
+
+  .thumb-lg {
+    @apply size-thumb-lg;
+  }
+
+  .thumb-placeholder {
+    @apply bg-muted text-accent;
+  }
+
+  /**
+   * Main content column — breathe on phone, cap ultrawide (~1280).
+   * `.page-frame` is the shell alias; `.page-content` for page-level wrappers.
+   * Horizontal padding uses max(token, safe-area) so notches never clip content.
+   */
+  .page-frame,
+  .page-content {
+    @apply mx-auto w-full max-w-content;
+    padding-inline-start: max(1rem, env(safe-area-inset-left, 0px));
+    padding-inline-end: max(1rem, env(safe-area-inset-right, 0px));
+  }
+
+  .page-frame-field {
+    @apply mx-auto w-full max-w-content py-3 sm:py-5;
+    padding-inline-start: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-inline-end: max(0.75rem, env(safe-area-inset-right, 0px));
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 640px) {
+    .page-frame,
+    .page-content,
+    .page-frame-field {
+      padding-inline-start: max(1.5rem, env(safe-area-inset-left, 0px));
+      padding-inline-end: max(1.5rem, env(safe-area-inset-right, 0px));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .page-frame,
+    .page-content,
+    .page-frame-field {
+      padding-inline-start: max(2rem, env(safe-area-inset-left, 0px));
+      padding-inline-end: max(2rem, env(safe-area-inset-right, 0px));
+    }
+  }
+
+  /** Directory / form section surfaces */
+  .surface-panel {
+    @apply overflow-hidden rounded-2xl border border-line bg-surface shadow-sm;
+  }
+
+  /** Horizontal filter / chip row with scroll affordance on phone */
+  .chip-scroll {
+    @apply flex gap-2 overflow-x-auto overscroll-x-contain pb-1;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  /**
+   * Sticky primary actions on long forms (Save / Submit) — thumb reach on phone.
+   * Use `.sticky-cta-field` / `.sticky-form-actions-field` above field bottom nav.
+   */
+  .sticky-cta,
+  .sticky-form-actions {
+    @apply sticky bottom-0 z-10 border-t border-line bg-surface/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-surface/80;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .sticky-cta-field,
+  .sticky-form-actions-field {
+    bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /** Directory: card list on small screens; denser table from lg */
+  .directory-cards {
+    @apply flex flex-col gap-2 lg:hidden;
+  }
+
+  .directory-table {
+    @apply hidden lg:block;
+  }
+
+  /** KPI / dashboard grid: 1 → 2 → 4 */
+  .kpi-grid {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4;
+  }
+
+  /** Field OSFA tiles: dense 2×N phone, roomier tablet+ */
+  .field-tile-grid {
+    @apply grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4;
+  }
+
+  /** Dense money rows: cards on phone, table from md */
+  .money-table-desktop {
+    @apply hidden md:table;
+  }
+
+  .money-cards-mobile {
+    @apply space-y-3 md:hidden;
+  }
+
+  /**
+   * Buttons — important (primary CTA) vs regular (secondary).
+   * Pair with a tone: .btn-important · .btn-regular · .btn-success ·
+   * .btn-danger · .btn-warning · .btn-info · .btn-ghost
+   */
+  .btn {
+    @apply inline-flex min-h-touch shrink-0 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors duration-150;
+    @apply disabled:pointer-events-none disabled:opacity-55;
+  }
+
+  .btn-sm {
+    @apply h-10 min-h-10 rounded-lg px-3 text-xs;
+  }
+
+  .btn-lg {
+    @apply min-h-12 px-5 text-base;
+  }
+
+  .btn-important,
+  .btn-primary {
+    background-color: rgb(var(--btn-important));
+    color: rgb(var(--btn-important-fg));
+  }
+
+  .btn-important:hover,
+  .btn-primary:hover {
+    background-color: rgb(var(--btn-important-hover));
+  }
+
+  .btn-regular,
+  .btn-secondary {
+    background-color: rgb(var(--btn-regular));
+    color: rgb(var(--btn-regular-fg));
+    border: 1px solid rgb(var(--btn-regular-border));
+    font-weight: 500;
+  }
+
+  .btn-regular:hover,
+  .btn-secondary:hover {
+    background-color: rgb(var(--btn-regular-hover));
+  }
+
+  .btn-success {
+    background-color: rgb(var(--btn-success));
+    color: rgb(var(--btn-success-fg));
+  }
+
+  .btn-success:hover {
+    background-color: rgb(var(--btn-success-hover));
+  }
+
+  .btn-danger {
+    background-color: rgb(var(--btn-danger));
+    color: rgb(var(--btn-danger-fg));
+  }
+
+  .btn-danger:hover {
+    background-color: rgb(var(--btn-danger-hover));
+  }
+
+  .btn-warning {
+    background-color: rgb(var(--btn-warning));
+    color: rgb(var(--btn-warning-fg));
+  }
+
+  .btn-warning:hover {
+    background-color: rgb(var(--btn-warning-hover));
+  }
+
+  .btn-info {
+    background-color: rgb(var(--btn-info));
+    color: rgb(var(--btn-info-fg));
+  }
+
+  .btn-info:hover {
+    background-color: rgb(var(--btn-info-hover));
+  }
+
+  .btn-ghost {
+    background-color: transparent;
+    color: rgb(var(--fg-muted));
+    font-weight: 500;
+  }
+
+  .btn-ghost:hover {
+    background-color: rgb(var(--muted));
+    color: rgb(var(--fg));
+  }
+
+  .btn-danger-outline {
+    background-color: transparent;
+    color: rgb(var(--danger-fg));
+    border: 1px solid rgb(var(--danger));
+    font-weight: 600;
+  }
+
+  .btn-danger-outline:hover {
+    background-color: rgb(var(--danger-soft));
+  }
+
+  .chip {
+    @apply inline-flex min-h-touch shrink-0 items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-medium transition-colors;
+  }
+
+  .chip-sm {
+    @apply h-10 min-h-10 rounded-lg px-2.5 text-xs;
+  }
+
+  .chip-on,
+  .seg-on {
+    background-color: rgb(var(--btn-important));
+    color: rgb(var(--btn-important-fg));
+    border-color: transparent;
+  }
+
+  .chip-off,
+  .seg-off {
+    background-color: rgb(var(--muted));
+    color: rgb(var(--fg));
+    border: 1px solid rgb(var(--line-strong));
+  }
+
+  .chip-off:hover,
+  .seg-off:hover {
+    background-color: rgb(var(--surface));
+  }
+
+  .icon-badge {
+    @apply inline-flex shrink-0 items-center justify-center rounded-xl;
+  }
+
+  .icon-badge-sm {
+    @apply size-8 rounded-lg;
+  }
+
+  .icon-badge-md {
+    @apply size-10;
+  }
+
+  .icon-badge-lg {
+    @apply size-12 rounded-2xl;
+  }
+
+  .tone-teal {
+    @apply bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-200;
+  }
+
+  .tone-sky {
+    @apply bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-200;
+  }
+
+  .tone-indigo {
+    @apply bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-200;
+  }
+
+  .tone-violet {
+    @apply bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-200;
+  }
+
+  .tone-amber {
+    @apply bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200;
+  }
+
+  .tone-rose {
+    @apply bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-200;
+  }
+
+  .tone-emerald {
+    @apply bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200;
+  }
+
+  .tone-orange {
+    @apply bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-200;
+  }
+
+  .tone-cyan {
+    @apply bg-cyan-100 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-200;
+  }
+
+  .tone-slate {
+    @apply bg-slate-100 text-slate-700 dark:bg-slate-800/80 dark:text-slate-200;
+  }
+
+  .tone-fuchsia {
+    @apply bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-950/60 dark:text-fuchsia-200;
+  }
+
+  .tone-lime {
+    @apply bg-lime-100 text-lime-800 dark:bg-lime-950/60 dark:text-lime-200;
+  }
+
+  .tone-blue {
+    @apply bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-200;
+  }
+
+  .card-tone-teal {
+    @apply border-teal-200 bg-gradient-to-br from-surface to-teal-50 dark:border-teal-800 dark:from-surface dark:to-teal-950/40;
+  }
+
+  .card-tone-sky {
+    @apply border-sky-200 bg-gradient-to-br from-surface to-sky-50 dark:border-sky-800 dark:from-surface dark:to-sky-950/40;
+  }
+
+  .card-tone-indigo {
+    @apply border-indigo-200 bg-gradient-to-br from-surface to-indigo-50 dark:border-indigo-800 dark:from-surface dark:to-indigo-950/40;
+  }
+
+  .card-tone-violet {
+    @apply border-violet-200 bg-gradient-to-br from-surface to-violet-50 dark:border-violet-800 dark:from-surface dark:to-violet-950/40;
+  }
+
+  .card-tone-amber {
+    @apply border-amber-200 bg-gradient-to-br from-surface to-amber-50 dark:border-amber-800 dark:from-surface dark:to-amber-950/40;
+  }
+
+  .card-tone-rose {
+    @apply border-rose-200 bg-gradient-to-br from-surface to-rose-50 dark:border-rose-800 dark:from-surface dark:to-rose-950/40;
+  }
+
+  .card-tone-emerald {
+    @apply border-emerald-200 bg-gradient-to-br from-surface to-emerald-50 dark:border-emerald-800 dark:from-surface dark:to-emerald-950/40;
+  }
+
+  .card-tone-orange {
+    @apply border-orange-200 bg-gradient-to-br from-surface to-orange-50 dark:border-orange-800 dark:from-surface dark:to-orange-950/40;
+  }
+
+  .card-tone-cyan {
+    @apply border-cyan-200 bg-gradient-to-br from-surface to-cyan-50 dark:border-cyan-800 dark:from-surface dark:to-cyan-950/40;
+  }
+
+  .card-tone-slate {
+    @apply border-slate-200 bg-gradient-to-br from-surface to-slate-50 dark:border-slate-700 dark:from-surface dark:to-slate-900/40;
+  }
+
+  .card-tone-fuchsia {
+    @apply border-fuchsia-200 bg-gradient-to-br from-surface to-fuchsia-50 dark:border-fuchsia-800 dark:from-surface dark:to-fuchsia-950/40;
+  }
+
+  .card-tone-lime {
+    @apply border-lime-200 bg-gradient-to-br from-surface to-lime-50 dark:border-lime-800 dark:from-surface dark:to-lime-950/40;
+  }
+
+  .card-tone-blue {
+    @apply border-blue-200 bg-gradient-to-br from-surface to-blue-50 dark:border-blue-800 dark:from-surface dark:to-blue-950/40;
+  }
+
+  .tile-tone-teal {
+    @apply border-teal-200 hover:border-teal-500 hover:bg-teal-50/80 dark:border-teal-800 dark:hover:bg-teal-950/40;
+  }
+
+  .tile-tone-sky {
+    @apply border-sky-200 hover:border-sky-500 hover:bg-sky-50/80 dark:border-sky-800 dark:hover:bg-sky-950/40;
+  }
+
+  .tile-tone-indigo {
+    @apply border-indigo-200 hover:border-indigo-500 hover:bg-indigo-50/80 dark:border-indigo-800 dark:hover:bg-indigo-950/40;
+  }
+
+  .tile-tone-violet {
+    @apply border-violet-200 hover:border-violet-500 hover:bg-violet-50/80 dark:border-violet-800 dark:hover:bg-violet-950/40;
+  }
+
+  .tile-tone-amber {
+    @apply border-amber-200 hover:border-amber-500 hover:bg-amber-50/80 dark:border-amber-800 dark:hover:bg-amber-950/40;
+  }
+
+  .tile-tone-rose {
+    @apply border-rose-200 hover:border-rose-500 hover:bg-rose-50/80 dark:border-rose-800 dark:hover:bg-rose-950/40;
+  }
+
+  .tile-tone-emerald {
+    @apply border-emerald-200 hover:border-emerald-500 hover:bg-emerald-50/80 dark:border-emerald-800 dark:hover:bg-emerald-950/40;
+  }
+
+  .tile-tone-orange {
+    @apply border-orange-200 hover:border-orange-500 hover:bg-orange-50/80 dark:border-orange-800 dark:hover:bg-orange-950/40;
+  }
+
+  .tile-tone-cyan {
+    @apply border-cyan-200 hover:border-cyan-500 hover:bg-cyan-50/80 dark:border-cyan-800 dark:hover:bg-cyan-950/40;
+  }
+
+  .tile-tone-slate {
+    @apply border-slate-200 hover:border-slate-400 hover:bg-slate-50/80 dark:border-slate-700 dark:hover:bg-slate-800/50;
+  }
+
+  .tile-tone-fuchsia {
+    @apply border-fuchsia-200 hover:border-fuchsia-500 hover:bg-fuchsia-50/80 dark:border-fuchsia-800 dark:hover:bg-fuchsia-950/40;
+  }
+
+  .tile-tone-lime {
+    @apply border-lime-200 hover:border-lime-500 hover:bg-lime-50/80 dark:border-lime-800 dark:hover:bg-lime-950/40;
+  }
+
+  .tile-tone-blue {
+    @apply border-blue-200 hover:border-blue-500 hover:bg-blue-50/80 dark:border-blue-800 dark:hover:bg-blue-950/40;
+  }
+
+  .nav-icon-teal {
+    @apply text-teal-300;
+  }
+
+  .nav-icon-sky {
+    @apply text-sky-300;
+  }
+
+  .nav-icon-indigo {
+    @apply text-indigo-300;
+  }
+
+  .nav-icon-violet {
+    @apply text-violet-300;
+  }
+
+  .nav-icon-amber {
+    @apply text-amber-300;
+  }
+
+  .nav-icon-rose {
+    @apply text-rose-300;
+  }
+
+  .nav-icon-emerald {
+    @apply text-emerald-300;
+  }
+
+  .nav-icon-orange {
+    @apply text-orange-300;
+  }
+
+  .nav-icon-cyan {
+    @apply text-cyan-300;
+  }
+
+  .nav-icon-slate {
+    @apply text-slate-300;
+  }
+
+  .nav-icon-fuchsia {
+    @apply text-fuchsia-300;
+  }
+
+  .nav-icon-lime {
+    @apply text-lime-300;
+  }
+
+  .nav-icon-blue {
+    @apply text-blue-300;
+  }
+
+  .chrome-btn {
+    @apply inline-flex size-10 shrink-0 items-center justify-center rounded-full text-white shadow-inner ring-1 transition-colors lg:size-12;
+  }
+
+  .chrome-btn-alerts {
+    @apply bg-amber-600 ring-amber-400/50 hover:bg-amber-500;
+  }
+
+  .chrome-btn-theme {
+    @apply bg-indigo-600 ring-indigo-400/50 hover:bg-indigo-500;
+  }
+
+  .chrome-btn-accent {
+    @apply bg-judi-700 ring-judi-500/50 hover:bg-judi-600;
+  }
+
+  .tab-teal {
+    @apply text-teal-700 dark:text-teal-300;
+  }
+
+  .tab-sky {
+    @apply text-sky-700 dark:text-sky-300;
+  }
+
+  .tab-indigo {
+    @apply text-indigo-700 dark:text-indigo-300;
+  }
+
+  .tab-violet {
+    @apply text-violet-700 dark:text-violet-300;
+  }
+
+  .tab-amber {
+    @apply text-amber-700 dark:text-amber-300;
+  }
+
+  .tab-emerald {
+    @apply text-emerald-700 dark:text-emerald-300;
+  }
+
+  .tab-rose {
+    @apply text-rose-700 dark:text-rose-300;
+  }
+
+  .tab-muted {
+    @apply text-fg-subtle hover:text-fg;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .receipt-print,
+  .receipt-print *,
+  .statement-print,
+  .statement-print *,
+  .invoice-print,
+  .invoice-print *,
+  .barcode-label-print,
+  .barcode-label-print * {
+    visibility: visible;
+  }
+
+  .receipt-print {
+    position: absolute;
+    inset: 0;
+    width: 58mm;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .statement-print,
+  .invoice-print {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    border: 0;
+    box-shadow: none;
+    padding: 12mm;
+  }
+
+  .invoice-print {
+    background: #fff !important;
+    color: #1c1917 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .invoice-print,
+  .invoice-print h1,
+  .invoice-print h2,
+  .invoice-print p,
+  .invoice-print span,
+  .invoice-print td,
+  .invoice-print th {
+    color: #1c1917 !important;
+  }
+
+  .invoice-print .border-line,
+  .invoice-print .border-b {
+    border-color: #d6d3d1 !important;
+  }
+
+  .barcode-label-print {
+    position: absolute;
+    inset: 0;
+    width: 50mm;
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 2mm !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
