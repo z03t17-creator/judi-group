@@ -122,7 +122,7 @@
                     <article class="device-card">
                         <div>
                             <strong>{{ $req->user?->name }}</strong>
-                            <p class="muted">{{ \App\Support\DeviceFingerprint::shortLabel($req->user_agent) }} · {{ $req->ip_address }}</p>
+                            <p class="muted">{{ \App\Support\DeviceFingerprint::shortLabel($req->user_agent) }} · {{ __('ui.device_ip') }}: <strong dir="ltr">{{ $req->ip_address }}</strong></p>
                             <p class="device-card__code" dir="ltr">{{ __('ui.device_code') }}: <strong>{{ $req->code }}</strong></p>
                         </div>
                         <form method="POST" action="{{ route('settings.devices.approve', $req) }}" class="device-card__actions">
@@ -156,6 +156,12 @@
         {{-- My devices --}}
         <section class="surface-panel settings-card settings-card--wide" aria-labelledby="settings-my-devices">
             <h2 id="settings-my-devices">{{ __('ui.my_devices') }}</h2>
+            @if ($myDevices->count() > 1)
+                <form method="POST" action="{{ route('settings.devices.revoke_others') }}" class="mb-3" onsubmit="return confirm(@json(__('ui.device_revoke_others_confirm')))">
+                    @csrf
+                    <button type="submit" class="btn btn--ghost">{{ __('ui.device_revoke_others') }}</button>
+                </form>
+            @endif
             @forelse ($myDevices as $device)
                 <article class="device-card">
                     <div>
@@ -163,20 +169,72 @@
                         @if ($device->device_token === $currentDevice)
                             <span class="chip">{{ __('ui.device_this') }}</span>
                         @endif
-                        <p class="muted" dir="ltr">{{ $device->last_seen_at?->format('Y-m-d H:i') }} · {{ $device->ip_address }}</p>
+                        <p class="muted" dir="ltr">
+                            {{ __('ui.device_last_seen') }}: {{ $device->last_seen_at?->format('Y-m-d H:i') }}
+                            · {{ __('ui.device_ip') }}: <strong>{{ $device->ip_address ?: '—' }}</strong>
+                        </p>
                     </div>
-                    @if ($device->device_token !== $currentDevice)
-                        <form method="POST" action="{{ route('settings.devices.revoke', $device) }}" onsubmit="return confirm(@json(__('ui.device_revoke_confirm')))">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn--ghost">{{ __('ui.device_revoke') }}</button>
-                        </form>
-                    @endif
+                    <form
+                        method="POST"
+                        action="{{ route('settings.devices.revoke', $device) }}"
+                        onsubmit="return confirm(@json($device->device_token === $currentDevice ? __('ui.device_revoke_current_confirm') : __('ui.device_revoke_confirm')))"
+                    >
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn--ghost">{{ __('ui.device_revoke') }}</button>
+                    </form>
                 </article>
             @empty
                 <p class="muted">{{ __('ui.my_devices_empty') }}</p>
             @endforelse
         </section>
+
+        @if (auth()->user()->isAdmin())
+            <section class="surface-panel settings-card settings-card--wide" aria-labelledby="settings-all-devices">
+                <h2 id="settings-all-devices">{{ __('ui.all_user_devices') }}</h2>
+                <p class="muted">{{ __('ui.all_user_devices_hint') }}</p>
+                @php
+                    $devicesByUser = $allDevices->groupBy('user_id');
+                @endphp
+                @forelse ($devicesByUser as $userId => $devices)
+                    @php $owner = $devices->first()?->user; @endphp
+                    <div class="device-card device-card--group">
+                        <div class="device-card__head">
+                            <strong>{{ $owner?->name ?? __('ui.device_unknown') }}</strong>
+                            <span class="muted" dir="ltr">{{ $owner?->email }}</span>
+                            @if ($owner)
+                                <form method="POST" action="{{ route('settings.devices.revoke_user_all', $owner) }}" onsubmit="return confirm(@json(__('ui.device_revoke_user_all_confirm')))">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn--ghost">{{ __('ui.device_revoke_user_all') }}</button>
+                                </form>
+                            @endif
+                        </div>
+                        @foreach ($devices as $device)
+                            <article class="device-card device-card--nested">
+                                <div>
+                                    <strong>{{ $device->label ?: __('ui.device_unknown') }}</strong>
+                                    @if ($owner && $device->user_id === auth()->id() && $device->device_token === $currentDevice)
+                                        <span class="chip">{{ __('ui.device_this') }}</span>
+                                    @endif
+                                    <p class="muted" dir="ltr">
+                                        {{ __('ui.device_last_seen') }}: {{ $device->last_seen_at?->format('Y-m-d H:i') }}
+                                        · {{ __('ui.device_ip') }}: <strong>{{ $device->ip_address ?: '—' }}</strong>
+                                    </p>
+                                </div>
+                                <form method="POST" action="{{ route('settings.devices.revoke', $device) }}" onsubmit="return confirm(@json(__('ui.device_revoke_confirm')))">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn--ghost">{{ __('ui.device_revoke') }}</button>
+                                </form>
+                            </article>
+                        @endforeach
+                    </div>
+                @empty
+                    <p class="muted">{{ __('ui.all_user_devices_empty') }}</p>
+                @endforelse
+            </section>
+        @endif
     </div>
 </section>
 @endsection

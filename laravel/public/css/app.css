@@ -5274,6 +5274,36 @@ html[dir="rtl"] .notif-list__item.is-unread {
   align-items: flex-end;
 }
 
+.device-card--group {
+  display: block;
+  border: 1px solid rgb(var(--line));
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.device-card--group:last-child {
+  margin-bottom: 0;
+}
+
+.device-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.device-card--nested {
+  border-bottom: 1px dashed rgb(var(--line));
+  padding-inline-start: 0.25rem;
+}
+
+.device-card--nested:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
 .field--inline {
   min-width: 8rem;
 }

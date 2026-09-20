@@ -18,13 +18,13 @@ class DevicePendingController extends Controller
     public function show(Request $request): View|RedirectResponse|Response
     {
         $user = $request->user();
-        $token = DeviceFingerprint::token($request);
+        $token = DeviceFingerprint::token($request, $user);
 
         if (DeviceGuard::isApproved($user, $token)) {
             $request->session()->forget('device_pending_id');
 
             return redirect()->route('home')
-                ->withCookie(DeviceFingerprint::queueCookie($token));
+                ->withCookie(DeviceFingerprint::queueCookie($token, $user->id));
         }
 
         $pendingId = $request->session()->get('device_pending_id');
@@ -48,7 +48,7 @@ class DevicePendingController extends Controller
                 $request->session()->put('device_pending_id', $pending->id);
             } else {
                 return redirect()->route('home')
-                    ->withCookie(DeviceFingerprint::queueCookie($token));
+                    ->withCookie(DeviceFingerprint::queueCookie($token, $user->id));
             }
         }
 
@@ -57,13 +57,13 @@ class DevicePendingController extends Controller
                 'pending' => $pending,
                 'deviceLabel' => DeviceFingerprint::shortLabel($pending->user_agent),
             ])
-            ->withCookie(DeviceFingerprint::queueCookie($token));
+            ->withCookie(DeviceFingerprint::queueCookie($token, $user->id));
     }
 
     public function poll(Request $request): JsonResponse
     {
         $user = $request->user();
-        $token = DeviceFingerprint::token($request);
+        $token = DeviceFingerprint::token($request, $user);
 
         if (DeviceGuard::isApproved($user, $token)) {
             $request->session()->forget('device_pending_id');

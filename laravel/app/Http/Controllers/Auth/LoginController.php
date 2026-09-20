@@ -50,8 +50,8 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        $token = DeviceFingerprint::token($request);
-        $request->session()->put(DeviceFingerprint::SESSION_KEY, $token);
+        $token = DeviceFingerprint::token($request, $user);
+        $request->session()->put(DeviceFingerprint::sessionKey($user->id), $token);
         $pending = DeviceGuard::afterLogin($user, $request, $token);
 
         $response = $pending
@@ -62,15 +62,23 @@ class LoginController extends Controller
             $request->session()->put('device_pending_id', $pending->id);
         }
 
-        return $response->withCookie(DeviceFingerprint::queueCookie($token));
+        return $response->withCookie(DeviceFingerprint::queueCookie($token, $user->id));
     }
 
     public function destroy(Request $request): RedirectResponse
     {
+        $userId = $request->user()?->id;
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        $redirect = redirect()->route('login');
+
+        if ($userId) {
+            $redirect = $redirect->withCookie(DeviceFingerprint::forgetCookie($userId));
+        }
+
+        return $redirect;
     }
 }

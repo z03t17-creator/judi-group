@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AppNotification;
 use App\Models\AppNotificationRead;
 use App\Models\DeviceLoginRequest;
+use App\Models\User;
 use App\Models\UserDevice;
 use App\Support\DatabaseBackup;
 use App\Support\DeviceFingerprint;
@@ -12,6 +13,7 @@ use App\Support\DeviceGuard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -38,6 +40,14 @@ class SettingsController extends Controller
             ->latest('last_seen_at')
             ->get();
 
+        $allDevices = $user->isAdmin()
+            ? UserDevice::query()
+                ->with('user')
+                ->whereNotNull('approved_at')
+                ->latest('last_seen_at')
+                ->get()
+            : collect();
+
         $notifications = AppNotification::query()
             ->visibleTo($user)
             ->latest()
@@ -50,14 +60,17 @@ class SettingsController extends Controller
             ->pluck('app_notification_id')
             ->all();
 
+        $currentDevice = DeviceFingerprint::token($request, $user);
+
         return view('settings.index', [
             'theme' => in_array($theme, ['light', 'dark'], true) ? $theme : 'light',
             'density' => in_array($density, ['small', 'big'], true) ? $density : 'small',
             'pendingDevices' => $pendingDevices,
             'myDevices' => $myDevices,
+            'allDevices' => $allDevices,
             'notifications' => $notifications,
             'readIds' => $readIds,
-            'currentDevice' => DeviceFingerprint::token($request),
+            'currentDevice' => $currentDevice,
         ]);
     }
 
@@ -136,9 +149,63 @@ class SettingsController extends Controller
         $user = $request->user();
         abort_unless($user->isAdmin() || $userDevice->user_id === $user->id, 403);
 
+        $currentToken = DeviceFingerprint::token($request, $user);
+        $isOwnCurrent = $userDevice->user_id === $user->id
+            && $userDevice->device_token === $currentToken;
+
+        $ownerId = $userDevice->user_id;
         $userDevice->delete();
 
+        if ($isOwnCurrent) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()
+                ->route('login')
+                ->with('status', __('ui.device_revoked_current'))
+                ->withCookie(DeviceFingerprint::forgetCookie($ownerId));
+        }
+
         return back()->with('status', __('ui.device_revoked'));
+    }
+
+    /**
+     * Remove every approved device for the signed-in user except this browser.
+     */
+    public function revokeOtherDevices(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $currentToken = DeviceFingerprint::token($request, $user);
+
+        UserDevice::query()
+            ->where('user_id', $user->id)
+            ->where('device_token', '!=', $currentToken)
+            ->delete();
+
+        DeviceLoginRequest::query()
+            ->where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->delete();
+
+        return back()->with('status', __('ui.device_others_revoked'));
+    }
+
+    /**
+     * Admin: revoke every approved device for a user (forces re-approval everywhere).
+     */
+    public function revokeUserDevices(Request $request, User $user): RedirectResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+
+        UserDevice::query()->where('user_id', $user->id)->delete();
+
+        DeviceLoginRequest::query()
+            ->where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->delete();
+
+        return back()->with('status', __('ui.device_user_all_revoked', ['name' => $user->name]));
     }
 
     public function sendNotification(Request $request): RedirectResponse

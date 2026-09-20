@@ -49,7 +49,9 @@ Route::middleware(['auth', 'active', 'device'])->group(function () {
     Route::get('/settings/backup', [SettingsController::class, 'backup'])->name('settings.backup');
     Route::post('/settings/devices/{deviceLoginRequest}/approve', [SettingsController::class, 'approveDevice'])->name('settings.devices.approve');
     Route::post('/settings/devices/{deviceLoginRequest}/reject', [SettingsController::class, 'rejectDevice'])->name('settings.devices.reject');
+    Route::post('/settings/my-devices/revoke-others', [SettingsController::class, 'revokeOtherDevices'])->name('settings.devices.revoke_others');
     Route::delete('/settings/my-devices/{userDevice}', [SettingsController::class, 'revokeDevice'])->name('settings.devices.revoke');
+    Route::delete('/settings/users/{user}/devices', [SettingsController::class, 'revokeUserDevices'])->name('settings.devices.revoke_user_all');
     Route::post('/settings/notifications', [SettingsController::class, 'sendNotification'])->name('settings.notifications.send');
     Route::post('/settings/notifications/read', [SettingsController::class, 'markNotificationsRead'])->name('settings.notifications.read');
     Route::get('/api/notifications', NotificationFeedController::class)->name('notifications.feed');
