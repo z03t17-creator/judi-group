@@ -18,6 +18,22 @@
     </header>
 
     <div class="kpi-grid">
+        @php
+            $canApprovals = $user->canAccess('releases')
+                || $user->canAccess('reports.review')
+                || $user->canApproveDevices();
+        @endphp
+        @if ($canApprovals)
+            <a href="{{ route('approvals.index') }}" class="kpi-card kpi-card--iconed">
+                @include('partials.icon-badge', ['icon' => 'clipboard', 'tone' => 'teal', 'size' => 'md'])
+                <div>
+                    <h2>{{ __('ui.approvals') }}</h2>
+                    <p class="kpi-card__value">{{ number_format($pendingApprovalCount) }}</p>
+                    <p class="kpi-card__hint">{{ __('ui.approvals_lead') }}</p>
+                </div>
+            </a>
+        @endif
+
         @if ($user->canAccess('stock'))
             <a href="{{ route('stock.index') }}" class="kpi-card kpi-card--iconed">
                 @include('partials.icon-badge', ['icon' => 'warehouse', 'tone' => 'slate', 'size' => 'md'])

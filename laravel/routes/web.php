@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CollectorController;
 use App\Http\Controllers\DevicePendingController;
@@ -44,6 +45,11 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 Route::middleware(['auth', 'active', 'device'])->group(function () {
     Route::get('/home', HomeController::class)->name('home');
+
+    Route::get('/approvals', [ApprovalController::class, 'index'])->name('approvals.index');
+    Route::post('/approvals/releases', [ApprovalController::class, 'sendReleases'])->name('approvals.releases');
+    Route::post('/approvals/collections', [ApprovalController::class, 'confirmCollections'])->name('approvals.collections');
+    Route::post('/approvals/devices', [ApprovalController::class, 'approveDevices'])->name('approvals.devices');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings/preferences', [SettingsController::class, 'updatePreferences'])->name('settings.preferences');

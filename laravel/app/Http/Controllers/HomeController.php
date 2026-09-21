@@ -44,6 +44,21 @@ class HomeController extends Controller
                 ->count();
         }
 
+        $pendingCollectionCount = 0;
+        if ($user->canAccess(\App\Enums\PagePermission::ReportsReview)) {
+            $pendingCollectionCount = \App\Models\Collection::query()
+                ->where('status', \App\Enums\CollectionStatus::Pending)
+                ->count();
+        }
+
+        $pendingDeviceCount = 0;
+        if ($user->canApproveDevices()) {
+            $pendingDeviceCount = \App\Models\DeviceLoginRequest::query()
+                ->where('status', 'pending')
+                ->where('expires_at', '>', now())
+                ->count();
+        }
+
         return view('home', [
             'user' => $user,
             'warehouse' => $warehouse,
@@ -57,6 +72,7 @@ class HomeController extends Controller
             'stockSkuCount' => $stockSkuCount,
             'stockPieceTotal' => $stockPieceTotal,
             'pendingReleaseCount' => $pendingReleaseCount,
+            'pendingApprovalCount' => $pendingReleaseCount + $pendingCollectionCount + $pendingDeviceCount,
         ]);
     }
 }

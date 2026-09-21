@@ -19,7 +19,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=74">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=75">
     <script src="{{ asset('js/money-input.js') }}?v=2" defer></script>
     <script src="{{ asset('js/image-upload.js') }}?v=1" defer></script>
     <script src="{{ asset('js/notifications.js') }}?v=8" defer></script>
@@ -27,6 +27,7 @@
     <script src="{{ asset('js/share.js') }}?v=3" defer></script>
     <script src="{{ asset('js/preferences.js') }}?v=2" defer></script>
     <script src="{{ asset('js/print-doc.js') }}?v=10" defer></script>
+    <script src="{{ asset('js/office-nav.js') }}?v=1" defer></script>
 </head>
 <body
     data-notif-feed="{{ auth()->check() ? route('notifications.feed', absolute: false) : '' }}"
@@ -50,12 +51,15 @@
         @include('partials.field-bottom-nav')
     </div>
 @else
-    <div class="shell">
+    <div class="shell shell--office" data-office-shell>
+        <div class="office-menu-backdrop" data-office-menu-backdrop hidden></div>
         @include('partials.office-sidebar')
         <div class="shell__main">
-            <div class="page-frame">
+            @include('partials.office-topbar')
+            <div class="page-frame page-frame--office">
                 @yield('content')
             </div>
+            @include('partials.office-bottom-nav')
         </div>
     </div>
 @endif

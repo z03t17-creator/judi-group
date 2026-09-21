@@ -10,11 +10,27 @@
             'icon' => 'dashboard',
         ],
         [
+            'route' => 'approvals.index',
+            'match' => 'approvals.*',
+            'label' => __('ui.approvals'),
+            'enabled' => $user->canAccess('releases')
+                || $user->canAccess('reports.review')
+                || $user->canApproveDevices(),
+            'icon' => 'clipboard',
+        ],
+        [
             'route' => 'users.index',
             'match' => ['users.*', 'collectors.*'],
             'label' => __('ui.users_collectors'),
             'enabled' => $user->canAccess('users') || $user->canAccess('collectors'),
             'icon' => 'users',
+        ],
+        [
+            'route' => 'invoices.create',
+            'match' => 'invoices.create',
+            'label' => __('ui.sell'),
+            'enabled' => $user->canAccess('invoices.sell'),
+            'icon' => 'file',
         ],
         [
             'route' => 'products.index',
@@ -103,7 +119,7 @@
     ];
 @endphp
 
-<aside class="office-sidebar" aria-label="{{ __('ui.home') }}">
+<aside class="office-sidebar" aria-label="{{ __('ui.home') }}" data-office-sidebar>
     <div class="office-sidebar__brand">
         <a href="{{ route('home') }}" class="brand-mark brand-mark--center" aria-label="JUDI">
             <img
@@ -116,6 +132,9 @@
                 <span class="brand-mark__sub">Group</span>
             </span>
         </a>
+        <button type="button" class="office-sidebar__close" data-office-menu-close aria-label="{{ __('ui.close') }}">
+            ×
+        </button>
     </div>
 
     <nav class="office-sidebar__nav">
