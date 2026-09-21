@@ -140,7 +140,7 @@ class SettingsAndDevicesTest extends TestCase
         $this->assertNotSame($sharedLookingToken, $retailDevice->device_token);
     }
 
-    public function test_user_can_revoke_current_device_and_is_logged_out(): void
+    public function test_non_admin_cannot_revoke_own_device(): void
     {
         $this->seed();
         $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
@@ -157,6 +157,29 @@ class SettingsAndDevicesTest extends TestCase
         $this->actingAs($collector)
             ->withSession([DeviceFingerprint::sessionKey($collector->id) => $token])
             ->withCookie(DeviceFingerprint::cookieName($collector->id), $token)
+            ->delete(route('settings.devices.revoke', $device))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('user_devices', ['id' => $device->id]);
+    }
+
+    public function test_admin_can_revoke_current_device_and_is_logged_out(): void
+    {
+        $this->seed();
+        $admin = User::query()->where('email', 'admin@judi.local')->firstOrFail();
+        $token = str_repeat('e', 64);
+
+        $device = UserDevice::query()->create([
+            'user_id' => $admin->id,
+            'device_token' => $token,
+            'label' => 'Windows',
+            'approved_at' => now(),
+            'ip_address' => '8.8.8.8',
+        ]);
+
+        $this->actingAs($admin)
+            ->withSession([DeviceFingerprint::sessionKey($admin->id) => $token])
+            ->withCookie(DeviceFingerprint::cookieName($admin->id), $token)
             ->delete(route('settings.devices.revoke', $device))
             ->assertRedirect(route('login'));
 

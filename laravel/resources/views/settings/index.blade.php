@@ -156,7 +156,8 @@
         {{-- My devices --}}
         <section class="surface-panel settings-card settings-card--wide" aria-labelledby="settings-my-devices">
             <h2 id="settings-my-devices">{{ __('ui.my_devices') }}</h2>
-            @if ($myDevices->count() > 1)
+            <p class="muted">{{ __('ui.my_devices_hint') }}</p>
+            @if (auth()->user()->isAdmin() && $myDevices->count() > 1)
                 <form method="POST" action="{{ route('settings.devices.revoke_others') }}" class="mb-3" onsubmit="return confirm(@json(__('ui.device_revoke_others_confirm')))">
                     @csrf
                     <button type="submit" class="btn btn--ghost">{{ __('ui.device_revoke_others') }}</button>
@@ -174,15 +175,17 @@
                             · {{ __('ui.device_ip') }}: <strong>{{ $device->ip_address ?: '—' }}</strong>
                         </p>
                     </div>
-                    <form
-                        method="POST"
-                        action="{{ route('settings.devices.revoke', $device) }}"
-                        onsubmit="return confirm(@json($device->device_token === $currentDevice ? __('ui.device_revoke_current_confirm') : __('ui.device_revoke_confirm')))"
-                    >
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn--ghost">{{ __('ui.device_revoke') }}</button>
-                    </form>
+                    @if (auth()->user()->isAdmin())
+                        <form
+                            method="POST"
+                            action="{{ route('settings.devices.revoke', $device) }}"
+                            onsubmit="return confirm(@json($device->device_token === $currentDevice ? __('ui.device_revoke_current_confirm') : __('ui.device_revoke_confirm')))"
+                        >
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn--ghost">{{ __('ui.device_revoke') }}</button>
+                        </form>
+                    @endif
                 </article>
             @empty
                 <p class="muted">{{ __('ui.my_devices_empty') }}</p>

@@ -147,7 +147,7 @@ class SettingsController extends Controller
     public function revokeDevice(Request $request, UserDevice $userDevice): RedirectResponse
     {
         $user = $request->user();
-        abort_unless($user->isAdmin() || $userDevice->user_id === $user->id, 403);
+        abort_unless($user->isAdmin(), 403);
 
         $currentToken = DeviceFingerprint::token($request, $user);
         $isOwnCurrent = $userDevice->user_id === $user->id
@@ -171,11 +171,13 @@ class SettingsController extends Controller
     }
 
     /**
-     * Remove every approved device for the signed-in user except this browser.
+     * Admin: remove every approved device for the signed-in admin except this browser.
      */
     public function revokeOtherDevices(Request $request): RedirectResponse
     {
         $user = $request->user();
+        abort_unless($user->isAdmin(), 403);
+
         $currentToken = DeviceFingerprint::token($request, $user);
 
         UserDevice::query()
