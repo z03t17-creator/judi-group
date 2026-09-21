@@ -3,7 +3,7 @@
 @section('title', __('ui.invoice_new').' — JUDI')
 
 @section('content')
-<section class="page page--sell sell-page sell-wizard" data-invoice-sell data-step="1">
+<section class="page page--sell sell-page sell-wizard sell-wizard--duo" data-invoice-sell data-step="1">
     <header class="sell-top no-print">
         <div class="sell-top__text">
             <h1 class="sell-top__title" data-wizard-title>{{ __('ui.sell_pick_store_title') }}</h1>
@@ -18,17 +18,13 @@
         <a href="{{ route('invoices.index') }}" class="btn btn--ghost btn--sm" data-exit-sell>{{ __('ui.back') }}</a>
     </header>
 
-    <ol class="sell-steps sell-steps--3 no-print" aria-label="{{ __('ui.invoice_new') }}">
+    <ol class="sell-steps sell-steps--2 no-print" aria-label="{{ __('ui.invoice_new') }}">
         <li class="sell-steps__item is-active" data-sell-step="store">
             <span class="sell-steps__num">1</span>
             <span>{{ __('ui.sell_step_store') }}</span>
         </li>
-        <li class="sell-steps__item" data-sell-step="category">
-            <span class="sell-steps__num">2</span>
-            <span>{{ __('ui.sell_step_category') }}</span>
-        </li>
         <li class="sell-steps__item" data-sell-step="catalog">
-            <span class="sell-steps__num">3</span>
+            <span class="sell-steps__num">2</span>
             <span>{{ __('ui.sell_step_products') }}</span>
         </li>
     </ol>
@@ -43,9 +39,6 @@
             <span class="sell-locked__debt" data-locked-debt hidden dir="ltr"></span>
             <button type="button" class="btn btn--ghost btn--sm" data-change-store>{{ __('ui.store_change') }}</button>
         </div>
-        <button type="button" class="sell-crumb" data-change-category hidden>
-            <span data-filter-summary></span>
-        </button>
     </div>
 
     @include('partials.flash')
@@ -94,7 +87,7 @@
                         class="sell-search__input"
                         type="search"
                         data-store-filter
-                        placeholder="{{ __('ui.search') }}…"
+                        placeholder="{{ __('ui.search_store') }}"
                         enterkeyhint="search"
                         autocomplete="off"
                     >
@@ -134,28 +127,47 @@
             </div>
         </section>
 
-        <section class="sell-card sell-card--browse" data-panel="browse" hidden>
-            <div class="sell-card__bar" style="--sell-accent:#7c3aed"></div>
-            <div class="sell-card__inner">
-                <div class="sell-tiles" data-browse-cats></div>
-                <div class="sell-tiles" data-browse-subs hidden></div>
-            </div>
-        </section>
-
         <section class="sell-card sell-card--catalog" data-panel="catalog" hidden>
-            <div class="sell-card__bar" style="--sell-accent:#0284c7"></div>
+            <div class="sell-card__bar" style="--sell-accent:#0f766e"></div>
             <div class="sell-card__inner">
-                <div class="visually-hidden">
-                    <select data-category-select aria-hidden="true" tabindex="-1">
-                        <option value="">{{ __('ui.category') }} — {{ __('ui.all') }}</option>
-                        @foreach ($categories as $category)
-                            <option value="{{ $category['id'] }}">{{ $category['name'] }}</option>
-                        @endforeach
-                    </select>
-                    <select data-subcategory-select aria-hidden="true" tabindex="-1">
-                        <option value="">{{ __('ui.subcategory') }} — {{ __('ui.all') }}</option>
-                    </select>
+                <div class="sell-filter-deck" data-filter-deck>
+                    <div class="sell-filter-deck__head">
+                        <div>
+                            <p class="sell-filter-deck__eyebrow">{{ __('ui.sell_filter_eyebrow') }}</p>
+                            <strong class="sell-filter-deck__summary" data-filter-summary>{{ __('ui.all') }}</strong>
+                        </div>
+                        <button type="button" class="btn btn--ghost btn--sm" data-clear-filters hidden>
+                            {{ __('ui.sell_clear_filters') }}
+                        </button>
+                    </div>
+
+                    <label class="sell-search sell-search--compact">
+                        <span class="visually-hidden">{{ __('ui.search_category') }}</span>
+                        <input
+                            class="sell-search__input"
+                            type="search"
+                            data-category-filter
+                            placeholder="{{ __('ui.search_category') }}"
+                            autocomplete="off"
+                        >
+                    </label>
+                    <div class="sell-pill-rail" data-category-rail role="listbox" aria-label="{{ __('ui.category') }}"></div>
+
+                    <div class="sell-filter-sub" data-sub-block hidden>
+                        <label class="sell-search sell-search--compact">
+                            <span class="visually-hidden">{{ __('ui.search_subcategory') }}</span>
+                            <input
+                                class="sell-search__input"
+                                type="search"
+                                data-subcategory-filter
+                                placeholder="{{ __('ui.search_subcategory') }}"
+                                autocomplete="off"
+                            >
+                        </label>
+                        <div class="sell-pill-rail" data-subcategory-rail role="listbox" aria-label="{{ __('ui.subcategory') }}"></div>
+                    </div>
                 </div>
+
                 <label class="sell-search">
                     <span class="visually-hidden">{{ __('ui.search') }}</span>
                     <input
@@ -256,12 +268,13 @@
         pickStore: @json(__('ui.invoice_pick_store')),
         payRequired: @json(__('ui.invoice_pay_required')),
         pickStoreTitle: @json(__('ui.sell_pick_store_title')),
-        pickCategoryTitle: @json(__('ui.sell_pick_category_title')),
-        pickSubcategoryTitle: @json(__('ui.sell_pick_subcategory_title')),
         pickProductsTitle: @json(__('ui.sell_pick_products_title')),
         allInCategory: @json(__('ui.sell_all_in_category')),
+        allCategories: @json(__('ui.sell_all_categories')),
         itemsCount: @json(__('ui.sell_items_count')),
+        category: @json(__('ui.category')),
+        subcategory: @json(__('ui.subcategory')),
     };
 </script>
-<script src="{{ asset('js/invoice-sell.js') }}?v=19" defer></script>
+<script src="{{ asset('js/invoice-sell.js') }}?v=21" defer></script>
 @endsection

@@ -8019,7 +8019,7 @@ html[data-theme="dark"] .sell-product--row {
   min-height: 2.55rem;
 }
 
-/* Sell wizard: store → category → products */
+/* Sell wizard: store → products (with live category filters) */
 
 .sell-wizard[data-panel][hidden],
 .sell-wizard [data-panel][hidden],
@@ -8029,8 +8029,14 @@ html[data-theme="dark"] .sell-product--row {
 .sell-wizard .sell-tiles[hidden],
 .sell-wizard .sell-crumb[hidden],
 .sell-wizard [data-wizard-back][hidden],
-.sell-wizard [data-exit-sell][hidden] {
+.sell-wizard [data-exit-sell][hidden],
+.sell-wizard [data-clear-filters][hidden],
+.sell-wizard [data-sub-block][hidden] {
   display: none !important;
+}
+
+.sell-steps--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .sell-steps--3 {
@@ -8043,6 +8049,7 @@ html[data-theme="dark"] .sell-product--row {
 
 .sell-wizard .sell-steps__item.is-active,
 .sell-wizard[data-step="1"] [data-sell-step="store"],
+.sell-wizard[data-step="2"] [data-sell-step="catalog"],
 .sell-wizard[data-step="2"] [data-sell-step="category"],
 .sell-wizard[data-step="3"] [data-sell-step="catalog"] {
   color: var(--judi-800);
@@ -8051,6 +8058,7 @@ html[data-theme="dark"] .sell-product--row {
 
 .sell-wizard .sell-steps__item.is-active .sell-steps__num,
 .sell-wizard[data-step="1"] [data-sell-step="store"] .sell-steps__num,
+.sell-wizard[data-step="2"] [data-sell-step="catalog"] .sell-steps__num,
 .sell-wizard[data-step="2"] [data-sell-step="category"] .sell-steps__num,
 .sell-wizard[data-step="3"] [data-sell-step="catalog"] .sell-steps__num {
   border-color: var(--judi-500);
@@ -8064,6 +8072,7 @@ html[data-theme="dark"] .sell-product--row {
   cursor: pointer;
 }
 
+.sell-wizard--duo[data-step="2"] .sell-form,
 .sell-wizard[data-step="3"] .sell-form {
   padding-bottom: 5.5rem;
 }
@@ -8107,39 +8116,275 @@ html[data-theme="dark"] .sell-product--row {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  min-height: 4.1rem;
+  gap: 0.65rem;
   padding: 0.65rem 0.75rem;
   border: 1px solid rgb(var(--line));
-  border-radius: 0.9rem;
-  background: #fff;
-  box-shadow: 0 1px 2px rgb(28 25 23 / 0.05);
+  border-radius: 0.85rem;
+  background:
+    linear-gradient(135deg, rgb(234 88 12 / 0.06), transparent 42%),
+    rgb(var(--surface));
   text-align: start;
   cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 html[data-theme="dark"] .sell-wizard .sell-store--page {
-  background: rgb(var(--surface));
+  background:
+    linear-gradient(135deg, rgb(234 88 12 / 0.12), transparent 42%),
+    rgb(var(--surface));
 }
 
 .sell-wizard .sell-store--page:hover,
 .sell-wizard .sell-store--page.is-selected {
   border-color: #ea580c;
-  background: rgb(255 247 237 / 0.9);
+  box-shadow: 0 0 0 1px rgb(234 88 12 / 0.25);
+  transform: translateY(-1px);
 }
 
 .sell-wizard .sell-store--page .sell-store__img {
-  width: 2.8rem;
-  height: 2.8rem;
-  border-radius: 0.7rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.65rem;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .sell-wizard .sell-store--page .sell-store__body {
-  font-size: 0.95rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 0.1rem;
 }
 
 .sell-wizard .sell-store--page .sell-store__body strong {
-  font-size: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+/* Filter deck — searchable category / subcategory pills */
+.sell-filter-deck {
+  position: relative;
+  margin: 0 0 0.85rem;
+  padding: 0.85rem 0.9rem 0.95rem;
+  border: 1px solid rgb(15 118 110 / 0.18);
+  border-radius: 1rem;
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgb(15 118 110 / 0.12), transparent 55%),
+    radial-gradient(90% 70% at 0% 100%, rgb(3 105 161 / 0.08), transparent 50%),
+    linear-gradient(180deg, rgb(var(--surface)), rgb(var(--muted) / 0.35));
+  overflow: hidden;
+}
+
+.sell-filter-deck::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #0f766e, #0369a1);
+}
+
+.sell-filter-deck__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
+  padding-inline-start: 0.55rem;
+}
+
+.sell-filter-deck__eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #0f766e;
+}
+
+.sell-filter-deck__summary {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.98rem;
+  line-height: 1.3;
+  color: inherit;
+}
+
+.sell-filter-deck .sell-search--compact {
+  margin: 0 0 0.45rem;
+  padding-inline-start: 0.55rem;
+}
+
+.sell-filter-deck .sell-search--compact .sell-search__input {
+  min-height: 2.35rem;
+  padding-block: 0.4rem;
+  font-size: 0.88rem;
+  border-radius: 0.7rem;
+  background: rgb(var(--surface) / 0.92);
+}
+
+.sell-pill-rail {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  padding: 0.15rem 0.55rem 0.35rem;
+  margin: 0 0 0.35rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+}
+
+.sell-pill-rail__empty {
+  margin: 0.15rem 0;
+  padding: 0.35rem 0.2rem;
+  font-size: 0.82rem;
+  color: rgb(var(--fg-subtle));
+  white-space: nowrap;
+}
+
+.sell-pill {
+  --pill: #0f766e;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.2rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid rgb(var(--line));
+  border-radius: 999px;
+  background: rgb(var(--surface));
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease,
+    box-shadow 0.15s ease;
+}
+
+.sell-pill:hover {
+  border-color: color-mix(in srgb, var(--pill) 55%, rgb(var(--line)));
+  transform: translateY(-1px);
+}
+
+.sell-pill.is-active {
+  border-color: transparent;
+  background: var(--pill);
+  color: #fff;
+  box-shadow: 0 8px 18px -12px color-mix(in srgb, var(--pill) 80%, #000);
+}
+
+.sell-pill__dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--pill);
+  flex-shrink: 0;
+}
+
+.sell-pill.is-active .sell-pill__dot {
+  background: #fff;
+}
+
+.sell-pill__label {
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sell-pill__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.2rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: rgb(var(--muted) / 0.75);
+  font-size: 0.68rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.sell-pill.is-active .sell-pill__count {
+  background: rgb(255 255 255 / 0.22);
+  color: #fff;
+}
+
+.sell-filter-sub {
+  margin-top: 0.35rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed rgb(15 118 110 / 0.22);
+  animation: sell-filter-in 0.22s ease;
+}
+
+@keyframes sell-filter-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+html[data-theme="dark"] .sell-filter-deck {
+  border-color: rgb(45 212 191 / 0.22);
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgb(45 212 191 / 0.14), transparent 55%),
+    radial-gradient(90% 70% at 0% 100%, rgb(56 189 248 / 0.1), transparent 50%),
+    linear-gradient(180deg, rgb(var(--surface)), rgb(var(--muted) / 0.25));
+}
+
+html[data-theme="dark"] .sell-filter-deck__eyebrow {
+  color: #5eead4;
+}
+
+html[data-theme="dark"] .sell-pill {
+  background: rgb(var(--surface));
+}
+
+.sell-wizard .sell-catalog--page {
+  max-height: min(52vh, 28rem);
+}
+
+.sell-wizard--duo[data-step="2"] .sell-page .sell-product,
+.sell-wizard[data-step="3"] .sell-page .sell-product,
+.sell-wizard .sell-product--row {
+  min-height: 3.15rem;
+  padding: 0.5rem 0.55rem;
+  border-radius: 0.7rem;
+}
+
+.sell-wizard .sell-product__img {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.55rem;
+}
+
+@media (max-width: 720px) {
+  .sell-wizard .sell-cart__item {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .sell-filter-deck {
+    padding: 0.75rem 0.7rem 0.8rem;
+  }
+
+  .sell-pill__label {
+    max-width: 7.5rem;
+  }
 }
 
 .sell-tiles {
@@ -8224,27 +8469,4 @@ html[data-theme="dark"] .sell-tile {
   font-size: 1.25rem;
   font-weight: 700;
   flex-shrink: 0;
-}
-
-.sell-wizard .sell-catalog--page {
-  max-height: min(62vh, 32rem);
-}
-
-.sell-wizard[data-step="3"] .sell-page .sell-product,
-.sell-wizard .sell-product--row {
-  min-height: 3.15rem;
-  padding: 0.5rem 0.55rem;
-  border-radius: 0.7rem;
-}
-
-.sell-wizard .sell-product__img {
-  width: 2.4rem;
-  height: 2.4rem;
-  border-radius: 0.55rem;
-}
-
-@media (max-width: 720px) {
-  .sell-wizard .sell-cart__item {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-  }
 }

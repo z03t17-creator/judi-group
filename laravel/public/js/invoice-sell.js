@@ -18,7 +18,8 @@
   var selectedCategoryId = "";
   var selectedSubcategoryId = "";
   var wizardStep = 1;
-  var browsePhase = "cat";
+  var categoryNeedle = "";
+  var subcategoryNeedle = "";
   var TILE_COLORS = [
     "#0f766e",
     "#0369a1",
@@ -32,8 +33,12 @@
 
   var productList = root.querySelector("[data-product-list]");
   var productFilter = root.querySelector("[data-product-filter]");
-  var categorySelect = root.querySelector("[data-category-select]");
-  var subcategorySelect = root.querySelector("[data-subcategory-select]");
+  var categoryFilter = root.querySelector("[data-category-filter]");
+  var subcategoryFilter = root.querySelector("[data-subcategory-filter]");
+  var categoryRail = root.querySelector("[data-category-rail]");
+  var subcategoryRail = root.querySelector("[data-subcategory-rail]");
+  var subBlock = root.querySelector("[data-sub-block]");
+  var clearFiltersBtn = root.querySelector("[data-clear-filters]");
   var filterSummary = root.querySelector("[data-filter-summary]");
   var viewerToggle = root.querySelector("[data-sell-viewer-toggle]");
   var viewerPanel = root.querySelector("[data-sell-viewer-panel]");
@@ -71,15 +76,11 @@
   );
   var payConfirmed = false;
   var storeNeededEl = root.querySelector("[data-store-needed]");
-  var browseCats = root.querySelector("[data-browse-cats]");
-  var browseSubs = root.querySelector("[data-browse-subs]");
-  var browsePanel = root.querySelector('[data-panel="browse"]');
   var catalogPanel = root.querySelector('[data-panel="catalog"]');
   var wizardTitle = root.querySelector("[data-wizard-title]");
   var wizardBack = root.querySelector("[data-wizard-back]");
   var exitSell = root.querySelector("[data-exit-sell]");
   var sellContext = root.querySelector("[data-sell-context]");
-  var changeCategoryBtn = root.querySelector("[data-change-category]");
   var stickyCta = root.querySelector("[data-sell-cta]");
   var payTypeBar = root.querySelector("[data-pay-bar]");
 
@@ -396,7 +397,7 @@
     });
     if (submitBtn) submitBtn.disabled = cart.length === 0;
     var cartCard = root.querySelector('[data-panel="cart"]');
-    if (cartCard) cartCard.hidden = wizardStep !== 3 || cart.length === 0;
+      if (cartCard) cartCard.hidden = wizardStep !== 2 || cart.length === 0;
     if (cartCountEl) {
       cartCountEl.textContent =
         (labels.lines || "Lines") + ": " + cart.length;
@@ -537,22 +538,149 @@
     if (filterSummary) filterSummary.textContent = filterSummaryText();
   }
 
-  function fillSubcategorySelect() {
-    if (!subcategorySelect) return;
-    var subs = currentSubs();
-    var html = '<option value="">' + escapeHtml(labels.all || "All") + "</option>";
-    subs.forEach(function (sub) {
+  function nameMatches(name, needle) {
+    if (!needle) return true;
+    return String(name || "")
+      .toLowerCase()
+      .indexOf(needle) !== -1;
+  }
+
+  function syncFilterChrome() {
+    var hasFilter = !!(selectedCategoryId || selectedSubcategoryId);
+    if (clearFiltersBtn) clearFiltersBtn.hidden = !hasFilter;
+    if (subBlock) {
+      var subs = currentSubs();
+      subBlock.hidden = !selectedCategoryId || !subs.length;
+    }
+    updateFilterSummary();
+  }
+
+  function renderCategoryRail() {
+    if (!categoryRail) return;
+    var needle = categoryNeedle.trim().toLowerCase();
+    var html =
+      '<button type="button" class="sell-pill' +
+      (selectedCategoryId ? "" : " is-active") +
+      '" data-category-id="" role="option" aria-selected="' +
+      (selectedCategoryId ? "false" : "true") +
+      '">' +
+      escapeHtml(labels.allCategories || labels.all || "All") +
+      "</button>";
+
+    var shown = 0;
+    categories.forEach(function (cat, i) {
+      if (!nameMatches(cat.name, needle)) return;
+      shown += 1;
+      var color = TILE_COLORS[i % TILE_COLORS.length];
+      var active = String(selectedCategoryId) === String(cat.id);
       html +=
-        '<option value="' +
-        escapeAttr(String(sub.id)) +
-        '"' +
-        (String(selectedSubcategoryId) === String(sub.id) ? " selected" : "") +
-        ">" +
-        escapeHtml(sub.name) +
-        "</option>";
+        '<button type="button" class="sell-pill' +
+        (active ? " is-active" : "") +
+        '" data-category-id="' +
+        escapeAttr(String(cat.id)) +
+        '" role="option" aria-selected="' +
+        (active ? "true" : "false") +
+        '" style="--pill:' +
+        color +
+        '">' +
+        '<span class="sell-pill__dot" aria-hidden="true"></span>' +
+        '<span class="sell-pill__label">' +
+        escapeHtml(cat.name) +
+        "</span>" +
+        '<span class="sell-pill__count">' +
+        countProducts(cat.id) +
+        "</span>" +
+        "</button>";
     });
-    subcategorySelect.innerHTML = html;
-    subcategorySelect.disabled = !selectedCategoryId || !subs.length;
+
+    if (!shown && needle) {
+      html +=
+        '<p class="sell-pill-rail__empty">' +
+        escapeHtml(labels.noProducts || "No match") +
+        "</p>";
+    }
+    categoryRail.innerHTML = html;
+  }
+
+  function renderSubcategoryRail() {
+    if (!subcategoryRail) return;
+    var subs = currentSubs();
+    if (!selectedCategoryId || !subs.length) {
+      subcategoryRail.innerHTML = "";
+      return;
+    }
+    var needle = subcategoryNeedle.trim().toLowerCase();
+    var html =
+      '<button type="button" class="sell-pill sell-pill--sub' +
+      (selectedSubcategoryId ? "" : " is-active") +
+      '" data-subcategory-id="" role="option" aria-selected="' +
+      (selectedSubcategoryId ? "false" : "true") +
+      '">' +
+      escapeHtml(labels.allInCategory || labels.all || "All") +
+      "</button>";
+
+    var shown = 0;
+    subs.forEach(function (sub, i) {
+      if (!nameMatches(sub.name, needle)) return;
+      shown += 1;
+      var color = TILE_COLORS[i % TILE_COLORS.length];
+      var active = String(selectedSubcategoryId) === String(sub.id);
+      html +=
+        '<button type="button" class="sell-pill sell-pill--sub' +
+        (active ? " is-active" : "") +
+        '" data-subcategory-id="' +
+        escapeAttr(String(sub.id)) +
+        '" role="option" aria-selected="' +
+        (active ? "true" : "false") +
+        '" style="--pill:' +
+        color +
+        '">' +
+        '<span class="sell-pill__label">' +
+        escapeHtml(sub.name) +
+        "</span>" +
+        '<span class="sell-pill__count">' +
+        countProducts(selectedCategoryId, sub.id) +
+        "</span>" +
+        "</button>";
+    });
+
+    if (!shown && needle) {
+      html +=
+        '<p class="sell-pill-rail__empty">' +
+        escapeHtml(labels.noProducts || "No match") +
+        "</p>";
+    }
+    subcategoryRail.innerHTML = html;
+  }
+
+  function refreshFilters() {
+    renderCategoryRail();
+    renderSubcategoryRail();
+    syncFilterChrome();
+    renderCatalog();
+  }
+
+  function pickCategoryFilter(id) {
+    selectedCategoryId = String(id || "");
+    selectedSubcategoryId = "";
+    subcategoryNeedle = "";
+    if (subcategoryFilter) subcategoryFilter.value = "";
+    refreshFilters();
+  }
+
+  function pickSubcategoryFilter(id) {
+    selectedSubcategoryId = String(id || "");
+    refreshFilters();
+  }
+
+  function clearFilters() {
+    selectedCategoryId = "";
+    selectedSubcategoryId = "";
+    categoryNeedle = "";
+    subcategoryNeedle = "";
+    if (categoryFilter) categoryFilter.value = "";
+    if (subcategoryFilter) subcategoryFilter.value = "";
+    refreshFilters();
   }
 
   function renderCatalog() {
@@ -695,10 +823,6 @@
     else unlockStore();
   }
 
-  function itemsCountLabel(n) {
-    return String(labels.itemsCount || ":count").replace(":count", String(n));
-  }
-
   function countProducts(catId, subId) {
     return catalog.filter(function (p) {
       if (catId && String(p.category_id) !== String(catId)) return false;
@@ -707,59 +831,31 @@
     }).length;
   }
 
-  function findCategory(id) {
-    return (
-      categories.find(function (c) {
-        return String(c.id) === String(id);
-      }) || null
-    );
-  }
-
   function updateWizardTitle() {
     if (!wizardTitle) return;
     if (wizardStep === 1) {
       wizardTitle.textContent = labels.pickStoreTitle || labels.pickStore || "";
-    } else if (wizardStep === 2) {
-      wizardTitle.textContent =
-        browsePhase === "sub"
-          ? labels.pickSubcategoryTitle || ""
-          : labels.pickCategoryTitle || "";
     } else {
       wizardTitle.textContent = labels.pickProductsTitle || "";
     }
   }
 
-  function goToStep(n, phase) {
+  function goToStep(n) {
     wizardStep = n;
-    if (phase) browsePhase = phase;
     root.setAttribute("data-step", String(n));
     if (storePanel) storePanel.hidden = n !== 1;
-    if (browsePanel) browsePanel.hidden = n !== 2;
-    if (catalogPanel) catalogPanel.hidden = n !== 3;
+    if (catalogPanel) catalogPanel.hidden = n !== 2;
     var cartCard = root.querySelector('[data-panel="cart"]');
-    if (cartCard) cartCard.hidden = n !== 3 || cart.length === 0;
-    if (payTypeBar) payTypeBar.hidden = n !== 3;
-    if (stickyCta) stickyCta.hidden = n !== 3;
+    if (cartCard) cartCard.hidden = n !== 2 || cart.length === 0;
+    if (payTypeBar) payTypeBar.hidden = n !== 2;
+    if (stickyCta) stickyCta.hidden = n !== 2;
     if (sellContext) sellContext.hidden = n === 1;
     if (wizardBack) wizardBack.hidden = n === 1;
     if (exitSell) exitSell.hidden = n !== 1;
-    if (changeCategoryBtn) {
-      changeCategoryBtn.hidden =
-        n !== 3 || (!selectedCategoryId && !selectedSubcategoryId);
-    }
     updateWizardTitle();
     updateSteps();
     if (n === 2) {
-      if (browsePhase === "sub" && selectedCategoryId) {
-        renderSubcategoryTiles();
-      } else {
-        browsePhase = "cat";
-        renderCategoryTiles();
-      }
-    }
-    if (n === 3) {
-      fillSubcategorySelect();
-      renderCatalog();
+      refreshFilters();
     }
     try {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -769,133 +865,9 @@
   }
 
   function wizardGoBack() {
-    if (wizardStep === 3) {
-      goToStep(2, selectedCategoryId && currentSubs().length ? "sub" : "cat");
-      return;
-    }
-    if (wizardStep === 2 && browsePhase === "sub") {
-      selectedSubcategoryId = "";
-      goToStep(2, "cat");
-      return;
-    }
     if (wizardStep === 2) {
       goToStep(1);
     }
-  }
-
-  function renderCategoryTiles() {
-    if (browseCats) browseCats.hidden = false;
-    if (browseSubs) {
-      browseSubs.hidden = true;
-      browseSubs.innerHTML = "";
-    }
-    if (!browseCats) return;
-    if (!categories.length) {
-      browseCats.innerHTML =
-        '<p class="empty">' +
-        escapeHtml(labels.noProducts || "No products") +
-        "</p>";
-      return;
-    }
-    browseCats.innerHTML = categories
-      .map(function (cat, i) {
-        var count = countProducts(cat.id);
-        var color = TILE_COLORS[i % TILE_COLORS.length];
-        var letter = String(cat.name || "?").trim().charAt(0);
-        return (
-          '<button type="button" class="sell-tile" data-pick-category="' +
-          escapeAttr(String(cat.id)) +
-          '" style="--tile:' +
-          color +
-          '">' +
-          '<span class="sell-tile__mark" aria-hidden="true">' +
-          escapeHtml(letter) +
-          "</span>" +
-          '<span class="sell-tile__body">' +
-          '<strong class="sell-tile__name">' +
-          escapeHtml(cat.name) +
-          "</strong>" +
-          '<span class="sell-tile__meta">' +
-          escapeHtml(itemsCountLabel(count)) +
-          "</span>" +
-          "</span>" +
-          '<span class="sell-tile__go" aria-hidden="true">‹</span>' +
-          "</button>"
-        );
-      })
-      .join("");
-    updateWizardTitle();
-  }
-
-  function renderSubcategoryTiles() {
-    var cat = findCategory(selectedCategoryId);
-    var subs = cat ? cat.subcategories || [] : [];
-    if (browseCats) browseCats.hidden = true;
-    if (!browseSubs) {
-      goToStep(3);
-      return;
-    }
-    browseSubs.hidden = false;
-    var allCount = countProducts(selectedCategoryId);
-    var html =
-      '<button type="button" class="sell-tile sell-tile--all" data-pick-all-sub>' +
-      '<span class="sell-tile__body">' +
-      "<strong>" +
-      escapeHtml(labels.allInCategory || labels.all || "All") +
-      "</strong>" +
-      '<span class="sell-tile__meta">' +
-      escapeHtml(itemsCountLabel(allCount)) +
-      "</span>" +
-      "</span>" +
-      '<span class="sell-tile__go" aria-hidden="true">‹</span>' +
-      "</button>";
-    html += subs
-      .map(function (sub, i) {
-        var count = countProducts(selectedCategoryId, sub.id);
-        var color = TILE_COLORS[i % TILE_COLORS.length];
-        return (
-          '<button type="button" class="sell-tile" data-pick-subcategory="' +
-          escapeAttr(String(sub.id)) +
-          '" style="--tile:' +
-          color +
-          '">' +
-          '<span class="sell-tile__mark" aria-hidden="true">' +
-          escapeHtml(String(sub.name || "?").trim().charAt(0)) +
-          "</span>" +
-          '<span class="sell-tile__body">' +
-          '<strong class="sell-tile__name">' +
-          escapeHtml(sub.name) +
-          "</strong>" +
-          '<span class="sell-tile__meta">' +
-          escapeHtml(itemsCountLabel(count)) +
-          "</span>" +
-          "</span>" +
-          '<span class="sell-tile__go" aria-hidden="true">‹</span>' +
-          "</button>"
-        );
-      })
-      .join("");
-    browseSubs.innerHTML = html;
-    updateWizardTitle();
-  }
-
-  function pickCategory(id) {
-    selectedCategoryId = String(id || "");
-    selectedSubcategoryId = "";
-    if (categorySelect) categorySelect.value = selectedCategoryId;
-    var cat = findCategory(selectedCategoryId);
-    var subs = cat ? cat.subcategories || [] : [];
-    if (subs.length) {
-      goToStep(2, "sub");
-      return;
-    }
-    goToStep(3);
-  }
-
-  function pickSubcategory(id) {
-    selectedSubcategoryId = String(id || "");
-    if (subcategorySelect) subcategorySelect.value = selectedSubcategoryId;
-    goToStep(3);
   }
 
   function updateSteps() {
@@ -906,12 +878,9 @@
       if (key === "store") {
         active = wizardStep === 1;
         done = wizardStep > 1;
-      } else if (key === "category") {
-        active = wizardStep === 2;
-        done = wizardStep > 2;
       } else if (key === "catalog") {
-        active = wizardStep === 3;
-        done = wizardStep === 3 && cart.length > 0;
+        active = wizardStep === 2;
+        done = wizardStep === 2 && cart.length > 0;
       }
       el.classList.toggle("is-done", done && !active);
       el.classList.toggle("is-active", active);
@@ -978,8 +947,8 @@
         goToStep(1);
         return;
       }
-      if (key === "category" && wizardStep > 2) {
-        goToStep(2, selectedCategoryId && currentSubs().length ? "sub" : "cat");
+      if (key === "catalog" && wizardStep === 1 && hasStore()) {
+        goToStep(2);
       }
     });
   });
@@ -995,28 +964,38 @@
     wizardBack.addEventListener("click", wizardGoBack);
   }
 
-  if (changeCategoryBtn) {
-    changeCategoryBtn.addEventListener("click", function () {
-      goToStep(2, selectedCategoryId && currentSubs().length ? "sub" : "cat");
+  if (categoryFilter) {
+    categoryFilter.addEventListener("input", function () {
+      categoryNeedle = categoryFilter.value || "";
+      renderCategoryRail();
     });
   }
 
-  if (browsePanel) {
-    browsePanel.addEventListener("click", function (event) {
-      var catBtn = event.target.closest("[data-pick-category]");
-      if (catBtn) {
-        pickCategory(catBtn.getAttribute("data-pick-category"));
-        return;
-      }
-      if (event.target.closest("[data-pick-all-sub]")) {
-        pickSubcategory("");
-        return;
-      }
-      var subBtn = event.target.closest("[data-pick-subcategory]");
-      if (subBtn) {
-        pickSubcategory(subBtn.getAttribute("data-pick-subcategory"));
-      }
+  if (subcategoryFilter) {
+    subcategoryFilter.addEventListener("input", function () {
+      subcategoryNeedle = subcategoryFilter.value || "";
+      renderSubcategoryRail();
     });
+  }
+
+  if (categoryRail) {
+    categoryRail.addEventListener("click", function (event) {
+      var btn = event.target.closest("[data-category-id]");
+      if (!btn) return;
+      pickCategoryFilter(btn.getAttribute("data-category-id"));
+    });
+  }
+
+  if (subcategoryRail) {
+    subcategoryRail.addEventListener("click", function (event) {
+      var btn = event.target.closest("[data-subcategory-id]");
+      if (!btn) return;
+      pickSubcategoryFilter(btn.getAttribute("data-subcategory-id"));
+    });
+  }
+
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener("click", clearFilters);
   }
 
   if (viewerToggle && viewerPanel) {
@@ -1027,22 +1006,6 @@
       viewerPanel.hidden = !next;
       var wrap = viewerToggle.closest(".sell-viewer");
       if (wrap) wrap.classList.toggle("is-open", next);
-    });
-  }
-
-  if (categorySelect) {
-    categorySelect.addEventListener("change", function () {
-      selectedCategoryId = categorySelect.value || "";
-      selectedSubcategoryId = "";
-      fillSubcategorySelect();
-      renderCatalog();
-    });
-  }
-
-  if (subcategorySelect) {
-    subcategorySelect.addEventListener("change", function () {
-      selectedSubcategoryId = subcategorySelect.value || "";
-      renderCatalog();
     });
   }
 
@@ -1124,14 +1087,12 @@
     );
   });
 
-  fillSubcategorySelect();
-  renderCatalog();
+  refreshFilters();
   renderCart();
   filterStores();
   var restoredStore = selectedStoreOption();
   if (restoredStore) {
     lockStore(restoredStore);
-    if (oldLines.length) goToStep(3);
   } else {
     goToStep(1);
   }
