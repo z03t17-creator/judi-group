@@ -8975,3 +8975,234 @@ html[data-theme="dark"] .sell-tile {
   font-weight: 700;
   flex-shrink: 0;
 }
+
+/* —— Mobile app simplify: less text, less chrome —— */
+@media (max-width: 1023px) {
+  .page__lead,
+  .page__eyebrow,
+  .kpi-card__hint,
+  .approvals-section__lead,
+  .empty-state__hint,
+  .home-board__intro > .page__header-text > p,
+  .home-board__intro p,
+  .sell-top__meta,
+  .report-page__hero .page__lead,
+  .list-page .page__lead {
+    display: none !important;
+  }
+
+  .page__header--iconed > .icon-badge,
+  .home-board__intro > .icon-badge {
+    display: none !important;
+  }
+
+  .page__header,
+  .page__header--iconed,
+  .home-board__intro {
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .page__title,
+  .home-board__intro h1 {
+    margin: 0;
+    font-size: 1.2rem;
+    letter-spacing: -0.01em;
+  }
+
+  .page__actions {
+    gap: 0.35rem;
+  }
+
+  .page__actions .btn--print,
+  .page__actions .btn--regular {
+    display: none !important;
+  }
+
+  .page__actions .btn--primary {
+    min-height: 2.5rem;
+    padding-inline: 0.9rem;
+    font-size: 0.88rem;
+  }
+
+  .page__actions .btn__icon + span,
+  .page__actions .btn--primary {
+    white-space: nowrap;
+  }
+
+  .list-page > .list-kpis .kpi-card:nth-child(n + 3),
+  .list-page > .kpi-grid .kpi-card:nth-child(n + 3) {
+    display: none !important;
+  }
+
+  .list-kpis,
+  .list-page > .list-kpis,
+  .list-page > .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .kpi-card,
+  .kpi-card--iconed {
+    padding: 0.75rem 0.8rem;
+    border-radius: 0.85rem;
+    box-shadow: none;
+  }
+
+  .kpi-card h2 {
+    margin: 0 0 0.2rem;
+    font-size: 0.72rem;
+  }
+
+  .kpi-card__value {
+    font-size: 1.15rem;
+  }
+
+  .kpi-card--iconed {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.55rem;
+    align-items: center;
+  }
+
+  .kpi-card--iconed .icon-badge--md {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+
+  .home-board .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .dir-card {
+    padding: 0.7rem 0.75rem;
+    border-radius: 0.85rem;
+  }
+
+  .dir-card__row .icon-badge {
+    display: none;
+  }
+
+  .dir-card__title {
+    font-size: 0.95rem;
+  }
+
+  .dir-card__meta {
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+
+  .report-filters {
+    padding: 0.65rem 0.7rem;
+    border-radius: 0.85rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .report-filters__row {
+    gap: 0.4rem;
+  }
+
+  .filter-pill {
+    min-height: 2rem;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.78rem;
+  }
+
+  .filters-more {
+    margin-top: 0.45rem;
+  }
+
+  .filters-more__summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.2rem;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid rgb(var(--line));
+    border-radius: 999px;
+    background: rgb(var(--muted) / 0.4);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: rgb(var(--fg-muted));
+    cursor: pointer;
+  }
+
+  .filters-more__toggle:checked + .filters-more__summary {
+    background: rgb(var(--accent-soft) / 0.75);
+    color: var(--judi-800);
+    border-color: transparent;
+  }
+
+  .filters-more__panel {
+    display: none;
+    margin-top: 0.55rem;
+  }
+
+  .filters-more__toggle:checked ~ .filters-more__panel {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .filters-more__panel .report-filters__sep {
+    display: none;
+  }
+
+  .approvals-section {
+    padding: 0.7rem 0.7rem 0.8rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .approvals-section__title {
+    font-size: 0.95rem;
+  }
+
+  .approvals-section__head {
+    margin-bottom: 0.5rem;
+  }
+
+  .approvals-row {
+    padding: 0.5rem 0.55rem;
+  }
+
+  .approvals-tabs {
+    margin-bottom: 0.75rem;
+  }
+
+  .approvals-tabs__item {
+    min-height: 2.1rem;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.78rem;
+  }
+
+  .sticky-cta--invoice .btn--regular,
+  .sticky-cta .btn--regular .sticky-cta__label {
+    font-size: 0.78rem;
+  }
+
+  .alert {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.86rem;
+  }
+
+  .surface-panel,
+  .empty-state {
+    padding: 1rem 0.85rem;
+  }
+
+  .empty-state__title {
+    font-size: 0.95rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .filters-more__summary {
+    display: none !important;
+  }
+
+  .filters-more__panel {
+    display: flex !important;
+  }
+}

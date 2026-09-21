@@ -4,6 +4,7 @@ return [
     'language' => 'اللغة',
     'home' => 'الرئيسية',
     'welcome' => 'مرحباً، :name',
+    'filters_more' => 'مزيد من التصفية',
     'menu' => 'القائمة',
     'close' => 'إغلاق',
     'devices' => 'الأجهزة',

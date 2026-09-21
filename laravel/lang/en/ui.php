@@ -4,6 +4,7 @@ return [
     'language' => 'Language',
     'home' => 'Home',
     'welcome' => 'Welcome, :name',
+    'filters_more' => 'More filters',
     'menu' => 'Menu',
     'close' => 'Close',
     'devices' => 'Devices',

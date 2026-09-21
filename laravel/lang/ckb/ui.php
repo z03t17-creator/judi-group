@@ -4,6 +4,7 @@ return [
     'language' => 'زمان',
     'home' => 'سەرەتا',
     'welcome' => 'بەخێربێیت، :name',
+    'filters_more' => 'فلتەری زیاتر',
     'menu' => 'مینیو',
     'close' => 'داخستن',
     'devices' => 'ئامێرەکان',

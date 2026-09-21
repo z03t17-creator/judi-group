@@ -8,12 +8,6 @@
         @include('partials.icon-badge', ['icon' => 'dashboard', 'tone' => 'teal', 'size' => 'lg'])
         <div class="page__header-text">
             <h1>{{ __('ui.welcome', ['name' => $user->name]) }}</h1>
-            <p>
-                {{ __('ui.role_with_label', [
-                    'role' => $user->role->label()
-                        .($user->collector_channel ? ' — '.$user->collector_channel->label() : ''),
-                ]) }}
-            </p>
         </div>
     </header>
 
@@ -29,7 +23,6 @@
                 <div>
                     <h2>{{ __('ui.approvals') }}</h2>
                     <p class="kpi-card__value">{{ number_format($pendingApprovalCount) }}</p>
-                    <p class="kpi-card__hint">{{ __('ui.approvals_lead') }}</p>
                 </div>
             </a>
         @endif
@@ -40,11 +33,7 @@
                 <div>
                     <h2>{{ __('ui.stock') }}</h2>
                     @if ($warehouse)
-                        <p class="kpi-card__value">{{ $warehouse->displayName() }}</p>
-                        <p class="kpi-card__hint">{{ __('ui.stock_on_hand_summary', [
-                            'skus' => number_format($stockSkuCount),
-                            'pieces' => number_format($stockPieceTotal),
-                        ]) }}</p>
+                        <p class="kpi-card__value">{{ number_format($stockSkuCount) }}</p>
                     @else
                         <p class="kpi-card__value">{{ __('ui.warehouse_missing') }}</p>
                     @endif
@@ -58,7 +47,6 @@
                 <div>
                     <h2>{{ __('ui.purchases') }}</h2>
                     <p class="kpi-card__value">{{ __('ui.purchase_new') }}</p>
-                    <p class="kpi-card__hint">{{ __('ui.purchase_lead') }}</p>
                 </div>
             </a>
         @endif
@@ -69,7 +57,6 @@
                 <div>
                     <h2>{{ __('ui.releases') }}</h2>
                     <p class="kpi-card__value">{{ number_format($pendingReleaseCount) }}</p>
-                    <p class="kpi-card__hint">{{ __('ui.releases_lead') }}</p>
                 </div>
             </a>
         @endif
@@ -80,7 +67,6 @@
                 <div>
                     <h2>{{ __('ui.products') }}</h2>
                     <p class="kpi-card__value">{{ $productCount }}</p>
-                    <p class="kpi-card__hint">{{ __('ui.units_hint') }}</p>
                 </div>
             </a>
         @endif
@@ -91,7 +77,6 @@
                 <div>
                     <h2>{{ __('ui.stores') }}</h2>
                     <p class="kpi-card__value">{{ $storeCount }}</p>
-                    <p class="kpi-card__hint">{{ __('ui.stores_lead') }}</p>
                 </div>
             </a>
         @endif
@@ -102,7 +87,6 @@
                 <div>
                     <h2>{{ __('ui.categories') }}</h2>
                     <p class="kpi-card__value">{{ __('ui.category') }}</p>
-                    <p class="kpi-card__hint">{{ __('ui.categories_lead') }}</p>
                 </div>
             </a>
         @endif
@@ -113,7 +97,6 @@
                 <div>
                     <h2>{{ __('ui.users_collectors') }}</h2>
                     <p class="kpi-card__value">{{ $collectorCount }}</p>
-                    <p class="kpi-card__hint">{{ __('ui.users_collectors_lead') }}</p>
                 </div>
             </a>
         @endif
@@ -124,7 +107,6 @@
                 <div>
                     <h2>{{ __('ui.sell') }}</h2>
                     <p class="kpi-card__value">{{ __('ui.invoice_new') }}</p>
-                    <p class="kpi-card__hint">{{ __('ui.invoice_sell_lead') }}</p>
                 </div>
             </a>
         @endif
@@ -135,7 +117,6 @@
                 <div>
                     <h2>{{ __('ui.invoices') }}</h2>
                     <p class="kpi-card__value">{{ $invoiceCount }}</p>
-                    <p class="kpi-card__hint">{{ __('ui.invoice_list_lead') }}</p>
                 </div>
             </a>
         @endif

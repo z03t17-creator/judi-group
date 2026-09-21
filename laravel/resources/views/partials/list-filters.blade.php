@@ -94,7 +94,10 @@
         @endif
     </div>
 
-    <div class="report-filters__row report-filters__row--controls">
+    <div class="filters-more no-print">
+        <input type="checkbox" id="{{ $periodId }}-more" class="filters-more__toggle visually-hidden">
+        <label for="{{ $periodId }}-more" class="filters-more__summary">{{ __('ui.filters_more') }}</label>
+        <div class="report-filters__row report-filters__row--controls filters-more__panel">
         <input type="hidden" name="period" id="{{ $periodId }}" value="{{ $period }}">
         @if ($invoiceType !== '')
             <input type="hidden" name="type" value="{{ $invoiceType }}">
@@ -176,6 +179,7 @@
         <span class="report-filters__sep">–</span>
         <input class="field__input field__input--compact field__input--date" type="date" name="to" value="{{ $to }}" title="{{ __('ui.to_date') }}" onchange="document.getElementById(@json($periodId)).value='custom'">
         <button type="submit" class="btn btn--primary btn--sm">{{ __('ui.search') }}</button>
+        </div>
     </div>
 </form>
 
