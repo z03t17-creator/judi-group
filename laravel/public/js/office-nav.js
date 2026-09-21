@@ -18,6 +18,9 @@
     if (backdrop) backdrop.hidden = true;
   }
 
+  // Always start closed (avoids a stuck half-open drawer after back/forward).
+  closeMenu();
+
   document.addEventListener("click", function (event) {
     if (event.target.closest("[data-office-menu-open]")) {
       event.preventDefault();
@@ -38,12 +41,9 @@
     if (event.key === "Escape") closeMenu();
   });
 
-  // Close drawer after navigating via a nav link on small screens.
   shell.querySelectorAll(".office-sidebar .nav-item").forEach(function (link) {
     link.addEventListener("click", function () {
-      if (window.matchMedia("(max-width: 1023px)").matches) {
-        closeMenu();
-      }
+      closeMenu();
     });
   });
 })();

@@ -136,6 +136,9 @@ textarea {
 
 .shell--office {
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .office-menu-backdrop {
@@ -147,14 +150,14 @@ html.office-menu-lock body {
   overflow: hidden;
 }
 
-/* Mobile office: drawer sidebar with full labels */
+/* Desktop rail (hidden on phones — drawer opens from the menu button) */
 .office-sidebar {
   position: sticky;
   top: 0;
   z-index: 30;
-  display: flex;
+  display: none;
   flex-direction: column;
-  width: 4.5rem;
+  width: 15rem;
   height: 100dvh;
   flex-shrink: 0;
   border-inline-end: 1px solid var(--judi-800);
@@ -172,46 +175,81 @@ html.office-menu-lock body {
   display: none;
 }
 
+/* —— Phone / tablet office layout —— */
 @media (max-width: 1023px) {
   .shell--office {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .shell--office .shell__main {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .shell--office .page-frame--office {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
   }
 
   .office-menu-backdrop {
-    display: block;
+    display: none;
     position: fixed;
     inset: 0;
     z-index: 80;
-    background: rgb(15 23 22 / 0.45);
     border: 0;
     padding: 0;
     margin: 0;
+    background: rgb(15 23 22 / 0.5);
+  }
+
+  .shell--office.is-menu-open .office-menu-backdrop {
+    display: block;
   }
 
   .office-menu-backdrop[hidden] {
     display: none !important;
   }
 
+  /* Drawer: completely gone until opened */
   .office-sidebar {
+    display: none;
     position: fixed;
     inset-block: 0;
-    inset-inline-start: 0;
-    width: min(18.5rem, 86vw);
+    inset-inline-end: 0;
+    inset-inline-start: auto;
+    width: min(18rem, 88vw);
+    max-width: 18rem;
+    height: 100dvh;
+    height: 100svh;
     z-index: 90;
-    transform: translateX(-105%);
-    transition: transform 0.22s ease;
-    box-shadow: none;
+    border-inline-end: 0;
+    border-inline-start: 1px solid var(--judi-800);
+    box-shadow: -12px 0 40px rgb(0 0 0 / 0.35);
+    transform: none;
   }
 
-  html[dir="rtl"] .office-sidebar {
-    inset-inline-start: auto;
-    inset-inline-end: 0;
-    transform: translateX(105%);
+  html[dir="ltr"] .office-sidebar {
+    inset-inline-end: auto;
+    inset-inline-start: 0;
+    border-inline-start: 0;
+    border-inline-end: 1px solid var(--judi-800);
+    box-shadow: 12px 0 40px rgb(0 0 0 / 0.35);
   }
 
   .shell--office.is-menu-open .office-sidebar {
-    transform: translateX(0);
-    box-shadow: 0 0 40px rgb(0 0 0 / 0.35);
+    display: flex;
   }
 
   .office-sidebar__brand {
@@ -225,13 +263,14 @@ html.office-menu-lock body {
   .office-sidebar__close {
     display: grid;
     place-items: center;
-    width: 2.4rem;
-    height: 2.4rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
     border: 0;
-    border-radius: 0.65rem;
+    border-radius: 0.7rem;
     background: var(--judi-800);
     color: #fff;
-    font-size: 1.45rem;
+    font-size: 1.5rem;
     line-height: 1;
     cursor: pointer;
   }
@@ -265,6 +304,9 @@ html.office-menu-lock body {
     position: sticky;
     top: 0;
     z-index: 40;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     min-height: 3.25rem;
     padding:
       max(0.45rem, env(safe-area-inset-top, 0px))
@@ -272,7 +314,7 @@ html.office-menu-lock body {
       0.45rem
       max(0.75rem, env(safe-area-inset-left, 0px));
     border-bottom: 1px solid rgb(var(--line));
-    background: rgb(var(--surface) / 0.92);
+    background: rgb(var(--surface) / 0.96);
     backdrop-filter: blur(10px);
   }
 
@@ -281,6 +323,7 @@ html.office-menu-lock body {
     place-items: center;
     width: 2.5rem;
     height: 2.5rem;
+    flex-shrink: 0;
     border: 1px solid rgb(var(--line));
     border-radius: 0.7rem;
     background: rgb(var(--muted) / 0.45);
@@ -315,6 +358,7 @@ html.office-menu-lock body {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+    flex-shrink: 0;
   }
 
   .office-topbar__approvals {
@@ -355,8 +399,11 @@ html.office-menu-lock body {
     inset-inline: 0;
     bottom: 0;
     z-index: 50;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
     border-top: 1px solid rgb(var(--line));
-    background: rgb(var(--surface) / 0.96);
+    background: rgb(var(--surface) / 0.98);
     backdrop-filter: blur(10px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -382,7 +429,7 @@ html.office-menu-lock body {
     justify-content: center;
     gap: 0.15rem;
     min-height: 3.15rem;
-    padding: 0.25rem 0.2rem;
+    padding: 0.25rem 0.15rem;
     border: 0;
     border-radius: 0.7rem;
     background: transparent;
@@ -392,6 +439,13 @@ html.office-menu-lock body {
     font-weight: 700;
     text-decoration: none;
     cursor: pointer;
+  }
+
+  .office-tab span:last-child {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .office-tab.is-active {
@@ -410,13 +464,31 @@ html.office-menu-lock body {
     height: 1.25rem;
   }
 
-  .page-frame--office {
-    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+  /* Keep list filters from blowing past the phone width */
+  .shell--office .page__header,
+  .shell--office .page__actions,
+  .shell--office .report-filters,
+  .shell--office .report-filters__row,
+  .shell--office .directory-cards,
+  .shell--office .kpi-grid {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .shell--office .report-filters__row--controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .shell--office .filter-pills {
+    flex-wrap: wrap;
   }
 }
 
 @media (min-width: 1024px) {
   .office-sidebar {
+    display: flex;
     width: 15rem;
   }
 
@@ -445,6 +517,12 @@ html.office-menu-lock body {
     align-items: stretch;
     padding: 1rem 0.75rem max(1rem, env(safe-area-inset-bottom, 0px));
     gap: 0.75rem;
+  }
+
+  .office-topbar,
+  .office-bottom-nav,
+  .office-menu-backdrop {
+    display: none !important;
   }
 }
 
