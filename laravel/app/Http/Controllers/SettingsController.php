@@ -117,15 +117,11 @@ class SettingsController extends Controller
     {
         abort_unless($request->user()->canApproveDevices(), 403);
 
-        $data = $request->validate([
-            'code' => ['nullable', 'string', 'max:8'],
-        ]);
-
-        $ok = DeviceGuard::approve($deviceLoginRequest, $request->user(), $data['code'] ?? null);
+        $ok = DeviceGuard::approve($deviceLoginRequest, $request->user());
 
         return back()->with(
             $ok ? 'status' : 'error',
-            $ok ? __('ui.device_approved') : __('ui.device_code_bad'),
+            $ok ? __('ui.device_approved') : __('ui.device_approve_failed'),
         );
     }
 

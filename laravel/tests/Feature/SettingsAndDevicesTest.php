@@ -50,30 +50,21 @@ class SettingsAndDevicesTest extends TestCase
             ->assertHeader('content-disposition');
     }
 
-    public function test_second_device_requires_admin_code_approval(): void
+    public function test_first_collector_login_requires_admin_approval_without_code(): void
     {
         $this->seed();
         $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
         $admin = User::query()->where('email', 'admin@judi.local')->firstOrFail();
 
-        UserDevice::query()->create([
-            'user_id' => $collector->id,
-            'device_token' => str_repeat('a', 64),
-            'label' => 'Windows',
-            'approved_at' => now(),
-            'ip_address' => '1.1.1.1',
-        ]);
-
-        $newToken = str_repeat('b', 64);
+        $token = str_repeat('b', 64);
         $cookieName = DeviceFingerprint::cookieName($collector->id);
 
-        $login = $this->withCookie($cookieName, $newToken)
+        $this->withCookie($cookieName, $token)
             ->post(route('login.store'), [
                 'email' => 'wholesale@judi.local',
                 'password' => 'JudiAdmin!26',
-            ]);
-
-        $login->assertRedirect(route('device.pending'));
+            ])
+            ->assertRedirect(route('device.pending'));
 
         $pending = DeviceLoginRequest::query()
             ->where('user_id', $collector->id)
@@ -82,37 +73,57 @@ class SettingsAndDevicesTest extends TestCase
 
         $this->assertNotNull($pending);
 
-        $this->assertDatabaseHas('app_notifications', [
-            'type' => 'device_login',
-            'audience' => 'role',
-            'target_role' => 'admin',
-        ]);
-        $this->assertDatabaseHas('app_notifications', [
-            'type' => 'device_login',
-            'audience' => 'role',
-            'target_role' => 'accountant',
-        ]);
-
-        $accountant = User::query()->where('email', 'accountant@judi.local')->firstOrFail();
-
-        $this->actingAs($accountant)
+        $this->actingAs($admin)
             ->get(route('settings.index'))
             ->assertOk()
-            ->assertSee($pending->code, false);
+            ->assertSee($collector->name, false)
+            ->assertDontSee(__('ui.device_code').':', false);
 
         $this->actingAs($admin)
-            ->post(route('settings.devices.approve', $pending), [
-                'code' => $pending->code,
-            ])
+            ->post(route('settings.devices.approve', $pending))
             ->assertRedirect();
 
         $this->assertTrue(
             UserDevice::query()
                 ->where('user_id', $collector->id)
-                ->where('device_token', $newToken)
+                ->where('device_token', $token)
                 ->whereNotNull('approved_at')
                 ->exists()
         );
+    }
+
+    public function test_approved_device_login_notifies_admin(): void
+    {
+        $this->seed();
+        $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
+        $admin = User::query()->where('email', 'admin@judi.local')->firstOrFail();
+        $token = str_repeat('a', 64);
+
+        UserDevice::query()->create([
+            'user_id' => $collector->id,
+            'device_token' => $token,
+            'label' => 'Windows',
+            'approved_at' => now(),
+            'ip_address' => '1.1.1.1',
+        ]);
+
+        $this->withCookie(DeviceFingerprint::cookieName($collector->id), $token)
+            ->post(route('login.store'), [
+                'email' => 'wholesale@judi.local',
+                'password' => 'JudiAdmin!26',
+            ])
+            ->assertRedirect(route('home'));
+
+        $this->assertDatabaseHas('app_notifications', [
+            'type' => 'user_signed_in',
+            'audience' => 'role',
+            'target_role' => 'admin',
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson(route('notifications.feed'))
+            ->assertOk()
+            ->assertJsonFragment(['type' => 'user_signed_in']);
     }
 
     public function test_same_browser_does_not_reuse_device_token_across_users(): void
@@ -123,21 +134,19 @@ class SettingsAndDevicesTest extends TestCase
 
         $sharedLookingToken = str_repeat('c', 64);
 
-        // Wholesale's per-user cookie should not apply to retail.
         $this->withCookie(DeviceFingerprint::cookieName($collector->id), $sharedLookingToken)
             ->post(route('login.store'), [
                 'email' => 'retail@judi.local',
                 'password' => 'JudiAdmin!26',
             ])
-            ->assertRedirect(route('home'));
+            ->assertRedirect(route('device.pending'));
 
-        $retailDevice = UserDevice::query()
-            ->where('user_id', $retail->id)
-            ->whereNotNull('approved_at')
-            ->first();
-
-        $this->assertNotNull($retailDevice);
-        $this->assertNotSame($sharedLookingToken, $retailDevice->device_token);
+        $this->assertTrue(
+            DeviceLoginRequest::query()
+                ->where('user_id', $retail->id)
+                ->where('status', 'pending')
+                ->exists()
+        );
     }
 
     public function test_non_admin_cannot_revoke_own_device(): void
@@ -241,13 +250,6 @@ class SettingsAndDevicesTest extends TestCase
         $this->seed();
         $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
         $admin = User::query()->where('email', 'admin@judi.local')->firstOrFail();
-
-        UserDevice::query()->create([
-            'user_id' => $collector->id,
-            'device_token' => str_repeat('a', 64),
-            'label' => 'Windows',
-            'approved_at' => now(),
-        ]);
 
         $this->withCookie(DeviceFingerprint::cookieName($collector->id), str_repeat('d', 64))
             ->post(route('login.store'), [

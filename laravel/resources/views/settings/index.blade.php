@@ -122,21 +122,22 @@
                     <article class="device-card">
                         <div>
                             <strong>{{ $req->user?->name }}</strong>
-                            <p class="muted">{{ \App\Support\DeviceFingerprint::shortLabel($req->user_agent) }} · {{ __('ui.device_ip') }}: <strong dir="ltr">{{ $req->ip_address }}</strong></p>
-                            <p class="device-card__code" dir="ltr">{{ __('ui.device_code') }}: <strong>{{ $req->code }}</strong></p>
+                            <p class="muted" dir="ltr">{{ $req->user?->email }}</p>
+                            <p class="muted">
+                                {{ \App\Support\DeviceFingerprint::shortLabel($req->user_agent) }}
+                                · {{ __('ui.device_ip') }}: <strong dir="ltr">{{ $req->ip_address }}</strong>
+                            </p>
                         </div>
-                        <form method="POST" action="{{ route('settings.devices.approve', $req) }}" class="device-card__actions">
-                            @csrf
-                            <label class="field field--inline">
-                                <span class="field__label">{{ __('ui.device_code') }}</span>
-                                <input class="field__input field__input--mono" type="text" name="code" inputmode="numeric" maxlength="8" placeholder="{{ $req->code }}" required>
-                            </label>
-                            <button type="submit" class="btn btn--primary">{{ __('ui.device_approve') }}</button>
-                        </form>
-                        <form method="POST" action="{{ route('settings.devices.reject', $req) }}">
-                            @csrf
-                            <button type="submit" class="btn btn--ghost">{{ __('ui.device_reject') }}</button>
-                        </form>
+                        <div class="device-card__actions">
+                            <form method="POST" action="{{ route('settings.devices.approve', $req) }}">
+                                @csrf
+                                <button type="submit" class="btn btn--primary">{{ __('ui.device_approve') }}</button>
+                            </form>
+                            <form method="POST" action="{{ route('settings.devices.reject', $req) }}">
+                                @csrf
+                                <button type="submit" class="btn btn--ghost">{{ __('ui.device_reject') }}</button>
+                            </form>
+                        </div>
                     </article>
                 @empty
                     <p class="muted">{{ __('ui.devices_pending_empty') }}</p>

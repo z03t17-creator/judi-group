@@ -64,7 +64,7 @@
     }
     showing = true;
     const item = queue.shift();
-    const isDevice = item.type === 'device_login' || item.kind === 'pending_device';
+    const isDevice = item.type === 'device_login' || item.type === 'user_signed_in' || item.kind === 'pending_device';
     const el = document.createElement('button');
     el.type = 'button';
     el.className = 'notif-toast' + (isDevice ? ' notif-toast--device' : '');

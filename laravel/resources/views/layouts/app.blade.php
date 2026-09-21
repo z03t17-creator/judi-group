@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=71">
     <script src="{{ asset('js/money-input.js') }}?v=2" defer></script>
     <script src="{{ asset('js/image-upload.js') }}?v=1" defer></script>
-    <script src="{{ asset('js/notifications.js') }}?v=6" defer></script>
+    <script src="{{ asset('js/notifications.js') }}?v=7" defer></script>
     <script src="{{ asset('js/share.js') }}?v=3" defer></script>
     <script src="{{ asset('js/preferences.js') }}?v=2" defer></script>
     <script src="{{ asset('js/print-doc.js') }}?v=9" defer></script>

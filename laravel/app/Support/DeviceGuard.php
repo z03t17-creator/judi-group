@@ -26,7 +26,10 @@ final class DeviceGuard
     }
 
     /**
-     * Approve or create pending request. Returns pending request if waiting.
+     * After login: admins always pass; employees need admin approval on every new device.
+     * Already-approved devices pass and notify the office of the sign-in.
+     *
+     * @return DeviceLoginRequest|null Pending request when the user must wait.
      */
     public static function afterLogin(User $user, Request $request, string $token): ?DeviceLoginRequest
     {
@@ -48,27 +51,27 @@ final class DeviceGuard
                 'user_agent' => Str::limit((string) $request->userAgent(), 500),
             ])->save();
 
-            return null;
-        }
-
-        // First device for this user → auto-approve once, but still alert office.
-        $hasAny = UserDevice::query()->where('user_id', $user->id)->whereNotNull('approved_at')->exists();
-        if (! $hasAny) {
-            self::remember($user, $request, $token, null);
             self::notifyApprovers(
                 $user,
-                'device_login',
-                __('ui.notif_device_first_title'),
-                __('ui.notif_device_first_body', [
+                'user_signed_in',
+                __('ui.notif_signed_in_title'),
+                __('ui.notif_signed_in_body', [
                     'name' => $user->name,
                     'device' => DeviceFingerprint::shortLabel($request->userAgent()),
+                    'ip' => (string) $request->ip(),
                 ]),
-                ['auto_approved' => true],
+                [
+                    'user_id' => $user->id,
+                    'device_token' => $token,
+                    'ip_address' => $request->ip(),
+                ],
+                adminOnly: true,
             );
 
             return null;
         }
 
+        // New / unapproved device — always wait for admin (no first-device free pass).
         DeviceLoginRequest::query()
             ->where('user_id', $user->id)
             ->where('device_token', $token)
@@ -79,11 +82,11 @@ final class DeviceGuard
         $pending = DeviceLoginRequest::query()->create([
             'user_id' => $user->id,
             'device_token' => $token,
-            'code' => (string) random_int(100000, 999999),
+            'code' => '000000',
             'user_agent' => Str::limit((string) $request->userAgent(), 500),
             'ip_address' => $request->ip(),
             'status' => 'pending',
-            'expires_at' => now()->addHours(12),
+            'expires_at' => now()->addHours(24),
         ]);
 
         self::notifyApprovers(
@@ -92,12 +95,12 @@ final class DeviceGuard
             __('ui.notif_device_title'),
             __('ui.notif_device_body', [
                 'name' => $user->name,
-                'code' => $pending->code,
                 'device' => DeviceFingerprint::shortLabel($pending->user_agent),
+                'ip' => (string) $pending->ip_address,
             ]),
             [
                 'device_login_request_id' => $pending->id,
-                'code' => $pending->code,
+                'ip_address' => $pending->ip_address,
             ],
         );
 
@@ -105,7 +108,7 @@ final class DeviceGuard
     }
 
     /**
-     * Alert Admin + Accountant laptops (in-app toast + inbox).
+     * Alert Admin (and optionally Accountant) via in-app toast + inbox.
      *
      * @param  array<string, mixed>  $meta
      */
@@ -115,8 +118,11 @@ final class DeviceGuard
         string $title,
         string $body,
         array $meta = [],
+        bool $adminOnly = false,
     ): void {
-        foreach ([Role::Admin, Role::Accountant] as $role) {
+        $roles = $adminOnly ? [Role::Admin] : [Role::Admin, Role::Accountant];
+
+        foreach ($roles as $role) {
             AppNotification::query()->create([
                 'sender_id' => $actor->id,
                 'type' => $type,
@@ -147,13 +153,9 @@ final class DeviceGuard
         );
     }
 
-    public static function approve(DeviceLoginRequest $request, User $admin, ?string $code = null): bool
+    public static function approve(DeviceLoginRequest $request, User $admin): bool
     {
         if (! $request->isPending()) {
-            return false;
-        }
-
-        if ($code !== null && $code !== '' && $code !== $request->code) {
             return false;
         }
 
