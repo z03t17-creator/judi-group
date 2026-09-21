@@ -34,6 +34,14 @@ class SettingsController extends Controller
                 ->get()
             : collect();
 
+        if ($user->isAdmin()) {
+            User::query()->pluck('id')->each(
+                fn ($id) => DeviceFingerprint::pruneDuplicateDevices((int) $id)
+            );
+        } else {
+            DeviceFingerprint::pruneDuplicateDevices($user->id);
+        }
+
         $myDevices = UserDevice::query()
             ->where('user_id', $user->id)
             ->whereNotNull('approved_at')
@@ -247,5 +255,54 @@ class SettingsController extends Controller
         }
 
         return back()->with('status', __('ui.notif_marked_read'));
+    }
+
+    public function clearNotifications(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->isAdmin()) {
+            AppNotification::query()
+                ->whereIn('type', ['user_signed_in', 'device_login', 'device_approved'])
+                ->delete();
+        }
+
+        $visibleIds = AppNotification::query()->visibleTo($user)->pluck('id');
+        AppNotificationRead::query()
+            ->where('user_id', $user->id)
+            ->whereIn('app_notification_id', $visibleIds)
+            ->delete();
+
+        AppNotification::query()
+            ->where('audience', 'user')
+            ->where('target_user_id', $user->id)
+            ->delete();
+
+        return back()->with('status', __('ui.notif_cleared'));
+    }
+
+    public function deleteNotification(Request $request, AppNotification $appNotification): RedirectResponse
+    {
+        $user = $request->user();
+
+        $visible = AppNotification::query()
+            ->visibleTo($user)
+            ->whereKey($appNotification->id)
+            ->exists();
+        abort_unless($visible || $user->isAdmin(), 403);
+
+        if ($user->isAdmin() || $appNotification->audience === 'user') {
+            $appNotification->delete();
+        } else {
+            AppNotificationRead::query()->firstOrCreate(
+                [
+                    'app_notification_id' => $appNotification->id,
+                    'user_id' => $user->id,
+                ],
+                ['read_at' => now()],
+            );
+        }
+
+        return back()->with('status', __('ui.notif_deleted'));
     }
 }

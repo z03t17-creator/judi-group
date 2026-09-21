@@ -64,19 +64,33 @@
         <section class="surface-panel settings-card settings-card--wide" aria-labelledby="settings-inbox">
             <div class="settings-card__head">
                 <h2 id="settings-inbox">{{ __('ui.notifications') }}</h2>
-                <form method="POST" action="{{ route('settings.notifications.read') }}">
-                    @csrf
-                    <button type="submit" class="btn btn--ghost">{{ __('ui.notif_mark_read') }}</button>
-                </form>
+                <div class="settings-card__actions">
+                    <form method="POST" action="{{ route('settings.notifications.read') }}">
+                        @csrf
+                        <button type="submit" class="btn btn--ghost">{{ __('ui.notif_mark_read') }}</button>
+                    </form>
+                    <form method="POST" action="{{ route('settings.notifications.clear') }}" onsubmit="return confirm(@json(__('ui.notif_clear_confirm')))">
+                        @csrf
+                        <button type="submit" class="btn btn--ghost">{{ __('ui.notif_clear') }}</button>
+                    </form>
+                </div>
             </div>
             <p class="muted">{{ __('ui.notif_device_hint') }}</p>
             <p class="muted">{{ __('ui.notif_toast_hint') }}</p>
+            <p class="muted">{{ __('ui.notif_push_hint') }}</p>
             <ul class="notif-list">
                 @forelse ($notifications as $n)
                     <li class="notif-list__item {{ in_array($n->id, $readIds, true) ? '' : 'is-unread' }}">
-                        <strong>{{ $n->title }}</strong>
-                        <p>{{ $n->body }}</p>
-                        <time dir="ltr">{{ $n->created_at?->format('Y-m-d H:i') }}</time>
+                        <div class="notif-list__main">
+                            <strong>{{ $n->title }}</strong>
+                            <p>{{ $n->body }}</p>
+                            <time dir="ltr">{{ $n->created_at?->format('Y-m-d H:i') }}</time>
+                        </div>
+                        <form method="POST" action="{{ route('settings.notifications.delete', $n) }}">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn--ghost">{{ __('ui.notif_delete') }}</button>
+                        </form>
                     </li>
                 @empty
                     <li class="muted">{{ __('ui.notif_empty') }}</li>

@@ -51,22 +51,28 @@ final class DeviceGuard
                 'user_agent' => Str::limit((string) $request->userAgent(), 500),
             ])->save();
 
-            self::notifyApprovers(
-                $user,
-                'user_signed_in',
-                __('ui.notif_signed_in_title'),
-                __('ui.notif_signed_in_body', [
-                    'name' => $user->name,
-                    'device' => DeviceFingerprint::shortLabel($request->userAgent()),
-                    'ip' => (string) $request->ip(),
-                ]),
-                [
-                    'user_id' => $user->id,
-                    'device_token' => $token,
-                    'ip_address' => $request->ip(),
-                ],
-                adminOnly: true,
-            );
+            DeviceFingerprint::pruneDuplicateDevices($user->id);
+
+            // Avoid spamming the admin inbox on every refresh / re-login.
+            $cacheKey = 'signin-notif:'.$user->id.':'.substr($token, 0, 24);
+            if (cache()->add($cacheKey, 1, now()->addHours(6))) {
+                self::notifyApprovers(
+                    $user,
+                    'user_signed_in',
+                    __('ui.notif_signed_in_title'),
+                    __('ui.notif_signed_in_body', [
+                        'name' => $user->name,
+                        'device' => DeviceFingerprint::shortLabel($request->userAgent()),
+                        'ip' => (string) $request->ip(),
+                    ]),
+                    [
+                        'user_id' => $user->id,
+                        'device_token' => $token,
+                        'ip_address' => $request->ip(),
+                    ],
+                    adminOnly: true,
+                );
+            }
 
             return null;
         }
@@ -133,11 +139,20 @@ final class DeviceGuard
                 'meta' => $meta,
             ]);
         }
+
+        WebPushNotifier::notifyRoles(
+            $roles,
+            $title,
+            $body,
+            $type === 'device_login'
+                ? '/settings#settings-devices-pending'
+                : '/settings#settings-inbox',
+        );
     }
 
     public static function remember(User $user, Request $request, string $token, ?int $approvedBy): UserDevice
     {
-        return UserDevice::query()->updateOrCreate(
+        $device = UserDevice::query()->updateOrCreate(
             [
                 'user_id' => $user->id,
                 'device_token' => $token,
@@ -151,6 +166,10 @@ final class DeviceGuard
                 'last_seen_at' => now(),
             ],
         );
+
+        DeviceFingerprint::pruneDuplicateDevices($user->id);
+
+        return $device->fresh() ?? $device;
     }
 
     public static function approve(DeviceLoginRequest $request, User $admin): bool

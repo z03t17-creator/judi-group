@@ -43,4 +43,10 @@ return [
         'maps_zoom' => (int) env('GOOGLE_MAPS_DEFAULT_ZOOM', 12),
     ],
 
+    'webpush' => [
+        'public_key' => env('VAPID_PUBLIC_KEY'),
+        'private_key' => env('VAPID_PRIVATE_KEY'),
+        'subject' => env('VAPID_SUBJECT', 'mailto:admin@judi.local'),
+    ],
+
 ];

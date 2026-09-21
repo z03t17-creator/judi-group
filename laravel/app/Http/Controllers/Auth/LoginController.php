@@ -7,18 +7,21 @@ use App\Support\DeviceFingerprint;
 use App\Support\DeviceGuard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class LoginController extends Controller
 {
-    public function create(): View|RedirectResponse
+    public function create(): View|RedirectResponse|Response
     {
         if (Auth::check()) {
             return redirect()->route('home');
         }
 
-        return view('auth.login');
+        return response()
+            ->view('auth.login')
+            ->withCookie(DeviceFingerprint::queueBrowserCookie(request()));
     }
 
     public function store(Request $request): RedirectResponse
@@ -62,7 +65,9 @@ class LoginController extends Controller
             $request->session()->put('device_pending_id', $pending->id);
         }
 
-        return $response->withCookie(DeviceFingerprint::queueCookie($token, $user->id));
+        return $response
+            ->withCookie(DeviceFingerprint::queueCookie($token, $user->id))
+            ->withCookie(DeviceFingerprint::queueBrowserCookie($request));
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -73,7 +78,8 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        $redirect = redirect()->route('login');
+        $redirect = redirect()->route('login')
+            ->withCookie(DeviceFingerprint::queueBrowserCookie($request));
 
         if ($userId) {
             $redirect = $redirect->withCookie(DeviceFingerprint::forgetCookie($userId));

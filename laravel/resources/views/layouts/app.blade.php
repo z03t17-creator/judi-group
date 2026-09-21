@@ -19,10 +19,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=71">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=72">
     <script src="{{ asset('js/money-input.js') }}?v=2" defer></script>
     <script src="{{ asset('js/image-upload.js') }}?v=1" defer></script>
-    <script src="{{ asset('js/notifications.js') }}?v=7" defer></script>
+    <script src="{{ asset('js/notifications.js') }}?v=8" defer></script>
+    <script src="{{ asset('js/push.js') }}?v=1" defer></script>
     <script src="{{ asset('js/share.js') }}?v=3" defer></script>
     <script src="{{ asset('js/preferences.js') }}?v=2" defer></script>
     <script src="{{ asset('js/print-doc.js') }}?v=9" defer></script>

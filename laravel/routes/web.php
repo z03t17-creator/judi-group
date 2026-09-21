@@ -11,6 +11,7 @@ use App\Http\Controllers\NotificationFeedController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReleaseController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\StoreController;
@@ -54,7 +55,12 @@ Route::middleware(['auth', 'active', 'device'])->group(function () {
     Route::delete('/settings/users/{user}/devices', [SettingsController::class, 'revokeUserDevices'])->name('settings.devices.revoke_user_all');
     Route::post('/settings/notifications', [SettingsController::class, 'sendNotification'])->name('settings.notifications.send');
     Route::post('/settings/notifications/read', [SettingsController::class, 'markNotificationsRead'])->name('settings.notifications.read');
+    Route::post('/settings/notifications/clear', [SettingsController::class, 'clearNotifications'])->name('settings.notifications.clear');
+    Route::delete('/settings/notifications/{appNotification}', [SettingsController::class, 'deleteNotification'])->name('settings.notifications.delete');
     Route::get('/api/notifications', NotificationFeedController::class)->name('notifications.feed');
+    Route::get('/api/push/vapid-public-key', [PushSubscriptionController::class, 'publicKey'])->name('push.public_key');
+    Route::post('/api/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::delete('/api/push/subscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
 
     Route::middleware('perm:products')->group(function () {
         Route::get('products', [ProductController::class, 'index'])->name('products.index');

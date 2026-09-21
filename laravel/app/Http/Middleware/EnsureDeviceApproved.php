@@ -30,16 +30,20 @@ class EnsureDeviceApproved
         $request->session()->put(DeviceFingerprint::sessionKey($user->id), $token);
 
         if (DeviceGuard::isApproved($user, $token)) {
-            return $next($request)->withCookie(DeviceFingerprint::queueCookie($token, $user->id));
+            return $next($request)
+                ->withCookie(DeviceFingerprint::queueCookie($token, $user->id))
+                ->withCookie(DeviceFingerprint::queueBrowserCookie($request));
         }
 
         if ($request->session()->get('device_pending_id')) {
             return redirect()->route('device.pending')
-                ->withCookie(DeviceFingerprint::queueCookie($token, $user->id));
+                ->withCookie(DeviceFingerprint::queueCookie($token, $user->id))
+                ->withCookie(DeviceFingerprint::queueBrowserCookie($request));
         }
 
         // Unknown device after session existed — force pending check page.
         return redirect()->route('device.pending')
-            ->withCookie(DeviceFingerprint::queueCookie($token, $user->id));
+            ->withCookie(DeviceFingerprint::queueCookie($token, $user->id))
+            ->withCookie(DeviceFingerprint::queueBrowserCookie($request));
     }
 }
