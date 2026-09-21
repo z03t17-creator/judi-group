@@ -15,6 +15,7 @@ use InvalidArgumentException;
 #[Fillable([
     'receipt_number',
     'store_id',
+    'invoice_id',
     'collector_id',
     'amount',
     'currency',
@@ -40,6 +41,11 @@ class Collection extends Model
     public function store(): BelongsTo
     {
         return $this->belongsTo(Store::class);
+    }
+
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class);
     }
 
     public function collector(): BelongsTo
@@ -135,6 +141,7 @@ class Collection extends Model
             $collection = static::query()->create([
                 'receipt_number' => CollectionNumber::next($last),
                 'store_id' => $store->id,
+                'invoice_id' => null,
                 'collector_id' => $collector->id,
                 'amount' => number_format($amount, 2, '.', ''),
                 'currency' => 'IQD',
@@ -146,6 +153,51 @@ class Collection extends Model
 
             return $collection->load(['store', 'collector']);
         });
+    }
+
+    /**
+     * Cash taken at sale time: sits in the collector wallet until accountant confirms.
+     * Caller must already have increased store.current_debt by the full invoice total.
+     */
+    public static function holdFromSale(
+        User $collector,
+        Store $store,
+        Invoice $invoice,
+        float $amount,
+    ): self {
+        $amount = round($amount, 2);
+        if ($amount < 1) {
+            throw new InvalidArgumentException('بڕ دەبێت لە سفر زیاتر بێت.');
+        }
+
+        $available = static::availableDebtForStore($store);
+        if ($amount > $available + 0.0001) {
+            throw new InvalidArgumentException(
+                'بڕ نابێت لە قەرزی بەردەست زیاتر بێت ('.number_format($available, 0).').',
+            );
+        }
+
+        $last = static::query()
+            ->lockForUpdate()
+            ->orderByDesc('id')
+            ->value('receipt_number');
+
+        $note = __('ui.collection_from_sale', [
+            'invoice' => $invoice->invoice_number,
+        ]);
+
+        return static::query()->create([
+            'receipt_number' => CollectionNumber::next($last),
+            'store_id' => $store->id,
+            'invoice_id' => $invoice->id,
+            'collector_id' => $collector->id,
+            'amount' => number_format($amount, 2, '.', ''),
+            'currency' => 'IQD',
+            'collected_at' => now()->toDateString(),
+            'note' => $note,
+            'receipt_path' => null,
+            'status' => CollectionStatus::Pending,
+        ])->load(['store', 'collector', 'invoice']);
     }
 
     /**

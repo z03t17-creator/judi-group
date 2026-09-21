@@ -45,7 +45,7 @@ class CollectorSellTest extends TestCase
 
         $invoice = Invoice::query()->with('items')->first();
         $this->assertNotNull($invoice);
-        $response->assertRedirect(route('invoices.show', $invoice));
+        $response->assertRedirect(route('invoices.show', [$invoice, 'print' => 1]));
 
         $this->assertSame('INV-000001', $invoice->invoice_number);
         $this->assertSame(InvoiceType::Cash, $invoice->invoice_type);
@@ -54,6 +54,20 @@ class CollectorSellTest extends TestCase
         $this->assertCount(1, $invoice->items);
         $this->assertSame('0.00', (string) $invoice->debt_amount);
         $this->assertSame((string) $invoice->total_amount, (string) $invoice->paid_amount);
+
+        $store->refresh();
+        $this->assertSame((string) $invoice->total_amount, (string) $store->current_debt);
+
+        $collection = \App\Models\Collection::query()
+            ->where('invoice_id', $invoice->id)
+            ->first();
+        $this->assertNotNull($collection);
+        $this->assertTrue($collection->isPending());
+        $this->assertSame((string) $invoice->total_amount, (string) $collection->amount);
+        $this->assertSame(
+            '0.00',
+            number_format(\App\Models\Collection::availableDebtForStore($store), 2, '.', ''),
+        );
 
         $expected = number_format((float) $unit->price_wholesale * 2, 2, '.', '');
         $this->assertSame($expected, (string) $invoice->total_amount);
@@ -281,12 +295,26 @@ class CollectorSellTest extends TestCase
         $this->assertSame(number_format($remaining, 2, '.', ''), (string) $invoice->debt_amount);
 
         $store->refresh();
-        $this->assertSame(number_format($remaining, 2, '.', ''), (string) $store->current_debt);
+        // Full sale total is receivable until accountant confirms the cash hold.
+        $this->assertSame(number_format($total, 2, '.', ''), (string) $store->current_debt);
+        $this->assertSame(
+            number_format($remaining, 2, '.', ''),
+            number_format(\App\Models\Collection::availableDebtForStore($store), 2, '.', ''),
+        );
+
+        $collection = \App\Models\Collection::query()
+            ->where('invoice_id', $invoice->id)
+            ->first();
+        $this->assertNotNull($collection);
+        $this->assertTrue($collection->isPending());
+        $this->assertSame(number_format($paidNow, 2, '.', ''), (string) $collection->amount);
 
         $print = $this->actingAs($collector)->get(route('invoices.show', $invoice));
         $print->assertOk();
         $print->assertSee(__('ui.invoice_paid_now'), false);
         $print->assertSee(__('ui.invoice_remaining'), false);
         $print->assertSee(number_format($remaining, 0), false);
+        $print->assertSee(__('ui.collection_voucher_title'), false);
+        $print->assertSee($collection->receipt_number, false);
     }
 }

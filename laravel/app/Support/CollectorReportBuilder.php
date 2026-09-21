@@ -42,6 +42,7 @@ final class CollectorReportBuilder
      *   expense_total: float,
      *   collection_count: int,
      *   collection_total: float,
+     *   pending_collection_total: float,
      *   net_cash: float,
      *   stores: Collection,
      *   expenses: Collection,
@@ -124,11 +125,16 @@ final class CollectorReportBuilder
             : round((float) $list->max(fn (User $u) => (float) ($u->max_gift_percent ?? 0)), 2);
         $expenseTotal = (float) $expenses->sum(fn (Expense $e) => (float) $e->amount);
 
-        // Only confirmed receipts count toward debt collected / net cash.
+        // Only confirmed receipts count toward debt collected / company net cash.
+        // Invoice paid_now sits in the collector wallet as a pending collection until
+        // the accountant confirms — do not treat it as company cash early.
         $confirmedCollections = $collections->filter(
             fn (DebtCollection $c) => $c->isConfirmed(),
         );
         $collectionTotal = (float) $confirmedCollections->sum(fn (DebtCollection $c) => (float) $c->amount);
+        $pendingCollectionTotal = (float) $collections
+            ->filter(fn (DebtCollection $c) => $c->isPending())
+            ->sum(fn (DebtCollection $c) => (float) $c->amount);
 
         $stores = $invoices
             ->groupBy('store_id')
@@ -198,7 +204,8 @@ final class CollectorReportBuilder
             'expense_total' => $expenseTotal,
             'collection_count' => $confirmedCollections->count(),
             'collection_total' => $collectionTotal,
-            'net_cash' => $cashTotal + $collectionTotal - $expenseTotal,
+            'pending_collection_total' => $pendingCollectionTotal,
+            'net_cash' => $collectionTotal - $expenseTotal,
             'stores' => $stores,
             'expenses' => $expenses,
             // Full list (pending + confirmed) so pending rows can show with a badge.

@@ -10,15 +10,18 @@
         $fromLine .= ' — '.$storeName;
     }
     $amount = (float) $collection->amount;
-    // Pending: debt not yet reduced. Confirmed: current_debt is already after this payment.
-    $remaining = (float) ($collection->store?->current_debt ?? 0);
+    $pending = $collection->isPending();
+    // Pending: debt not yet reduced — remaining = debt minus all pending holds.
+    // Confirmed: current_debt is already after this payment.
+    $remaining = $pending
+        ? \App\Models\Collection::availableDebtForStore($collection->store)
+        : (float) ($collection->store?->current_debt ?? 0);
     $legal = $company['legal_name'] ?: __('ui.company_legal_name');
     $branch = $company['branch'] ?: __('ui.company_branch');
     $brand = $company['name'] ?? 'JUDI';
     $tagline = $company['tagline'] ?? '';
     $words = MoneyWords::dinar($amount);
     $no = $collection->receipt_number;
-    $pending = $collection->isPending();
 @endphp
 
 <article class="paper-voucher{{ $pending ? ' paper-voucher--pending' : '' }}" dir="rtl">

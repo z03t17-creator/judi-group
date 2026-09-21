@@ -74,6 +74,16 @@ class Invoice extends Model
         return $this->hasMany(InvoiceItem::class);
     }
 
+    public function collections(): HasMany
+    {
+        return $this->hasMany(Collection::class);
+    }
+
+    public function saleCollection(): ?Collection
+    {
+        return $this->collections->sortByDesc('id')->first();
+    }
+
     public function isPendingSend(): bool
     {
         return $this->status === InvoiceStatus::PendingSend;
@@ -124,7 +134,7 @@ class Invoice extends Model
             throw new InvalidArgumentException('دەسەڵاتت نییە بۆ هەڵوەشاندنەوەی ئەم پسوولەیە.');
         }
 
-        return DB::transaction(function () {
+        return DB::transaction(function () use ($actor) {
             $invoice = static::query()
                 ->lockForUpdate()
                 ->findOrFail($this->id);
@@ -134,18 +144,23 @@ class Invoice extends Model
             }
 
             $wasSent = $invoice->status === InvoiceStatus::Sent;
-            $invoice->load(['items.product', 'warehouse']);
+            $invoice->load(['items.product', 'warehouse', 'collections']);
 
-            if ($invoice->invoice_type === InvoiceType::Debt && (float) $invoice->debt_amount > 0) {
-                $store = Store::query()->lockForUpdate()->findOrFail($invoice->store_id);
-                $store->current_debt = number_format(
-                    max(0, round((float) $store->current_debt - (float) $invoice->debt_amount, 2)),
-                    2,
-                    '.',
-                    '',
-                );
-                $store->save();
+            foreach ($invoice->collections as $linked) {
+                $linked->reverseAndDelete($actor);
             }
+
+            $store = Store::query()->lockForUpdate()->findOrFail($invoice->store_id);
+
+            // Every sale posts the full total onto store debt; sale cash is held as a
+            // pending collection until the accountant confirms it.
+            $store->current_debt = number_format(
+                max(0, round((float) $store->current_debt - (float) $invoice->total_amount, 2)),
+                2,
+                '.',
+                '',
+            );
+            $store->save();
 
             if ($wasSent) {
                 $warehouse = Warehouse::query()
@@ -161,7 +176,7 @@ class Invoice extends Model
             $invoice->status = InvoiceStatus::Cancelled;
             $invoice->save();
 
-            return $invoice->load(['items', 'store', 'collector', 'warehouse', 'sentBy']);
+            return $invoice->load(['items', 'store', 'collector', 'warehouse', 'sentBy', 'collections']);
         });
     }
 
@@ -363,15 +378,15 @@ class Invoice extends Model
                 }
             }
 
-            if ($type === InvoiceType::Debt && $debt > 0) {
-                $store->current_debt = number_format(
-                    (float) $store->current_debt + $debt,
-                    2,
-                    '.',
-                    '',
-                );
-                $store->save();
-            }
+            // Full invoice total becomes store receivable. Any cash the collector
+            // takes now is held as a pending collection until accountant approval.
+            $store->current_debt = number_format(
+                (float) $store->current_debt + $total,
+                2,
+                '.',
+                '',
+            );
+            $store->save();
 
             $invoice = static::query()->create([
                 'invoice_number' => InvoiceNumber::next($last),
@@ -394,7 +409,11 @@ class Invoice extends Model
                 $invoice->items()->create($row);
             }
 
-            return $invoice->load(['items', 'store', 'collector', 'warehouse']);
+            if ($paid > 0.0001) {
+                Collection::holdFromSale($collector, $store->fresh(), $invoice, $paid);
+            }
+
+            return $invoice->load(['items', 'store', 'collector', 'warehouse', 'collections']);
         });
     }
 }

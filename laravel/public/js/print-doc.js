@@ -23,7 +23,8 @@
         } catch (e) {}
     }
 
-    window.judiPrint = function (mode) {
+    window.judiPrint = function (mode, options) {
+        options = options || {};
         var html = document.documentElement;
         var prevTitle = document.title;
         var titleEl = document.querySelector('.print-doc-head__title');
@@ -44,7 +45,12 @@
             setPageStyle('a4');
             document.title = prevTitle;
             window.removeEventListener('afterprint', cleanup);
-            hidePrintGate();
+            if (!options.keepGate) {
+                hidePrintGate();
+            }
+            if (typeof options.onDone === 'function') {
+                options.onDone();
+            }
         };
         window.addEventListener('afterprint', cleanup);
         window.setTimeout(cleanup, 4000);
@@ -55,11 +61,43 @@
         } catch (e) {}
     };
 
+    window.judiPrintSequence = function (modes) {
+        var list = Array.isArray(modes) ? modes.filter(Boolean) : [];
+        if (!list.length) return;
+        var i = 0;
+        var next = function () {
+            if (i >= list.length) {
+                hidePrintGate();
+                return;
+            }
+            var mode = list[i++];
+            var last = i >= list.length;
+            window.judiPrint(mode, {
+                keepGate: !last,
+                onDone: function () {
+                    window.setTimeout(next, 350);
+                },
+            });
+        };
+        next();
+    };
+
     document.addEventListener('click', function (event) {
         var skip = event.target.closest('[data-print-gate-skip]');
         if (skip) {
             event.preventDefault();
             hidePrintGate();
+            return;
+        }
+        var seqBtn = event.target.closest('[data-print-sequence]');
+        if (seqBtn) {
+            event.preventDefault();
+            var raw = seqBtn.getAttribute('data-print-sequence') || '';
+            window.judiPrintSequence(
+                raw.split(',').map(function (part) {
+                    return part.trim();
+                })
+            );
             return;
         }
         var btn = event.target.closest('[data-print]');

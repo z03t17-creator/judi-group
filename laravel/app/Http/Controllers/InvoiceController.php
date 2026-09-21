@@ -208,23 +208,32 @@ class InvoiceController extends Controller
 
         return redirect()
             ->route('invoices.show', [$invoice, 'print' => 1])
-            ->with('success', 'پسوولە «'.$invoice->invoice_number.'» تۆمارکرا.')
-            ->with('auto_print', 'a4');
+            ->with('success', $invoice->collections->isNotEmpty()
+                ? __('ui.invoice_saved_cash_pending', [
+                    'invoice' => $invoice->invoice_number,
+                    'amount' => number_format((float) $invoice->paid_amount, 0),
+                ])
+                : 'پسوولە «'.$invoice->invoice_number.'» تۆمارکرا.')
+            ->with('auto_print', 'a4')
+            ->with('auto_print_receipt', $invoice->collections->isNotEmpty());
     }
 
     public function show(Request $request, Invoice $invoice): View
     {
         $this->authorizeView($request, $invoice);
 
-        $invoice->load(['items.product', 'store', 'collector', 'warehouse', 'sentBy']);
+        $invoice->load(['items.product', 'store', 'collector', 'warehouse', 'sentBy', 'collections.store', 'collections.collector']);
         $user = $request->user();
+        $saleCollection = $invoice->saleCollection();
 
         return view('invoices.show', [
             'invoice' => $invoice,
+            'saleCollection' => $saleCollection,
             'company' => config('judi.company'),
             'autoPrint' => $request->query('print') === 'slip'
                 ? 'slip'
                 : ($request->boolean('print') || session('auto_print') ? 'a4' : null),
+            'autoPrintReceipt' => (bool) session('auto_print_receipt', false) && $saleCollection,
             'canRelease' => (bool) $user?->canAccess(PagePermission::Releases)
                 && $invoice->isPendingSend(),
             'canCancel' => $user && $invoice->userCanCancel($user),

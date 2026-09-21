@@ -63,6 +63,39 @@
         'company' => $company,
     ])
 
+    @if (!empty($saleCollection))
+        <div class="invoice-show__receipt no-print">
+            <div class="alert alert--info" role="status">
+                {{ __('ui.invoice_cash_in_collector_wallet', [
+                    'amount' => number_format((float) $saleCollection->amount, 0),
+                    'receipt' => $saleCollection->receipt_number,
+                ]) }}
+                @if ($saleCollection->isPending())
+                    · {{ __('ui.collection_awaiting_confirm') }}
+                @endif
+            </div>
+            <div class="page__actions" style="margin-bottom: 0.75rem">
+                <a href="{{ route('collections.show', $saleCollection) }}" class="btn btn--regular">
+                    @include('partials.icons.wallet', ['class' => 'btn__icon'])
+                    {{ __('ui.collection_receipt_title') }}
+                    <span class="ltr-inline">{{ $saleCollection->receipt_number }}</span>
+                </a>
+                <button type="button" class="btn btn--primary" data-print="voucher">
+                    @include('partials.icons.print', ['class' => 'btn__icon'])
+                    {{ __('ui.print_voucher') }}
+                </button>
+            </div>
+        </div>
+        @include('collections.partials.paper-receipt', [
+            'collection' => $saleCollection,
+            'company' => $company,
+        ])
+        @include('collections.partials.paper-slip', [
+            'collection' => $saleCollection,
+            'company' => $company,
+        ])
+    @endif
+
     @if (!empty($canCancel))
         <div class="invoice-show__secondary no-print">
             <form
@@ -137,10 +170,24 @@
     @endif
 </section>
 
-<div class="print-gate no-print" data-print-gate @if (empty($autoPrint)) hidden @endif>
+<div class="print-gate no-print" data-print-gate @if (empty($autoPrint) && empty($autoPrintReceipt)) hidden @endif>
     <div class="print-gate__card">
-        <p class="print-gate__title">{{ __('ui.invoice_saved_print') }}</p>
-        <button type="button" class="btn btn--primary print-gate__print" data-print="{{ ($autoPrint ?? 'a4') === 'slip' ? 'slip' : 'a4' }}">
+        <p class="print-gate__title">
+            @if (!empty($saleCollection) && !empty($autoPrintReceipt))
+                {{ __('ui.invoice_saved_print_both') }}
+            @else
+                {{ __('ui.invoice_saved_print') }}
+            @endif
+        </p>
+        <button
+            type="button"
+            class="btn btn--primary print-gate__print"
+            @if (!empty($saleCollection) && !empty($autoPrintReceipt))
+                data-print-sequence="a4,voucher"
+            @else
+                data-print="{{ ($autoPrint ?? 'a4') === 'slip' ? 'slip' : 'a4' }}"
+            @endif
+        >
             {{ __('ui.print_now') }}
         </button>
         <button type="button" class="btn btn--ghost" data-print-gate-skip>{{ __('ui.print_later') }}</button>

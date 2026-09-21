@@ -3364,6 +3364,11 @@ html[data-theme="dark"] .purchase-sub.is-active {
     display: none !important;
   }
 
+  /* Invoice A4 print: hide payment vouchers (printed in a second pass). */
+  html:not(.print-voucher):not(.print-thermal) .paper-voucher {
+    display: none !important;
+  }
+
   html.print-voucher .paper-voucher {
     max-width: none !important;
     width: 100% !important;
