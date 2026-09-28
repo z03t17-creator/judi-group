@@ -111,8 +111,10 @@ class CollectorSellTest extends TestCase
 
         $print = $this->actingAs($collector)->get(route('invoices.show', $invoice));
         $print->assertOk();
-        $print->assertSee(__('ui.invoice_debt'), false);
+        $print->assertSee(__('ui.invoice_grand_total'), false);
+        $print->assertSee(__('ui.invoice_debt'), false); // type label
         $print->assertDontSee('<span>نەقد</span>', false);
+        $print->assertDontSee('is-remain', false);
     }
 
     public function test_collector_cannot_view_another_collectors_invoice(): void

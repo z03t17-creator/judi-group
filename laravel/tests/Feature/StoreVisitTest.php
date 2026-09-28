@@ -80,10 +80,45 @@ class StoreVisitTest extends TestCase
             'lines' => [
                 ['product_unit_id' => $unit->id, 'quantity' => 1],
             ],
-        ])->assertRedirect();
+        ])->assertRedirect(route('visits.show', $visit));
 
         $invoice = \App\Models\Invoice::query()->latest('id')->firstOrFail();
         $this->assertSame((int) $visit->id, (int) $invoice->store_visit_id);
+    }
+
+    public function test_reject_catalog_only_lists_products_sold_to_store(): void
+    {
+        $this->seed();
+
+        $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
+        $store = Store::query()->firstOrFail();
+        $warehouse = Warehouse::primary();
+        $products = Product::query()->with('units')->take(2)->get();
+        $this->assertGreaterThanOrEqual(2, $products->count());
+
+        $soldUnit = $products[0]->units->first();
+        $otherUnit = $products[1]->units->first();
+
+        \App\Models\Invoice::createSale(
+            $collector,
+            $store,
+            $warehouse,
+            [['product_unit_id' => $soldUnit->id, 'quantity' => 2]],
+        );
+
+        $visit = StoreVisit::start($collector, $store);
+        $page = $this->actingAs($collector)->get(route('visits.reject', $visit));
+        $page->assertOk();
+        $page->assertSee(__('ui.reject_sold_only_hint'), false);
+        $page->assertSee((string) $soldUnit->id, false);
+        $page->assertSee('"available":2', false);
+        $page->assertDontSee('"id":'.$otherUnit->id.',', false);
+
+        $this->actingAs($collector)->post(route('visits.reject.store', $visit), [
+            'lines' => [
+                ['product_unit_id' => $otherUnit->id, 'quantity' => 1],
+            ],
+        ])->assertSessionHasErrors('reject');
     }
 
     public function test_reject_restocks_koga_and_credits_store_debt(): void
@@ -181,6 +216,28 @@ class StoreVisitTest extends TestCase
 
         $this->actingAs($collector)->post(route('visits.end', $visit))->assertRedirect();
         $this->assertSame(StoreVisitStatus::Closed, $visit->fresh()->status);
+    }
+
+    public function test_visit_report_shows_sections_and_print_controls(): void
+    {
+        $this->seed();
+
+        $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
+        $store = Store::query()->firstOrFail();
+        $visit = StoreVisit::start($collector, $store);
+
+        $page = $this->actingAs($collector)->get(route('visits.report', $visit));
+        $page->assertOk();
+        $page->assertSee(__('ui.visit_action_report'), false);
+        $page->assertSee(__('ui.invoices'), false);
+        $page->assertSee(__('ui.collections'), false);
+        $page->assertSee(__('ui.visit_action_reject'), false);
+        $page->assertSee(__('ui.invoice_empty'), false);
+        $page->assertSee(__('ui.collections_empty'), false);
+        $page->assertSee(__('ui.rejects_empty'), false);
+        $page->assertSee('data-print-section="#visit-report-invoices"', false);
+        $page->assertSee('data-print-section="#visit-report-collections"', false);
+        $page->assertSee('data-print-section="#visit-report-rejects"', false);
     }
 
     public function test_bottom_nav_visit_entry_for_collector(): void

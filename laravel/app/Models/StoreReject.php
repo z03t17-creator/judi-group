@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use App\Enums\CollectorChannel;
+use App\Enums\InvoiceStatus;
 use App\Enums\PagePermission;
 use App\Enums\StoreRejectStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -75,6 +77,64 @@ class StoreReject extends Model
     }
 
     /**
+     * Units previously sold to this store (non-cancelled) minus already returned.
+     *
+     * @return Collection<int, array{product_unit_id: int, product_id: int, available: float, sold: float, returned: float}>
+     */
+    public static function returnableByUnitForStore(Store $store): Collection
+    {
+        $sold = DB::table('invoice_items')
+            ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
+            ->where('invoices.store_id', $store->id)
+            ->where('invoices.status', '!=', InvoiceStatus::Cancelled->value)
+            ->groupBy('invoice_items.product_unit_id', 'invoice_items.product_id')
+            ->selectRaw(
+                'invoice_items.product_unit_id, invoice_items.product_id, '
+                .'SUM(invoice_items.quantity + invoice_items.gift_quantity) as sold_qty'
+            )
+            ->get()
+            ->keyBy('product_unit_id');
+
+        if ($sold->isEmpty()) {
+            return collect();
+        }
+
+        $returned = DB::table('store_reject_items')
+            ->join('store_rejects', 'store_rejects.id', '=', 'store_reject_items.store_reject_id')
+            ->where('store_rejects.store_id', $store->id)
+            ->where('store_rejects.status', StoreRejectStatus::Posted->value)
+            ->groupBy('store_reject_items.product_unit_id')
+            ->selectRaw('store_reject_items.product_unit_id, SUM(store_reject_items.quantity) as returned_qty')
+            ->pluck('returned_qty', 'product_unit_id');
+
+        return $sold
+            ->map(function ($row) use ($returned) {
+                $unitId = (int) $row->product_unit_id;
+                $soldQty = round((float) $row->sold_qty, 2);
+                $returnedQty = round((float) ($returned[$unitId] ?? 0), 2);
+                $available = round(max(0, $soldQty - $returnedQty), 2);
+
+                return [
+                    'product_unit_id' => $unitId,
+                    'product_id' => (int) $row->product_id,
+                    'sold' => $soldQty,
+                    'returned' => $returnedQty,
+                    'available' => $available,
+                ];
+            })
+            ->filter(fn (array $row) => $row['available'] > 0.0001)
+            ->values();
+    }
+
+    public static function availableQtyForUnit(Store $store, int $productUnitId): float
+    {
+        $row = static::returnableByUnitForStore($store)
+            ->firstWhere('product_unit_id', $productUnitId);
+
+        return $row ? (float) $row['available'] : 0.0;
+    }
+
+    /**
      * @param  list<array{product_unit_id: int|string, quantity?: float|int|string}>  $lines
      */
     public static function recordReturn(
@@ -106,14 +166,30 @@ class StoreReject extends Model
             $channel = CollectorChannel::Wholesale;
         }
 
+        $store = Store::query()->findOrFail($visit->store_id);
+        $returnable = static::returnableByUnitForStore($store)->keyBy('product_unit_id');
+
         $built = [];
         $grossCredit = 0.0;
+        $claimed = [];
 
         foreach ($lines as $line) {
             $unitId = (int) ($line['product_unit_id'] ?? 0);
             $qty = round((float) ($line['quantity'] ?? 0), 2);
             if ($unitId < 1 || $qty <= 0) {
                 continue;
+            }
+
+            $available = (float) ($returnable[$unitId]['available'] ?? 0);
+            $already = (float) ($claimed[$unitId] ?? 0);
+            $left = round(max(0, $available - $already), 2);
+            if ($left <= 0.0001) {
+                throw new InvalidArgumentException('ئەم کاڵایە لەم فرۆشگایە نەفرۆشراوە یان پێشتر گەڕێنراوەتەوە.');
+            }
+            if ($qty > $left + 0.0001) {
+                throw new InvalidArgumentException(
+                    'ژمارەی گەڕاندنەوە لە فرۆشتنی فرۆشگا زیاترە (زۆرترین '.rtrim(rtrim(number_format($left, 2, '.', ''), '0'), '.').').',
+                );
             }
 
             $unit = ProductUnit::query()->with('product')->findOrFail($unitId);
@@ -129,6 +205,7 @@ class StoreReject extends Model
                 throw new InvalidArgumentException('ژمارەی دانە نادروستە بۆ «'.$product->displayName().'».');
             }
 
+            $claimed[$unitId] = round($already + $qty, 2);
             $grossCredit += $lineCredit;
             $built[] = [
                 'product_id' => $product->id,

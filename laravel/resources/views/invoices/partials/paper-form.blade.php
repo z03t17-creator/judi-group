@@ -148,7 +148,7 @@
             @if ($hasDiscount)
                 <p class="is-discount">
                     <span>{{ __('ui.invoice_discount') }}</span>
-                    <strong dir="ltr">{{ $discountPct }}%</strong>
+                    <strong dir="ltr">{{ $discountPct }}% (−{{ number_format((float) $invoice->discount_amount, 0) }})</strong>
                 </p>
                 <p class="is-total">
                     <span>{{ __('ui.invoice_net_total') }}</span>
@@ -160,12 +160,12 @@
                     <span>{{ $debt > 0 ? __('ui.invoice_paid_now') : __('ui.invoice_cash') }}</span>
                     <strong dir="ltr">{{ number_format($paid, 0) }}</strong>
                 </p>
-            @endif
-            @if ($debt > 0)
-                <p class="is-remain">
-                    <span>{{ $paid > 0 ? __('ui.invoice_remaining') : __('ui.invoice_debt') }}</span>
-                    <strong dir="ltr">{{ number_format($debt, 0) }}</strong>
-                </p>
+                @if ($debt > 0)
+                    <p class="is-remain">
+                        <span>{{ __('ui.invoice_remaining') }}</span>
+                        <strong dir="ltr">{{ number_format($debt, 0) }}</strong>
+                    </p>
+                @endif
             @endif
         </div>
     </footer>

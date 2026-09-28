@@ -46,25 +46,45 @@
     });
   }
 
+  function findUnit(product, unitId) {
+    return ((product && product.units) || []).find(function (u) {
+      return String(u.id) === String(unitId);
+    });
+  }
+
   function cartKey(productId, unitId) {
     return String(productId) + ":" + String(unitId);
   }
 
+  function cartQtyForUnit(unitId) {
+    return cart.reduce(function (sum, line) {
+      return String(line.unitId) === String(unitId)
+        ? sum + line.quantity
+        : sum;
+    }, 0);
+  }
+
+  function maxAvailable(unit) {
+    return Math.max(0, Math.round(Number(unit && unit.available) || 0));
+  }
+
   function addLine(productId, unitId, qty) {
     var product = findProduct(productId);
-    var unit =
-      (product &&
-        (product.units || []).find(function (u) {
-          return String(u.id) === String(unitId);
-        })) ||
-      preferredUnit(product);
+    var unit = findUnit(product, unitId) || preferredUnit(product);
     if (!product || !unit) return;
+
+    var max = maxAvailable(unit);
+    if (max < 1) return;
 
     var key = cartKey(product.id, unit.id);
     var existing = cart.find(function (line) {
       return line.key === key;
     });
     var amount = Math.max(1, Math.round(Number(qty) || 1));
+    var used = existing ? existing.quantity : 0;
+    var room = max - used;
+    if (room < 1) return;
+    amount = Math.min(amount, room);
 
     if (existing) {
       existing.quantity += amount;
@@ -78,6 +98,7 @@
         price: Number(unit.price) || 0,
         quantity: amount,
         unitLabel: unit.label,
+        available: max,
       });
     }
     render();
@@ -88,7 +109,8 @@
       return item.key === key;
     });
     if (!line) return;
-    line.quantity = Math.max(0, Math.round(Number(qty) || 0));
+    var max = Math.max(0, Number(line.available) || 0);
+    line.quantity = Math.max(0, Math.min(max, Math.round(Number(qty) || 0)));
     if (line.quantity <= 0) {
       cart = cart.filter(function (item) {
         return item.key !== key;
@@ -135,32 +157,44 @@
     }
 
     catalogEl.innerHTML = rows
-      .slice(0, 40)
+      .slice(0, 60)
       .map(function (product) {
-        var unit = preferredUnit(product);
-        if (!unit) return "";
-        return (
-          '<button type="button" class="sell-product sell-product--calm" data-add-product="' +
-          product.id +
-          '" data-unit-id="' +
-          unit.id +
-          '">' +
-          (product.image
-            ? '<img class="sell-product__img" src="' +
-              escapeHtml(product.image) +
-              '" alt="">'
-            : '<span class="sell-product__img"></span>') +
-          '<span class="sell-product__body"><strong>' +
-          escapeHtml(product.name) +
-          '</strong><span class="sell-product__price" dir="ltr">' +
-          money(unit.price) +
-          " · " +
-          escapeHtml(unit.label) +
-          "</span></span>" +
-          '<span class="sell-product__add">' +
-          escapeHtml(labels.add || "+") +
-          "</span></button>"
-        );
+        return (product.units || [])
+          .map(function (unit) {
+            var max = maxAvailable(unit);
+            var inCart = cartQtyForUnit(unit.id);
+            var left = Math.max(0, max - inCart);
+            if (max < 1) return "";
+            return (
+              '<button type="button" class="sell-product sell-product--calm"' +
+              (left < 1 ? " disabled" : "") +
+              ' data-add-product="' +
+              product.id +
+              '" data-unit-id="' +
+              unit.id +
+              '">' +
+              (product.image
+                ? '<img class="sell-product__img" src="' +
+                  escapeHtml(product.image) +
+                  '" alt="">'
+                : '<span class="sell-product__img"></span>') +
+              '<span class="sell-product__body"><strong>' +
+              escapeHtml(product.name) +
+              '</strong><span class="sell-product__price" dir="ltr">' +
+              money(unit.price) +
+              " · " +
+              escapeHtml(unit.label) +
+              " · " +
+              escapeHtml(labels.available || "max") +
+              " " +
+              money(max) +
+              "</span></span>" +
+              '<span class="sell-product__add">' +
+              escapeHtml(labels.add || "+") +
+              "</span></button>"
+            );
+          })
+          .join("");
       })
       .join("");
   }
@@ -190,12 +224,16 @@
             '<div class="sell-cart__row sell-cart__row--controls">' +
             '<div class="qty-stepper">' +
             '<button type="button" data-qty-delta="-1">−</button>' +
-            '<input type="number" min="1" step="1" inputmode="numeric" value="' +
+            '<input type="number" min="1" max="' +
+            line.available +
+            '" step="1" inputmode="numeric" value="' +
             line.quantity +
             '" data-qty>' +
             '<button type="button" data-qty-delta="1">+</button></div>' +
             '<span dir="ltr">' +
             money(line.price * line.quantity) +
+            " · ≤" +
+            money(line.available) +
             "</span></div></li>"
           );
         })
@@ -220,12 +258,14 @@
         })
         .join("");
     }
+
+    renderCatalog(filterEl ? filterEl.value : "");
   }
 
   if (catalogEl) {
     catalogEl.addEventListener("click", function (event) {
       var btn = event.target.closest("[data-add-product]");
-      if (!btn) return;
+      if (!btn || btn.disabled) return;
       addLine(btn.getAttribute("data-add-product"), btn.getAttribute("data-unit-id"), 1);
     });
   }

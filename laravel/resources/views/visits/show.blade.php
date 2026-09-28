@@ -31,6 +31,23 @@
         <p class="field__error">{{ $message }}</p>
     @enderror
 
+    @if (session('last_invoice_id'))
+        @php $lastInvoice = \App\Models\Invoice::query()->find(session('last_invoice_id')); @endphp
+        @if ($lastInvoice)
+            <div class="visit-hub__last-invoice surface-panel">
+                <div>
+                    <strong dir="ltr">{{ $lastInvoice->invoice_number }}</strong>
+                    <span>{{ __('ui.invoice_grand_total') }}:
+                        <strong dir="ltr">{{ number_format((float) $lastInvoice->total_amount, 0) }}</strong>
+                    </span>
+                </div>
+                <a class="btn btn--primary btn--sm" href="{{ route('invoices.show', [$lastInvoice, 'print' => 1]) }}">
+                    {{ __('ui.print_a4') }}
+                </a>
+            </div>
+        @endif
+    @endif
+
     <div class="visit-hub__stats">
         <div>
             <span>{{ __('ui.invoices') }}</span>

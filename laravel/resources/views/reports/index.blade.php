@@ -97,9 +97,10 @@
                 </article>
             </div>
 
-            <div class="report-section" style="--report-accent: var(--judi-500)">
+            <div class="report-section" id="report-section-stock" data-print-block style="--report-accent: var(--judi-500)">
                 <div class="report-section__head">
                     <h3 class="report-section__title">{{ __('ui.stock') }}</h3>
+                    @include('partials.print-section-button', ['target' => '#report-section-stock'])
                 </div>
                 <div class="table-wrap report-table-wrap">
                     <table class="data-table report-table">
@@ -132,9 +133,10 @@
                 </div>
             </div>
 
-            <div class="report-section" style="--report-accent: #c27803">
+            <div class="report-section" id="report-section-purchases" data-print-block style="--report-accent: #c27803">
                 <div class="report-section__head">
                     <h3 class="report-section__title">{{ __('ui.purchases') }}</h3>
+                    @include('partials.print-section-button', ['target' => '#report-section-purchases'])
                 </div>
                 <div class="table-wrap report-table-wrap">
                     <table class="data-table report-table">
@@ -280,9 +282,10 @@
             </article>
         </div>
 
-        <div class="report-section" style="--report-accent: #ea580c">
+        <div class="report-section" id="report-section-stores" data-print-block style="--report-accent: #ea580c">
             <div class="report-section__head">
                 <h2 class="report-section__title">{{ __('ui.report_stores_list') }}</h2>
+                @include('partials.print-section-button', ['target' => '#report-section-stores'])
             </div>
             <div class="table-wrap report-table-wrap">
                 <table class="data-table report-table">
@@ -314,9 +317,10 @@
             </div>
         </div>
 
-        <div class="report-section" style="--report-accent: var(--judi-500)">
+        <div class="report-section" id="report-section-collections" data-print-block style="--report-accent: var(--judi-500)">
             <div class="report-section__head">
                 <h2 class="report-section__title">{{ __('ui.collections') }}</h2>
+                @include('partials.print-section-button', ['target' => '#report-section-collections'])
             </div>
             <div class="table-wrap report-table-wrap">
                 <table class="data-table report-table">
@@ -362,9 +366,10 @@
             </div>
         </div>
 
-        <div class="report-section" style="--report-accent: #0284c7">
+        <div class="report-section" id="report-section-expenses" data-print-block style="--report-accent: #0284c7">
             <div class="report-section__head">
                 <h2 class="report-section__title">{{ __('ui.expenses') }}</h2>
+                @include('partials.print-section-button', ['target' => '#report-section-expenses'])
             </div>
             <div class="table-wrap report-table-wrap">
                 <table class="data-table report-table">
@@ -398,9 +403,10 @@
             </div>
         </div>
 
-        <div class="report-section" style="--report-accent: #b45309">
+        <div class="report-section" id="report-section-invoices" data-print-block style="--report-accent: #b45309">
             <div class="report-section__head">
                 <h2 class="report-section__title">{{ __('ui.invoices') }}</h2>
+                @include('partials.print-section-button', ['target' => '#report-section-invoices'])
             </div>
             <div class="table-wrap report-table-wrap">
                 <table class="data-table report-table">

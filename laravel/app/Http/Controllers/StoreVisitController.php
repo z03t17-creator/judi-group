@@ -6,8 +6,8 @@ use App\Enums\CollectorChannel;
 use App\Enums\PagePermission;
 use App\Http\Requests\StartStoreVisitRequest;
 use App\Http\Requests\StoreRejectRequest;
-use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductUnit;
 use App\Models\Store;
 use App\Models\StoreReject;
 use App\Models\StoreVisit;
@@ -163,51 +163,68 @@ class StoreVisitController extends Controller
             ? $user->collector_channel
             : CollectorChannel::Wholesale;
 
-        $categories = Category::query()
-            ->where('is_active', true)
-            ->with(['subcategories' => fn ($q) => $q->where('is_active', true)->orderBy('name')])
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get()
-            ->map(fn (Category $cat) => [
-                'id' => $cat->id,
-                'name' => $cat->name,
-                'subcategories' => $cat->subcategories->map(fn ($sub) => [
-                    'id' => $sub->id,
-                    'name' => $sub->name,
-                ])->values(),
-            ]);
+        $store = $visit->store;
+        $returnable = StoreReject::returnableByUnitForStore($store)->keyBy('product_unit_id');
+        $unitIds = $returnable->keys()->map(fn ($id) => (int) $id)->all();
 
-        $catalog = Product::query()
-            ->with(['units' => fn ($q) => $q->orderBy('id')])
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get()
-            ->map(function (Product $product) use ($channel) {
-                return [
-                    'id' => $product->id,
-                    'name' => $product->displayName(),
-                    'sku' => $product->sku,
-                    'barcode' => $product->barcode,
-                    'image' => $product->imageUrl(),
-                    'category_id' => $product->category_id,
-                    'subcategory_id' => $product->subcategory_id,
-                    'units' => $product->units->map(fn ($unit) => [
-                        'id' => $unit->id,
-                        'unit' => $unit->unit->value,
-                        'label' => $unit->unit->label(),
-                        'barcode' => $unit->barcode,
-                        'price' => (float) $unit->priceFor($channel),
-                        'conversion' => (int) $unit->conversion_to_piece,
-                    ])->values(),
-                ];
-            })->values();
+        $catalog = collect();
+        if ($unitIds !== []) {
+            $units = ProductUnit::query()
+                ->with(['product' => fn ($q) => $q->with([])])
+                ->whereIn('id', $unitIds)
+                ->orderBy('id')
+                ->get()
+                ->groupBy('product_id');
+
+            $catalog = Product::query()
+                ->whereIn('id', $units->keys()->all())
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get()
+                ->map(function (Product $product) use ($channel, $units, $returnable) {
+                    $productUnits = ($units[$product->id] ?? collect())
+                        ->map(function (ProductUnit $unit) use ($channel, $returnable) {
+                            $available = (float) ($returnable[$unit->id]['available'] ?? 0);
+                            if ($available <= 0) {
+                                return null;
+                            }
+
+                            return [
+                                'id' => $unit->id,
+                                'unit' => $unit->unit->value,
+                                'label' => $unit->unit->label(),
+                                'barcode' => $unit->barcode,
+                                'price' => (float) $unit->priceFor($channel),
+                                'conversion' => (int) $unit->conversion_to_piece,
+                                'available' => $available,
+                            ];
+                        })
+                        ->filter()
+                        ->values();
+
+                    if ($productUnits->isEmpty()) {
+                        return null;
+                    }
+
+                    return [
+                        'id' => $product->id,
+                        'name' => $product->displayName(),
+                        'sku' => $product->sku,
+                        'barcode' => $product->barcode,
+                        'image' => $product->imageUrl(),
+                        'category_id' => $product->category_id,
+                        'subcategory_id' => $product->subcategory_id,
+                        'units' => $productUnits,
+                    ];
+                })
+                ->filter()
+                ->values();
+        }
 
         return view('visits.reject', [
             'visit' => $visit,
-            'store' => $visit->store,
+            'store' => $store,
             'catalog' => $catalog,
-            'categories' => $categories,
             'warehouse' => Warehouse::primary(),
         ]);
     }

@@ -2,6 +2,7 @@
   const canPush = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   if (!canPush) return;
 
+  const ASKED_KEY = 'judi_push_asked_v1';
   const csrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
   function urlBase64ToUint8Array(base64String) {
@@ -13,16 +14,19 @@
     return out;
   }
 
-  async function subscribe() {
+  async function ensureServiceWorker() {
+    const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    await navigator.serviceWorker.ready;
+    return reg;
+  }
+
+  async function subscribe(reg) {
     const keyRes = await fetch('/api/push/vapid-public-key', {
       headers: { Accept: 'application/json' },
       credentials: 'same-origin',
     });
     const keyData = await keyRes.json();
     if (!keyData.enabled || !keyData.publicKey) return;
-
-    const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-    await navigator.serviceWorker.ready;
 
     let sub = await reg.pushManager.getSubscription();
     if (!sub) {
@@ -52,11 +56,16 @@
 
   async function boot() {
     try {
-      if (Notification.permission === 'default') {
+      const reg = await ensureServiceWorker();
+
+      // Permission: once per browser install — not every login.
+      if (Notification.permission === 'default' && localStorage.getItem(ASKED_KEY) !== '1') {
+        localStorage.setItem(ASKED_KEY, '1');
         await Notification.requestPermission();
       }
+
       if (Notification.permission !== 'granted') return;
-      await subscribe();
+      await subscribe(reg);
     } catch (e) {
       // Push is optional — in-app toasts still work.
     }

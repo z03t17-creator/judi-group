@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\UserDevice;
 use App\Support\DeviceFingerprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 class SettingsAndDevicesTest extends TestCase
@@ -92,11 +93,10 @@ class SettingsAndDevicesTest extends TestCase
         );
     }
 
-    public function test_approved_device_login_notifies_admin(): void
+    public function test_approved_device_login_is_silent(): void
     {
         $this->seed();
         $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
-        $admin = User::query()->where('email', 'admin@judi.local')->firstOrFail();
         $token = str_repeat('a', 64);
 
         UserDevice::query()->create([
@@ -114,16 +114,48 @@ class SettingsAndDevicesTest extends TestCase
             ])
             ->assertRedirect(route('home'));
 
-        $this->assertDatabaseHas('app_notifications', [
+        $this->assertDatabaseMissing('app_notifications', [
             'type' => 'user_signed_in',
-            'audience' => 'role',
-            'target_role' => 'admin',
         ]);
+    }
 
-        $this->actingAs($admin)
-            ->getJson(route('notifications.feed'))
-            ->assertOk()
-            ->assertJsonFragment(['type' => 'user_signed_in']);
+    public function test_pending_device_relogin_does_not_duplicate_notification(): void
+    {
+        $this->seed();
+        $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
+        $token = str_repeat('b', 64);
+
+        $this->withCookie(DeviceFingerprint::cookieName($collector->id), $token)
+            ->post(route('login.store'), [
+                'email' => 'wholesale@judi.local',
+                'password' => 'JudiAdmin!26',
+            ])
+            ->assertRedirect(route('device.pending'));
+
+        $firstCount = \App\Models\AppNotification::query()->where('type', 'device_login')->count();
+        $this->assertGreaterThan(0, $firstCount);
+
+        Auth::logout();
+
+        $this->withCookie(DeviceFingerprint::cookieName($collector->id), $token)
+            ->post(route('login.store'), [
+                'email' => 'wholesale@judi.local',
+                'password' => 'JudiAdmin!26',
+            ])
+            ->assertRedirect(route('device.pending'));
+
+        $this->assertSame(
+            $firstCount,
+            \App\Models\AppNotification::query()->where('type', 'device_login')->count()
+        );
+        $this->assertSame(
+            1,
+            \App\Models\DeviceLoginRequest::query()
+                ->where('user_id', $collector->id)
+                ->where('device_token', $token)
+                ->where('status', 'pending')
+                ->count()
+        );
     }
 
     public function test_same_browser_does_not_reuse_device_token_across_users(): void

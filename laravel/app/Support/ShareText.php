@@ -54,15 +54,15 @@ final class ShareText
         $lines[] = __('ui.invoice_grand_total').': '.number_format((float) $invoice->subtotal, 0);
         if ((float) $invoice->discount_percent > 0) {
             $pct = rtrim(rtrim(number_format((float) $invoice->discount_percent, 2, '.', ''), '0'), '.');
-            $lines[] = __('ui.invoice_discount').': '.$pct.'%';
+            $lines[] = __('ui.invoice_discount').': '.$pct.'% (−'.number_format((float) $invoice->discount_amount, 0).')';
             $lines[] = __('ui.invoice_net_total').': '.number_format((float) $invoice->total_amount, 0);
         }
-        // Legacy partial payments only; new sales are full debt.
+        // Legacy partial payments only; new debt-only sales omit duplicate debt line.
         if ((float) $invoice->paid_amount > 0) {
             $lines[] = __('ui.invoice_paid_now').': '.number_format((float) $invoice->paid_amount, 0);
-        }
-        if ((float) $invoice->debt_amount > 0) {
-            $lines[] = __('ui.invoice_debt').': '.number_format((float) $invoice->debt_amount, 0);
+            if ((float) $invoice->debt_amount > 0) {
+                $lines[] = __('ui.invoice_remaining').': '.number_format((float) $invoice->debt_amount, 0);
+            }
         }
 
         if (! empty($company['phones'])) {

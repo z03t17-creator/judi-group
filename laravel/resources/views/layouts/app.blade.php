@@ -14,19 +14,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="{{ (request()->cookie('judi_theme') === 'dark') ? '#0f2422' : '#f4f7f5' }}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="JUDI">
+    <meta name="application-name" content="JUDI">
     <title>@yield('title', 'JUDI')</title>
-    <link rel="icon" href="{{ $judiLogoUrl }}" type="image/jpeg">
+    <link rel="icon" href="{{ asset('icon-192.png') }}" type="image/png">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icon-192.png') }}">
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=81">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=83">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function () {});
+            });
+        }
+    </script>
     <script src="{{ asset('js/money-input.js') }}?v=2" defer></script>
     <script src="{{ asset('js/image-upload.js') }}?v=1" defer></script>
-    <script src="{{ asset('js/notifications.js') }}?v=8" defer></script>
-    <script src="{{ asset('js/push.js') }}?v=1" defer></script>
+    <script src="{{ asset('js/notifications.js') }}?v=9" defer></script>
+    <script src="{{ asset('js/push.js') }}?v=2" defer></script>
     <script src="{{ asset('js/share.js') }}?v=3" defer></script>
     <script src="{{ asset('js/preferences.js') }}?v=2" defer></script>
-    <script src="{{ asset('js/print-doc.js') }}?v=10" defer></script>
+    <script src="{{ asset('js/print-doc.js') }}?v=11" defer></script>
     <script src="{{ asset('js/office-nav.js') }}?v=2" defer></script>
 </head>
 <body

@@ -11,6 +11,7 @@
             <p class="page__lead">
                 {{ $store->name }}
                 · {{ $warehouse?->displayName() ?? __('ui.warehouse_main') }}
+                · {{ __('ui.reject_sold_only_hint') }}
             </p>
         </div>
         <a href="{{ route('visits.show', $visit) }}" class="btn btn--ghost btn--sm">{{ __('ui.back') }}</a>
@@ -75,8 +76,9 @@
         add: @json(__('ui.add')),
         remove: @json(__('ui.delete')),
         empty: @json(__('ui.reject_pick_items')),
-        noProducts: @json(__('ui.invoice_no_products_in_filter')),
+        noProducts: @json(__('ui.reject_no_sold_products')),
+        available: @json(__('ui.reject_available')),
     };
 </script>
-<script src="{{ asset('js/visit-reject.js') }}?v=1" defer></script>
+<script src="{{ asset('js/visit-reject.js') }}?v=2" defer></script>
 @endsection

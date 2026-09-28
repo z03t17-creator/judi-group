@@ -59,7 +59,7 @@
                 </label>
 
                 <label class="check">
-                    <input type="checkbox" name="remember" value="1" @checked(old('remember'))>
+                    <input type="checkbox" name="remember" value="1" @checked(old('remember', true))>
                     <span>{{ __('auth.remember') }}</span>
                 </label>
 

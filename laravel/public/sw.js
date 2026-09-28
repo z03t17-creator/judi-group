@@ -1,10 +1,15 @@
-/* JUDI service worker — background Web Push (Messenger-style when tab is closed). */
+/* JUDI service worker — required for Chrome/Brave "Install app" + Web Push. */
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
+});
+
+/* Network-first fetch handler is required for installability (like Chawrash). */
+self.addEventListener('fetch', (event) => {
+  event.respondWith(fetch(event.request));
 });
 
 self.addEventListener('push', (event) => {
@@ -22,10 +27,9 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || 'JUDI', {
       body: data.body || '',
-      icon: '/images/judi-logo.jpg?v=2',
-      badge: '/images/judi-logo.jpg?v=2',
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
       data: { url: data.url || '/settings' },
-      renotify: true,
       tag: 'judi-push',
     })
   );

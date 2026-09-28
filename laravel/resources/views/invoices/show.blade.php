@@ -12,9 +12,11 @@
             <p class="page__lead">
                 {{ $invoice->store?->name }}
                 · {{ $invoice->invoice_type->label() }}
-                @if ((float) $invoice->debt_amount > 0)
-                    · {{ (float) $invoice->paid_amount > 0 ? __('ui.invoice_remaining') : __('ui.invoice_debt') }}
-                    <span class="ltr-inline">{{ number_format((float) $invoice->debt_amount, 0) }}</span>
+                · {{ __('ui.invoice_grand_total') }}
+                <span class="ltr-inline">{{ number_format((float) $invoice->total_amount, 0) }}</span>
+                @if ((float) $invoice->discount_percent > 0)
+                    · {{ __('ui.invoice_discount') }}
+                    {{ rtrim(rtrim(number_format((float) $invoice->discount_percent, 2, '.', ''), '0'), '.') }}%
                 @endif
                 · {{ $invoice->status->label() }}
             </p>

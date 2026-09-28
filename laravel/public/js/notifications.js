@@ -4,52 +4,61 @@
 
   const inboxUrl = document.body?.dataset?.notifInbox || '/settings#settings-inbox';
   const devicesUrl = (document.body?.dataset?.notifInbox || '/settings').replace(/#.*$/, '') + '#settings-devices-pending';
-  let lastId = Number(sessionStorage.getItem('judi_notif_last_id') || 0) || 0;
+  const SEEN_KEY = 'judi_notif_seen_v2';
+  const LAST_KEY = 'judi_notif_last_id_v2';
+  const PERM_KEY = 'judi_notif_perm_asked';
+
+  let lastId = Number(localStorage.getItem(LAST_KEY) || 0) || 0;
   let lastPendingDevices = null;
   let primed = false;
-  const seenIds = new Set(JSON.parse(sessionStorage.getItem('judi_notif_seen') || '[]'));
+  const seenIds = new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'));
   const countEl = document.querySelector('[data-notif-count]');
   const host = () => document.querySelector('[data-notif-toast-host]');
   const queue = [];
   let showing = false;
 
   const copy = {
-    deviceTitle: document.documentElement.getAttribute('data-label-notif-device') || 'New device login',
+    deviceTitle: document.documentElement.getAttribute('data-label-notif-device') || 'New device waiting',
     deviceBody: document.documentElement.getAttribute('data-label-notif-device-body') || 'Open Settings to approve this device.',
   };
 
   function persistSeen() {
     try {
-      sessionStorage.setItem('judi_notif_seen', JSON.stringify([...seenIds].slice(-80)));
+      localStorage.setItem(SEEN_KEY, JSON.stringify([...seenIds].slice(-120)));
     } catch (e) {}
   }
 
-  function showBrowser(title, body) {
+  function showBrowser(title, body, tag) {
     if (!('Notification' in window)) return;
     if (Notification.permission !== 'granted') return;
     try {
       const n = new Notification(title, {
         body: body || '',
-        icon: '/images/judi-logo.jpg?v=2',
-        badge: '/images/judi-logo.jpg?v=2',
-        tag: 'judi-app-' + String(title || '').slice(0, 40),
-        renotify: true,
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        tag: tag || ('judi-' + String(title || '').slice(0, 40)),
+        renotify: false,
       });
-      setTimeout(() => { try { n.close(); } catch (e) {} }, 10000);
+      setTimeout(() => { try { n.close(); } catch (e) {} }, 8000);
     } catch (e) {}
   }
 
-  async function ensurePermission() {
+  /** Ask once per browser install — never on every login/page load. */
+  async function ensurePermissionOnce() {
     if (!('Notification' in window)) return;
-    if (Notification.permission === 'default') {
-      try { await Notification.requestPermission(); } catch (e) {}
-    }
+    if (Notification.permission !== 'default') return;
+    if (localStorage.getItem(PERM_KEY) === '1') return;
+    try {
+      localStorage.setItem(PERM_KEY, '1');
+      await Notification.requestPermission();
+    } catch (e) {}
   }
 
   function enqueueToast(item) {
-    if (item.id && seenIds.has(String(item.id))) return;
-    if (item.id) {
-      seenIds.add(String(item.id));
+    const key = item.id != null ? String(item.id) : null;
+    if (key && seenIds.has(key)) return;
+    if (key) {
+      seenIds.add(key);
       persistSeen();
     }
     queue.push(item);
@@ -64,7 +73,7 @@
     }
     showing = true;
     const item = queue.shift();
-    const isDevice = item.type === 'device_login' || item.type === 'user_signed_in' || item.kind === 'pending_device';
+    const isDevice = item.type === 'device_login' || item.kind === 'pending_device';
     const el = document.createElement('button');
     el.type = 'button';
     el.className = 'notif-toast' + (isDevice ? ' notif-toast--device' : '');
@@ -109,28 +118,17 @@
 
     root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('is-in'));
-    setTimeout(dismiss, isDevice ? 14000 : 6000);
+    setTimeout(dismiss, isDevice ? 12000 : 6000);
   }
 
-  function isRecent(iso, minutes) {
-    if (!iso) return false;
-    const t = Date.parse(iso);
-    if (Number.isNaN(t)) return false;
-    return t >= Date.now() - minutes * 60 * 1000;
-  }
-
-  function toastNotifications(list, { deviceOnlyRecent = false } = {}) {
+  function toastNew(list) {
     list
       .filter((n) => n.unread)
-      .filter((n) => {
-        if (!deviceOnlyRecent) return true;
-        if (n.type === 'device_login') return isRecent(n.created_at, 30);
-        return false;
-      })
+      .filter((n) => n.type !== 'user_signed_in')
       .reverse()
       .forEach((n) => {
         enqueueToast(n);
-        showBrowser(n.title, n.body);
+        showBrowser(n.title, n.body, 'judi-n-' + String(n.id));
       });
   }
 
@@ -154,31 +152,38 @@
 
       if (!primed) {
         primed = true;
-        // First poll after load: surface recent device logins (refresh used to miss these).
-        toastNotifications(list, { deviceOnlyRecent: true });
-        if (pending > 0 && !list.some((n) => n.type === 'device_login' && n.unread && isRecent(n.created_at, 30))) {
-          enqueueToast({
-            id: 'pending-devices-prime-' + pending,
-            kind: 'pending_device',
-            type: 'device_login',
-            title: copy.deviceTitle,
-            body: copy.deviceBody,
-            href: devicesUrl,
-          });
-          showBrowser(copy.deviceTitle, copy.deviceBody);
+        // First load: mark current feed as seen — do not replay old toasts on login.
+        list.forEach((n) => {
+          if (n.id != null) seenIds.add(String(n.id));
+        });
+        persistSeen();
+        if (pending > 0) {
+          const pendingKey = 'pending-devices-' + pending;
+          if (!seenIds.has(pendingKey)) {
+            enqueueToast({
+              id: pendingKey,
+              kind: 'pending_device',
+              type: 'device_login',
+              title: copy.deviceTitle,
+              body: copy.deviceBody,
+              href: devicesUrl,
+            });
+            showBrowser(copy.deviceTitle, copy.deviceBody, pendingKey);
+          }
         }
       } else {
-        toastNotifications(list);
+        toastNew(list);
         if (lastPendingDevices !== null && pending > lastPendingDevices) {
+          const pendingKey = 'pending-devices-' + pending + '-' + Date.now();
           enqueueToast({
-            id: 'pending-devices-' + pending + '-' + Date.now(),
+            id: pendingKey,
             kind: 'pending_device',
             type: 'device_login',
             title: copy.deviceTitle,
             body: copy.deviceBody,
             href: devicesUrl,
           });
-          showBrowser(copy.deviceTitle, copy.deviceBody);
+          showBrowser(copy.deviceTitle, copy.deviceBody, 'judi-pending');
         }
       }
 
@@ -186,15 +191,15 @@
       const maxId = Number(data.max_id || 0);
       if (maxId > lastId) {
         lastId = maxId;
-        try { sessionStorage.setItem('judi_notif_last_id', String(lastId)); } catch (e) {}
+        try { localStorage.setItem(LAST_KEY, String(lastId)); } catch (e) {}
       }
     } catch (e) {}
   }
 
   function start() {
-    ensurePermission();
+    ensurePermissionOnce();
     poll();
-    setInterval(poll, 5000);
+    setInterval(poll, 8000);
   }
 
   if (document.readyState === 'loading') {
@@ -205,11 +210,5 @@
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') poll();
-  });
-
-  document.addEventListener('click', (event) => {
-    if (event.target.closest('[data-notif-bell]')) {
-      ensurePermission();
-    }
   });
 })();

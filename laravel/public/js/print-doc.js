@@ -41,7 +41,10 @@
         var cleanup = function () {
             if (cleaned) return;
             cleaned = true;
-            html.classList.remove('print-thermal', 'print-voucher');
+            html.classList.remove('print-thermal', 'print-voucher', 'print-section-mode');
+            document.querySelectorAll('.is-print-target').forEach(function (el) {
+                el.classList.remove('is-print-target');
+            });
             setPageStyle('a4');
             document.title = prevTitle;
             window.removeEventListener('afterprint', cleanup);
@@ -59,6 +62,28 @@
             window.focus();
             window.print();
         } catch (e) {}
+    };
+
+    window.judiPrintSection = function (selector) {
+        var target = typeof selector === 'string' ? document.querySelector(selector) : selector;
+        if (!target) {
+            window.judiPrint('a4');
+            return;
+        }
+        var html = document.documentElement;
+        html.classList.add('print-section-mode');
+        target.classList.add('is-print-target');
+        var title = target.querySelector('.report-section__title, .report-block__title');
+        var headTitle = document.querySelector('.print-doc-head__title');
+        var prevHead = headTitle ? headTitle.textContent : '';
+        if (headTitle && title) {
+            headTitle.textContent = title.textContent.trim();
+        }
+        window.judiPrint('a4', {
+            onDone: function () {
+                if (headTitle) headTitle.textContent = prevHead;
+            },
+        });
     };
 
     window.judiPrintSequence = function (modes) {
@@ -98,6 +123,12 @@
                     return part.trim();
                 })
             );
+            return;
+        }
+        var sectionBtn = event.target.closest('[data-print-section]');
+        if (sectionBtn) {
+            event.preventDefault();
+            window.judiPrintSection(sectionBtn.getAttribute('data-print-section'));
             return;
         }
         var btn = event.target.closest('[data-print]');

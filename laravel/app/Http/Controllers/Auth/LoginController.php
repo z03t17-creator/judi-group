@@ -72,19 +72,13 @@ class LoginController extends Controller
 
     public function destroy(Request $request): RedirectResponse
     {
-        $userId = $request->user()?->id;
-
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        $redirect = redirect()->route('login')
+        // Keep device cookies so the same phone stays approved after logout
+        // (Rosery-style: approve once per device, not per login).
+        return redirect()->route('login')
             ->withCookie(DeviceFingerprint::queueBrowserCookie($request));
-
-        if ($userId) {
-            $redirect = $redirect->withCookie(DeviceFingerprint::forgetCookie($userId));
-        }
-
-        return $redirect;
     }
 }

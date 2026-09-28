@@ -53,37 +53,28 @@ final class DeviceGuard
 
             DeviceFingerprint::pruneDuplicateDevices($user->id);
 
-            // Avoid spamming the admin inbox on every refresh / re-login.
-            $cacheKey = 'signin-notif:'.$user->id.':'.substr($token, 0, 24);
-            if (cache()->add($cacheKey, 1, now()->addHours(6))) {
-                self::notifyApprovers(
-                    $user,
-                    'user_signed_in',
-                    __('ui.notif_signed_in_title'),
-                    __('ui.notif_signed_in_body', [
-                        'name' => $user->name,
-                        'device' => DeviceFingerprint::shortLabel($request->userAgent()),
-                        'ip' => (string) $request->ip(),
-                    ]),
-                    [
-                        'user_id' => $user->id,
-                        'device_token' => $token,
-                        'ip_address' => $request->ip(),
-                    ],
-                    adminOnly: true,
-                );
-            }
-
+            // Approved device: silent re-login (Rosery-style — notify only on new device requests).
             return null;
         }
 
-        // New / unapproved device — always wait for admin (no first-device free pass).
-        DeviceLoginRequest::query()
+        // Reuse an existing pending request for this device — do not re-notify on every login.
+        $pending = DeviceLoginRequest::query()
             ->where('user_id', $user->id)
             ->where('device_token', $token)
             ->where('status', 'pending')
             ->where('expires_at', '>', now())
-            ->delete();
+            ->latest('id')
+            ->first();
+
+        if ($pending) {
+            $pending->forceFill([
+                'user_agent' => Str::limit((string) $request->userAgent(), 500),
+                'ip_address' => $request->ip(),
+                'expires_at' => now()->addHours(24),
+            ])->save();
+
+            return $pending;
+        }
 
         $pending = DeviceLoginRequest::query()->create([
             'user_id' => $user->id,

@@ -50,6 +50,12 @@
     </p>
     @if ($hasDiscount)
         <p class="paper-slip__total">
+            {{ __('ui.invoice_discount') }}:
+            <strong dir="ltr">
+                {{ rtrim(rtrim(number_format((float) $invoice->discount_percent, 2, '.', ''), '0'), '.') }}%
+            </strong>
+        </p>
+        <p class="paper-slip__total">
             {{ __('ui.invoice_net_total') }}:
             <strong dir="ltr">{{ number_format((float) $invoice->total_amount, 0) }}</strong>
         </p>
@@ -59,12 +65,12 @@
             {{ (float) $invoice->debt_amount > 0 ? __('ui.invoice_paid_now') : __('ui.invoice_cash') }}:
             <strong dir="ltr">{{ number_format((float) $invoice->paid_amount, 0) }}</strong>
         </p>
-    @endif
-    @if ((float) $invoice->debt_amount > 0)
-        <p class="paper-slip__total paper-slip__remain">
-            {{ (float) $invoice->paid_amount > 0 ? __('ui.invoice_remaining') : __('ui.invoice_debt') }}:
-            <strong dir="ltr">{{ number_format((float) $invoice->debt_amount, 0) }}</strong>
-        </p>
+        @if ((float) $invoice->debt_amount > 0)
+            <p class="paper-slip__total paper-slip__remain">
+                {{ __('ui.invoice_remaining') }}:
+                <strong dir="ltr">{{ number_format((float) $invoice->debt_amount, 0) }}</strong>
+            </p>
+        @endif
     @endif
 
     <p class="paper-slip__note">{{ __('ui.visit_slip_note') }}</p>

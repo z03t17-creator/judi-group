@@ -234,6 +234,14 @@ class InvoiceController extends Controller
 
         if ($activeVisit) {
             $activeVisit->attachInvoice($invoice);
+
+            return redirect()
+                ->route('visits.show', $activeVisit)
+                ->with('success', __('ui.visit_invoice_saved', [
+                    'invoice' => $invoice->invoice_number,
+                    'amount' => number_format((float) $invoice->total_amount, 0),
+                ]))
+                ->with('last_invoice_id', $invoice->id);
         }
 
         return redirect()
