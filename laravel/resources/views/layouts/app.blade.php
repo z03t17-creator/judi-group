@@ -8,6 +8,13 @@
     data-label-theme-dark="{{ __('ui.theme_dark') }}"
     data-label-notif-device="{{ __('ui.notif_device_title') }}"
     data-label-notif-device-body="{{ __('ui.notif_device_toast') }}"
+    data-label-push-on="{{ __('ui.notif_push_on') }}"
+    data-label-push-hint="{{ __('ui.notif_push_tap') }}"
+    data-label-push-blocked="{{ __('ui.notif_push_blocked') }}"
+    data-label-push-denied="{{ __('ui.notif_push_denied') }}"
+    data-label-push-disabled="{{ __('ui.notif_push_disabled') }}"
+    data-label-push-failed="{{ __('ui.notif_push_failed') }}"
+    data-label-push-unsupported="{{ __('ui.notif_push_unsupported') }}"
 >
 <head>
     <meta charset="utf-8">
@@ -37,7 +44,7 @@
     <script src="{{ asset('js/money-input.js') }}?v=2" defer></script>
     <script src="{{ asset('js/image-upload.js') }}?v=1" defer></script>
     <script src="{{ asset('js/notifications.js') }}?v=9" defer></script>
-    <script src="{{ asset('js/push.js') }}?v=2" defer></script>
+    <script src="{{ asset('js/push.js') }}?v=3" defer></script>
     <script src="{{ asset('js/share.js') }}?v=3" defer></script>
     <script src="{{ asset('js/preferences.js') }}?v=2" defer></script>
     <script src="{{ asset('js/print-doc.js') }}?v=11" defer></script>

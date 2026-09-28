@@ -20,8 +20,8 @@ class PushSubscriptionController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'endpoint' => ['required', 'string', 'max:500'],
-            'keys.p256dh' => ['required', 'string', 'max:255'],
+            'endpoint' => ['required', 'string', 'max:1024'],
+            'keys.p256dh' => ['required', 'string', 'max:512'],
             'keys.auth' => ['required', 'string', 'max:255'],
             'contentEncoding' => ['nullable', 'string', 'max:32'],
         ]);

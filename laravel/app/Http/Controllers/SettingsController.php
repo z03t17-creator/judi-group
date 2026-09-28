@@ -10,6 +10,7 @@ use App\Models\UserDevice;
 use App\Support\DatabaseBackup;
 use App\Support\DeviceFingerprint;
 use App\Support\DeviceGuard;
+use App\Support\WebPushNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -235,6 +236,18 @@ class SettingsController extends Controller
             'audience' => $audience,
             'target_role' => $targetRole,
         ]);
+
+        if ($audience === 'all') {
+            $userIds = User::query()->where('is_active', true)->pluck('id')->all();
+            WebPushNotifier::sendToUserIds($userIds, $data['title'], $data['body'], '/settings#settings-inbox');
+        } else {
+            WebPushNotifier::notifyRoles(
+                [$targetRole],
+                $data['title'],
+                $data['body'],
+                '/settings#settings-inbox',
+            );
+        }
 
         return back()->with('status', __('ui.notif_sent'));
     }

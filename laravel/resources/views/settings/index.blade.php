@@ -77,7 +77,13 @@
             </div>
             <p class="muted">{{ __('ui.notif_device_hint') }}</p>
             <p class="muted">{{ __('ui.notif_toast_hint') }}</p>
-            <p class="muted">{{ __('ui.notif_push_hint') }}</p>
+            <div class="push-enable" data-push-panel>
+                <p class="muted">{{ __('ui.notif_push_hint') }}</p>
+                <button type="button" class="btn btn--primary btn--sm" data-push-enable>
+                    {{ __('ui.notif_push_enable') }}
+                </button>
+                <p class="push-enable__status muted" data-push-status></p>
+            </div>
             <ul class="notif-list">
                 @forelse ($notifications as $n)
                     <li class="notif-list__item {{ in_array($n->id, $readIds, true) ? '' : 'is-unread' }}">

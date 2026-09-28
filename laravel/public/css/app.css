@@ -9355,7 +9355,24 @@ html[data-theme="dark"] .sell-tile {
 .visit-store-option:has(input:checked) {
   outline: 2px solid var(--judi-600); outline-offset: 1px;
 }
-.visit-report-grid { display: grid; gap: 0.75rem; width: 100%; min-width: 0; }
+.push-enable {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0.75rem 0 1rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid rgb(var(--line));
+  border-radius: 1rem;
+  background: rgb(var(--muted) / 0.3);
+}
+.push-enable__status {
+  margin: 0;
+  font-size: 0.85rem;
+}
+.push-enable__status[data-tone="ok"] { color: rgb(var(--success)); }
+.push-enable__status[data-tone="err"] { color: #b91c1c; }
+
 @media (min-width: 900px) {
   .visit-report-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
