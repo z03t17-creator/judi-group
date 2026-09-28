@@ -8,6 +8,7 @@ use App\Models\DeviceLoginRequest;
 use App\Models\User;
 use App\Models\UserDevice;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 final class DeviceGuard
@@ -138,7 +139,40 @@ final class DeviceGuard
             $type === 'device_login'
                 ? '/settings#settings-devices-pending'
                 : '/settings#settings-inbox',
+            $type === 'device_login' && isset($meta['device_login_request_id'])
+                ? self::devicePushExtras((int) $meta['device_login_request_id'])
+                : [],
         );
+    }
+
+    /**
+     * @return array{actions: list<array{action: string, title: string}>, approveUrl: string, rejectUrl: string, tag: string, requestId: int, icon: string, image: string, badge: string}
+     */
+    private static function devicePushExtras(int $requestId): array
+    {
+        $expires = now()->addHours(24);
+
+        return [
+            'requestId' => $requestId,
+            'tag' => 'judi-device-'.$requestId,
+            'icon' => '/icon-192.png',
+            'badge' => '/icon-192.png',
+            'image' => '/icon-512.png',
+            'approveUrl' => URL::temporarySignedRoute(
+                'push.devices.approve',
+                $expires,
+                ['deviceLoginRequest' => $requestId],
+            ),
+            'rejectUrl' => URL::temporarySignedRoute(
+                'push.devices.reject',
+                $expires,
+                ['deviceLoginRequest' => $requestId],
+            ),
+            'actions' => [
+                ['action' => 'approve', 'title' => __('ui.device_approve')],
+                ['action' => 'reject', 'title' => __('ui.device_reject')],
+            ],
+        ];
     }
 
     public static function remember(User $user, Request $request, string $token, ?int $approvedBy): UserDevice

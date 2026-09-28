@@ -11,6 +11,7 @@ use App\Support\DatabaseBackup;
 use App\Support\DeviceFingerprint;
 use App\Support\DeviceGuard;
 use App\Support\WebPushNotifier;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -147,6 +148,64 @@ class SettingsController extends Controller
         }
 
         return back()->with('status', __('ui.device_rejected'));
+    }
+
+    /** Signed push action: Approve from notification button. */
+    public function approveDeviceFromPush(Request $request, DeviceLoginRequest $deviceLoginRequest): JsonResponse|RedirectResponse
+    {
+        abort_unless($request->user()->canApproveDevices(), 403);
+
+        $ok = DeviceGuard::approve($deviceLoginRequest, $request->user());
+        $message = $ok ? __('ui.device_approved') : __('ui.device_approve_failed');
+
+        if ($this->wantsPushJson($request)) {
+            return response()->json([
+                'ok' => $ok,
+                'title' => __('ui.notif_device_ok_title'),
+                'message' => $message,
+            ], $ok ? 200 : 422);
+        }
+
+        return redirect()
+            ->route('settings.index')
+            ->with($ok ? 'status' : 'error', $message)
+            ->withFragment('settings-devices-pending');
+    }
+
+    /** Signed push action: Reject from notification button. */
+    public function rejectDeviceFromPush(Request $request, DeviceLoginRequest $deviceLoginRequest): JsonResponse|RedirectResponse
+    {
+        abort_unless($request->user()->canApproveDevices(), 403);
+
+        if ($deviceLoginRequest->status === 'pending') {
+            $deviceLoginRequest->forceFill([
+                'status' => 'rejected',
+                'resolved_at' => now(),
+                'resolved_by' => $request->user()->id,
+            ])->save();
+        }
+
+        $message = __('ui.device_rejected');
+
+        if ($this->wantsPushJson($request)) {
+            return response()->json([
+                'ok' => true,
+                'title' => __('ui.device_rejected'),
+                'message' => $message,
+            ]);
+        }
+
+        return redirect()
+            ->route('settings.index')
+            ->with('status', $message)
+            ->withFragment('settings-devices-pending');
+    }
+
+    private function wantsPushJson(Request $request): bool
+    {
+        return $request->expectsJson()
+            || $request->header('X-Judi-Push') === '1'
+            || $request->ajax();
     }
 
     public function revokeDevice(Request $request, UserDevice $userDevice): RedirectResponse

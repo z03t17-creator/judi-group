@@ -19,8 +19,9 @@ final class WebPushNotifier
 
     /**
      * @param  list<Role|string>  $roles
+     * @param  array{url?: string, actions?: list<array{action: string, title: string}>, approveUrl?: string, rejectUrl?: string, tag?: string, requestId?: int|string, icon?: string, image?: string, badge?: string}  $extra
      */
-    public static function notifyRoles(array $roles, string $title, string $body, ?string $url = null): void
+    public static function notifyRoles(array $roles, string $title, string $body, ?string $url = null, array $extra = []): void
     {
         if (! self::enabled()) {
             return;
@@ -40,13 +41,14 @@ final class WebPushNotifier
             return;
         }
 
-        self::sendToUserIds($userIds->all(), $title, $body, $url);
+        self::sendToUserIds($userIds->all(), $title, $body, $url, $extra);
     }
 
     /**
      * @param  list<int>  $userIds
+     * @param  array{url?: string, actions?: list<array{action: string, title: string}>, approveUrl?: string, rejectUrl?: string, tag?: string, requestId?: int|string, icon?: string, image?: string, badge?: string}  $extra
      */
-    public static function sendToUserIds(array $userIds, string $title, string $body, ?string $url = null): void
+    public static function sendToUserIds(array $userIds, string $title, string $body, ?string $url = null, array $extra = []): void
     {
         if (! self::enabled() || $userIds === []) {
             return;
@@ -71,11 +73,19 @@ final class WebPushNotifier
             return;
         }
 
-        $payload = json_encode([
+        $payload = json_encode(array_filter([
             'title' => $title,
             'body' => $body,
-            'url' => $url ?: '/settings#settings-devices-pending',
-        ], JSON_UNESCAPED_UNICODE);
+            'url' => $url ?: ($extra['url'] ?? '/settings#settings-devices-pending'),
+            'icon' => $extra['icon'] ?? '/icon-192.png',
+            'badge' => $extra['badge'] ?? '/icon-192.png',
+            'image' => $extra['image'] ?? '/icon-512.png',
+            'tag' => $extra['tag'] ?? null,
+            'requestId' => $extra['requestId'] ?? null,
+            'approveUrl' => $extra['approveUrl'] ?? null,
+            'rejectUrl' => $extra['rejectUrl'] ?? null,
+            'actions' => $extra['actions'] ?? null,
+        ], static fn ($v) => $v !== null && $v !== ''), JSON_UNESCAPED_UNICODE);
 
         foreach ($subs as $sub) {
             try {

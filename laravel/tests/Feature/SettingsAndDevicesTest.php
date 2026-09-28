@@ -277,6 +277,43 @@ class SettingsAndDevicesTest extends TestCase
             ->assertSee(__('ui.all_user_devices'), false);
     }
 
+    public function test_admin_can_approve_device_from_signed_push_link(): void
+    {
+        $this->seed();
+        $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
+        $admin = User::query()->where('email', 'admin@judi.local')->firstOrFail();
+        $token = str_repeat('d', 64);
+
+        $pending = DeviceLoginRequest::query()->create([
+            'user_id' => $collector->id,
+            'device_token' => $token,
+            'code' => '000000',
+            'user_agent' => 'Mozilla/5.0 Windows',
+            'ip_address' => '2.2.2.2',
+            'status' => 'pending',
+            'expires_at' => now()->addHour(),
+        ]);
+
+        $url = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'push.devices.approve',
+            now()->addHour(),
+            ['deviceLoginRequest' => $pending->id],
+        );
+
+        $this->actingAs($admin)
+            ->getJson($url, ['X-Judi-Push' => '1'])
+            ->assertOk()
+            ->assertJson(['ok' => true]);
+
+        $this->assertNotNull(
+            UserDevice::query()
+                ->where('user_id', $collector->id)
+                ->where('device_token', $token)
+                ->whereNotNull('approved_at')
+                ->first()
+        );
+    }
+
     public function test_admin_feed_sees_device_login_notification(): void
     {
         $this->seed();

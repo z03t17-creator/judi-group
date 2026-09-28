@@ -58,6 +58,12 @@ Route::middleware(['auth', 'active', 'device'])->group(function () {
     Route::get('/settings/backup', [SettingsController::class, 'backup'])->name('settings.backup');
     Route::post('/settings/devices/{deviceLoginRequest}/approve', [SettingsController::class, 'approveDevice'])->name('settings.devices.approve');
     Route::post('/settings/devices/{deviceLoginRequest}/reject', [SettingsController::class, 'rejectDevice'])->name('settings.devices.reject');
+    Route::get('/push/devices/{deviceLoginRequest}/approve', [SettingsController::class, 'approveDeviceFromPush'])
+        ->middleware('signed')
+        ->name('push.devices.approve');
+    Route::get('/push/devices/{deviceLoginRequest}/reject', [SettingsController::class, 'rejectDeviceFromPush'])
+        ->middleware('signed')
+        ->name('push.devices.reject');
     Route::post('/settings/my-devices/revoke-others', [SettingsController::class, 'revokeOtherDevices'])->name('settings.devices.revoke_others');
     Route::delete('/settings/my-devices/{userDevice}', [SettingsController::class, 'revokeDevice'])->name('settings.devices.revoke');
     Route::delete('/settings/users/{user}/devices', [SettingsController::class, 'revokeUserDevices'])->name('settings.devices.revoke_user_all');
