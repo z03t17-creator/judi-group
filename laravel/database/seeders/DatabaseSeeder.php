@@ -436,7 +436,6 @@ class DatabaseSeeder extends Seeder
             $collector,
             $cashStore,
             $warehouse,
-            InvoiceType::Cash,
             $saleLines,
             5.0,
         );
@@ -445,7 +444,6 @@ class DatabaseSeeder extends Seeder
             $collector,
             $creditStore,
             $warehouse,
-            InvoiceType::Debt,
             $saleLines,
             8.0,
         );

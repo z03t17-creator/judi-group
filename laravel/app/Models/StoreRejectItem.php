@@ -8,40 +8,34 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
-    'invoice_id',
+    'store_reject_id',
     'product_id',
     'product_unit_id',
     'product_name',
     'unit',
     'quantity',
-    'gift_quantity',
-    'is_gift',
     'conversion_to_piece',
+    'pieces',
     'unit_price',
-    'discount_percent',
-    'discount_amount',
-    'line_total',
+    'line_credit',
 ])]
-class InvoiceItem extends Model
+class StoreRejectItem extends Model
 {
     protected function casts(): array
     {
         return [
             'unit' => ProductUnitKind::class,
             'quantity' => 'decimal:2',
-            'gift_quantity' => 'decimal:2',
-            'is_gift' => 'boolean',
             'conversion_to_piece' => 'integer',
+            'pieces' => 'integer',
             'unit_price' => 'decimal:2',
-            'discount_percent' => 'decimal:2',
-            'discount_amount' => 'decimal:2',
-            'line_total' => 'decimal:2',
+            'line_credit' => 'decimal:2',
         ];
     }
 
-    public function invoice(): BelongsTo
+    public function reject(): BelongsTo
     {
-        return $this->belongsTo(Invoice::class);
+        return $this->belongsTo(StoreReject::class, 'store_reject_id');
     }
 
     public function product(): BelongsTo

@@ -62,7 +62,7 @@
     @endif
     @if ((float) $invoice->debt_amount > 0)
         <p class="paper-slip__total paper-slip__remain">
-            {{ __('ui.invoice_remaining') }}:
+            {{ (float) $invoice->paid_amount > 0 ? __('ui.invoice_remaining') : __('ui.invoice_debt') }}:
             <strong dir="ltr">{{ number_format((float) $invoice->debt_amount, 0) }}</strong>
         </p>
     @endif

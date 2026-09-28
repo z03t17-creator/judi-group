@@ -1,4 +1,4 @@
-/* JUDI design system â mirrored from the Next.js app (tokens, shell, touch) */
+/* JUDI design system Ã¢ÂÂ mirrored from the Next.js app (tokens, shell, touch) */
 
 :root {
   --canvas: 250 250 249;
@@ -121,7 +121,7 @@ textarea {
   }
 }
 
-/* âââ Shell âââ */
+/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Shell Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
 
 .shell {
   display: flex;
@@ -150,7 +150,7 @@ html.office-menu-lock body {
   overflow: hidden;
 }
 
-/* Desktop rail (hidden on phones — drawer opens from the menu button) */
+/* Desktop rail (hidden on phones â drawer opens from the menu button) */
 .office-sidebar {
   position: sticky;
   top: 0;
@@ -175,7 +175,7 @@ html.office-menu-lock body {
   display: none;
 }
 
-/* —— Phone / tablet office layout —— */
+/* ââ Phone / tablet office layout ââ */
 @media (max-width: 1023px) {
   .shell--office {
     display: flex;
@@ -1008,7 +1008,7 @@ html.office-menu-lock body {
   color: var(--judi-700);
 }
 
-/* âââ Components âââ */
+/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Components Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
 
 .btn {
   appearance: none;
@@ -1413,7 +1413,7 @@ html.office-menu-lock body {
   vertical-align: middle;
   overflow-wrap: anywhere;
   /* Keep header + cell content on the same edge (RTL-safe).
-     Never put dir="ltr" on the <td>/<th> itself â that flips text-align:start. */
+     Never put dir="ltr" on the <td>/<th> itself Ã¢ÂÂ that flips text-align:start. */
   direction: inherit;
 }
 
@@ -1893,7 +1893,7 @@ a.kpi-card:hover {
   border: 0;
 }
 
-/* Login — one centered brand composition */
+/* Login â one centered brand composition */
 
 .login-body {
   position: relative;
@@ -2280,7 +2280,7 @@ html[data-theme="dark"] .field__input--surface:focus {
   }
 }
 
-/* âââ Product form âââ */
+/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Product form Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
 
 .product-form {
   display: grid;
@@ -2976,7 +2976,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
   }
 }
 
-/* ï¿½ï¿½ï¿½ FACE L2: sell + paper invoice ï¿½ï¿½ï¿½ */
+/* Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ FACE L2: sell + paper invoice Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ */
 
 .page__eyebrow {
   margin: 0 0 0.25rem;
@@ -3871,7 +3871,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     max-width: none !important;
     width: 100% !important;
     margin: 0 !important;
-    /* Keep inner padding — @page margin alone left content flush to the border */
+    /* Keep inner padding â @page margin alone left content flush to the border */
     padding: 8mm 9mm 7mm !important;
     border: 1.5px solid #111 !important;
     border-radius: 0 !important;
@@ -3977,7 +3977,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     height: auto !important;
     min-height: 0 !important;
     margin: 0 !important;
-    /* Real inset: Chrome often ignores @page margin (and “Margins: None”). */
+    /* Real inset: Chrome often ignores @page margin (and âMargins: Noneâ). */
     padding: 12mm 14mm !important;
   }
 
@@ -4166,7 +4166,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     page-break-inside: avoid;
   }
 
-  /* —— Document head (QERAT-style letterhead) —— */
+  /* ââ Document head (QERAT-style letterhead) ââ */
   .print-doc-head {
     display: block !important;
     margin: 0 0 0.75rem;
@@ -4298,7 +4298,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     font-size: 8.5pt;
   }
 
-  /* —— Strip web card chrome —— */
+  /* ââ Strip web card chrome ââ */
   .report-section,
   .report-block,
   .directory-table,
@@ -4381,7 +4381,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     border: 0 !important;
   }
 
-  /* ââ Print tables (document style) ââ */
+  /* Ã¢ÂÂÃ¢ÂÂ Print tables (document style) Ã¢ÂÂÃ¢ÂÂ */
   .report-table,
   .data-table,
   .price-matrix {
@@ -4511,7 +4511,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     display: none !important;
   }
 
-  /* Chips â plain text for print */
+  /* Chips Ã¢ÂÂ plain text for print */
   .report-chip,
   .badge {
     display: inline !important;
@@ -4596,7 +4596,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     text-decoration: none !important;
   }
 
-  /* Invoice paper â stay inside printable area */
+  /* Invoice paper Ã¢ÂÂ stay inside printable area */
   .page--invoice-show {
     padding: 0 !important;
     margin: 0 !important;
@@ -5099,7 +5099,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
   height: 1.15rem;
 }
 
-/* ï¿½ï¿½ï¿½ Icon system (match Next.js icon-badge / tile tones) ï¿½ï¿½ï¿½ */
+/* Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ Icon system (match Next.js icon-badge / tile tones) Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ */
 
 .icon-badge {
   display: inline-flex;
@@ -5489,7 +5489,7 @@ html[dir="rtl"] .btn__icon--back {
   transform: scaleX(-1);
 }
 
-/* Share menu â WhatsApp / social (text only, no system URL) */
+/* Share menu Ã¢ÂÂ WhatsApp / social (text only, no system URL) */
 .share-menu {
   position: relative;
   display: inline-flex;
@@ -5555,7 +5555,7 @@ html[dir="rtl"] .btn__icon--back {
 }
 
 
-/* ï¿½ï¿½ï¿½ Settings / theme / density / notifications ï¿½ï¿½ï¿½ */
+/* Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ Settings / theme / density / notifications Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ */
 
 html[data-theme="dark"] {
   --canvas: 15 36 34;
@@ -6273,7 +6273,7 @@ html[data-theme="light"] .notif-toast__close {
   }
 }
 
-/* ï¿½ï¿½ï¿½ Reports page ï¿½ï¿½ï¿½ */
+/* Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ Reports page Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ */
 
 .report-page {
   display: flex;
@@ -6738,7 +6738,7 @@ html[data-theme="dark"] .btn--print:hover {
   border-color: var(--judi-400);
 }
 
-/* ï¿½ï¿½ï¿½ Shared list pages (same language as reports) ï¿½ï¿½ï¿½ */
+/* Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ Shared list pages (same language as reports) Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ */
 
 .list-page {
   display: flex;
@@ -6898,7 +6898,7 @@ html[data-theme="dark"] .btn--print:hover {
   }
 }
 
-/* ï¿½ï¿½ï¿½ Collector sell / invoice create ï¿½ï¿½ï¿½ */
+/* Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ Collector sell / invoice create Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ */
 
 .sell-page {
   display: flex;
@@ -7336,7 +7336,7 @@ html[data-theme="dark"] .sell-form__cart .sell-cart__total {
   }
 }
 
-/* ââ Store map (form + sell picker) ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Store map (form + sell picker) Ã¢ÂÂÃ¢ÂÂ */
 .store-map {
   display: grid;
   gap: 0.65rem;
@@ -7801,7 +7801,7 @@ html[data-theme="dark"] .sell-product--row {
   color: #fff;
 }
 
-/* ââ Store profile ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Store profile Ã¢ÂÂÃ¢ÂÂ */
 .store-profile {
   gap: 0.85rem;
 }
@@ -8524,7 +8524,7 @@ html[data-theme="dark"] .sell-product--row {
   min-height: 2.55rem;
 }
 
-/* Sell wizard: store → products (with live category filters) */
+/* Sell wizard: store â products (with live category filters) */
 
 .sell-wizard[data-panel][hidden],
 .sell-wizard [data-panel][hidden],
@@ -8666,7 +8666,7 @@ html[data-theme="dark"] .sell-wizard .sell-store--page {
   line-height: 1.25;
 }
 
-/* Filter deck — searchable category / subcategory pills */
+/* Filter deck â searchable category / subcategory pills */
 .sell-filter-deck {
   position: relative;
   margin: 0 0 0.85rem;
@@ -8976,7 +8976,7 @@ html[data-theme="dark"] .sell-tile {
   flex-shrink: 0;
 }
 
-/* �� Mobile app simplify: less text, less chrome �� */
+/*  Mobile app simplify: less text, less chrome  */
 @media (max-width: 1023px) {
   .page__lead,
   .page__eyebrow,
@@ -9206,3 +9206,172 @@ html[data-theme="dark"] .sell-tile {
     display: flex !important;
   }
 }
+
+/* FACE F1 — calm debt-only order page */
+.sell-order .sell-steps { display: none; }
+.sell-form--calm {
+  display: flex; flex-direction: column; gap: 0.85rem;
+  max-width: 36rem; margin-inline: auto;
+}
+.sell-panel--order { display: flex; flex-direction: column; gap: 0.75rem; }
+.sell-filter-deck--slim { display: flex; flex-direction: column; gap: 0.4rem; }
+.sell-catalog--calm { display: flex; flex-direction: column; gap: 0.4rem; min-height: 6rem; }
+.sell-product--calm {
+  display: grid; grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+  align-items: center; gap: 0.65rem; width: 100%; min-height: 3.25rem;
+  padding: 0.45rem 0.65rem; border: 1px solid rgb(var(--line));
+  border-radius: 0.85rem; background: rgb(var(--surface)); color: inherit;
+  text-align: start; cursor: pointer;
+}
+.sell-product--calm .sell-product__img {
+  width: 2.75rem; height: 2.75rem; object-fit: cover; border-radius: 0.55rem;
+}
+.sell-product--calm .sell-product__body { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.sell-product--calm .sell-product__body strong {
+  font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sell-product--calm .sell-product__price { font-size: 0.8rem; color: rgb(var(--fg-muted)); }
+.sell-product--calm .sell-product__add { font-size: 0.85rem; font-weight: 650; color: var(--judi-700); }
+.sell-cart-block {
+  margin-top: 0.5rem; padding: 0.75rem; border: 1px dashed rgb(var(--line));
+  border-radius: 1rem; background: rgb(var(--muted) / 0.25);
+}
+.sell-cart-block__head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 0.5rem; font-size: 0.85rem;
+}
+.sell-cart--calm { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+.sell-cart__item--calm {
+  display: flex; flex-direction: column; gap: 0.35rem;
+  padding: 0.65rem 0.7rem; border: 1px solid rgb(var(--line));
+  border-radius: 0.85rem; background: rgb(var(--surface));
+}
+.sell-cart__row { display: flex; align-items: center; gap: 0.4rem; }
+.sell-cart__row--controls { flex-wrap: wrap; }
+.sell-cart__item--calm .sell-cart__name {
+  flex: 1; min-width: 0; font-size: 0.9rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sell-cart__badges { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.sell-cart__badge {
+  display: inline-flex; padding: 0.15rem 0.45rem; border-radius: 999px;
+  background: rgb(var(--muted)); font-size: 0.7rem; color: rgb(var(--fg-muted));
+}
+.sell-cart__badge--disc {
+  background: color-mix(in srgb, var(--judi-200) 70%, white); color: var(--judi-900);
+}
+.sticky-cta--debt { display: grid; grid-template-columns: 1fr; gap: 0.45rem; }
+.sticky-cta__discount { display: flex; align-items: center; gap: 0.5rem; }
+.sell-invoice-disc { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; }
+.sell-invoice-disc input {
+  width: 4.5rem; min-height: 2.4rem; padding: 0.25rem 0.4rem;
+  border: 1px solid rgb(var(--line)); border-radius: 0.55rem;
+  background: rgb(var(--surface)); font: inherit; color: inherit;
+}
+.sell-invoice-disc__hint { font-size: 0.8rem; color: rgb(var(--fg-muted)); }
+.line-sheet {
+  width: min(22rem, calc(100vw - 2rem)); border: 1px solid rgb(var(--line));
+  border-radius: 1rem; padding: 1rem 1.1rem; background: rgb(var(--surface)); color: inherit;
+}
+.line-sheet::backdrop { background: rgb(15 36 34 / 0.45); }
+.line-sheet__title { margin: 0 0 0.25rem; font-size: 1rem; }
+.line-sheet__name { margin: 0 0 0.85rem; color: rgb(var(--fg-muted)); font-size: 0.88rem; }
+.line-sheet__field { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.75rem; font-size: 0.85rem; }
+.line-sheet__field input {
+  min-height: 2.6rem; padding: 0.4rem 0.55rem; border: 1px solid rgb(var(--line));
+  border-radius: 0.55rem; background: rgb(var(--canvas)); font: inherit; color: inherit;
+}
+.line-sheet__actions { display: flex; justify-content: flex-end; gap: 0.45rem; margin-top: 0.5rem; }
+@media (min-width: 640px) {
+  .sticky-cta--debt { grid-template-columns: auto 1fr auto; align-items: center; }
+}
+
+/* FACE F2 — store visit hub + reject */
+.visit-hub-page { display: flex; flex-direction: column; gap: 1rem; max-width: 36rem; margin-inline: auto; }
+.visit-hub__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+.visit-hub__store { display: flex; gap: 0.75rem; align-items: center; min-width: 0; }
+.visit-hub__img { width: 3.25rem; height: 3.25rem; border-radius: 0.75rem; object-fit: cover; }
+.visit-hub__eyebrow { margin: 0; font-size: 0.75rem; color: rgb(var(--fg-muted)); }
+.visit-hub__title { margin: 0.15rem 0; font-size: 1.2rem; }
+.visit-hub__meta { margin: 0; font-size: 0.82rem; color: rgb(var(--fg-muted)); }
+.visit-hub__stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;
+  padding: 0.75rem; border: 1px solid rgb(var(--line)); border-radius: 1rem;
+  background: rgb(var(--muted) / 0.25);
+}
+.visit-hub__stats div { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.78rem; }
+.visit-hub__stats strong { font-size: 1rem; }
+.visit-hub__actions { display: flex; flex-direction: column; gap: 0.55rem; }
+.visit-hub__action {
+  display: flex; flex-direction: column; gap: 0.15rem; text-align: start;
+  padding: 0.95rem 1rem; border: 1px solid rgb(var(--line)); border-radius: 1rem;
+  background: rgb(var(--surface)); color: inherit; text-decoration: none;
+}
+.visit-hub__action strong { font-size: 1rem; }
+.visit-hub__action span { font-size: 0.8rem; color: rgb(var(--fg-muted)); }
+.visit-hub__action--warn { border-color: color-mix(in srgb, #b45309 35%, rgb(var(--line))); }
+.visit-hub__action--end { padding: 0; border: 0; background: transparent; }
+.visit-hub__action--end button {
+  width: 100%; display: flex; flex-direction: column; gap: 0.15rem; text-align: start;
+  padding: 0.95rem 1rem; border: 1px dashed rgb(var(--line)); border-radius: 1rem;
+  background: transparent; color: inherit; font: inherit; cursor: pointer;
+}
+.visit-hub__list { margin-top: 0.5rem; }
+.visit-hub__list h2 { margin: 0 0 0.5rem; font-size: 0.95rem; }
+.visit-hub__list ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.visit-hub__list li {
+  display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;
+  padding: 0.55rem 0.7rem; border: 1px solid rgb(var(--line)); border-radius: 0.75rem;
+  font-size: 0.85rem; background: rgb(var(--surface));
+}
+.visit-start-form { display: flex; flex-direction: column; gap: 0.75rem; max-width: 36rem; margin-inline: auto; }
+.visit-store-option:has(input:checked) {
+  outline: 2px solid var(--judi-600); outline-offset: 1px;
+}
+.visit-report-grid { display: grid; gap: 0.75rem; }
+@media (min-width: 720px) {
+  .visit-report-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.visit-report-row {
+  display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;
+  padding: 0.45rem 0; border-bottom: 1px solid rgb(var(--line));
+  color: inherit; text-decoration: none; font-size: 0.88rem;
+}
+
+/* FACE F3 — collector employee profile */
+.collector-profile { display: flex; flex-direction: column; gap: 1rem; }
+.collector-profile__hero {
+  display: flex; gap: 0.85rem; align-items: center; padding: 0.9rem 1rem;
+}
+.collector-profile__img {
+  width: 4rem; height: 4rem; border-radius: 999px; object-fit: cover;
+}
+.collector-profile__hero h2 { margin: 0 0 0.2rem; font-size: 1.15rem; }
+.collector-profile__meta { margin: 0; color: rgb(var(--fg-muted)); font-size: 0.85rem; }
+.collector-profile__limits { margin: 0.35rem 0 0; font-size: 0.85rem; }
+.collector-profile__kpis { margin-top: 0.25rem; }
+.collector-profile__grid {
+  display: grid; gap: 0.85rem;
+}
+@media (min-width: 840px) {
+  .collector-profile__grid { grid-template-columns: 1fr 1fr; }
+}
+.collector-profile__section-head {
+  display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+.collector-profile__section-head h2 { margin: 0; font-size: 1rem; }
+.collector-ledger-form {
+  display: grid; gap: 0.5rem; margin-bottom: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.collector-ledger-form .field--grow { grid-column: 1 / -1; }
+.collector-ledger-form .btn { grid-column: 1 / -1; justify-self: start; }
+.collector-ledger-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.collector-ledger-list li {
+  display: flex; justify-content: space-between; gap: 0.55rem; align-items: flex-start;
+  padding: 0.55rem 0.65rem; border: 1px solid rgb(var(--line)); border-radius: 0.75rem;
+  font-size: 0.85rem; background: rgb(var(--canvas));
+}
+.collector-ledger-list li > div { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.collector-ledger-list a { color: inherit; text-decoration: none; display: flex; flex-direction: column; gap: 0.1rem; }

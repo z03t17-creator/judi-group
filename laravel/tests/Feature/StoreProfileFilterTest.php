@@ -29,7 +29,6 @@ class StoreProfileFilterTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
         $old->forceFill(['created_at' => now()->subDays(40)])->save();
@@ -38,7 +37,6 @@ class StoreProfileFilterTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
 

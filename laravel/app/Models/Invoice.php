@@ -17,6 +17,7 @@ use InvalidArgumentException;
     'invoice_number',
     'store_id',
     'warehouse_id',
+    'store_visit_id',
     'collector_id',
     'invoice_type',
     'status',
@@ -57,6 +58,11 @@ class Invoice extends Model
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    public function visit(): BelongsTo
+    {
+        return $this->belongsTo(StoreVisit::class, 'store_visit_id');
     }
 
     public function collector(): BelongsTo
@@ -101,7 +107,7 @@ class Invoice extends Model
 
     /**
      * Debt: owning collector, accountant, or admin.
-     * Cash: accountant or admin only.
+     * Legacy cash invoices: accountant or admin only.
      */
     public function userCanCancel(User $actor): bool
     {
@@ -115,7 +121,6 @@ class Invoice extends Model
             return $isOffice;
         }
 
-        // Debt
         if ($isOffice) {
             return true;
         }
@@ -251,16 +256,14 @@ class Invoice extends Model
     }
 
     /**
-     * @param  list<array{product_unit_id: int|string, quantity?: float|int|string, gift_quantity?: float|int|string}>  $lines
+     * @param  list<array{product_unit_id: int|string, quantity?: float|int|string, gift_quantity?: float|int|string, discount_percent?: float|int|string}>  $lines
      */
     public static function createSale(
         User $collector,
         Store $store,
         Warehouse $warehouse,
-        InvoiceType $type,
         array $lines,
         float $discountPercent = 0,
-        ?float $paidNow = null,
     ): self {
         if (! $collector->canAccess(\App\Enums\PagePermission::InvoicesSell)) {
             throw new InvalidArgumentException('دەسەڵاتت نییە بۆ فرۆشتن.');
@@ -291,6 +294,12 @@ class Invoice extends Model
             $unitId = (int) ($line['product_unit_id'] ?? 0);
             $qty = round((float) ($line['quantity'] ?? 0), 2);
             $giftQty = round((float) ($line['gift_quantity'] ?? 0), 2);
+            $lineDisc = round(max(0, min(100, (float) ($line['discount_percent'] ?? 0))), 2);
+            if ($lineDisc > $maxDiscount + 0.0001) {
+                throw new InvalidArgumentException(
+                    'داشکاندنی هێڵ نابێت لە '.rtrim(rtrim(number_format($maxDiscount, 2, '.', ''), '0'), '.').'% زیاتر بێت.',
+                );
+            }
             if ($unitId < 1 || ($qty <= 0 && $giftQty <= 0)) {
                 continue;
             }
@@ -302,6 +311,7 @@ class Invoice extends Model
                 'product_unit_id' => $unitId,
                 'quantity' => $sold,
                 'gift_quantity' => $gift,
+                'discount_percent' => $lineDisc,
             ];
         }
 
@@ -320,7 +330,7 @@ class Invoice extends Model
             }
         }
 
-        return DB::transaction(function () use ($collector, $store, $warehouse, $type, $channel, $normalized, $discountPercent, $paidNow) {
+        return DB::transaction(function () use ($collector, $store, $warehouse, $channel, $normalized, $discountPercent) {
             $store = Store::query()->lockForUpdate()->findOrFail($store->id);
 
             $last = static::query()
@@ -344,7 +354,10 @@ class Invoice extends Model
                 $unitPrice = (float) $unit->priceFor($channel);
                 $soldQty = (float) $line['quantity'];
                 $giftQty = (float) $line['gift_quantity'];
-                $lineTotal = round($unitPrice * $soldQty, 2);
+                $lineDiscPct = (float) $line['discount_percent'];
+                $gross = round($unitPrice * $soldQty, 2);
+                $lineDiscAmt = round($gross * ($lineDiscPct / 100), 2);
+                $lineTotal = round(max(0, $gross - $lineDiscAmt), 2);
                 $subtotal += $lineTotal;
 
                 $built[] = [
@@ -357,6 +370,8 @@ class Invoice extends Model
                     'is_gift' => $soldQty <= 0 && $giftQty > 0,
                     'conversion_to_piece' => $unit->conversion_to_piece,
                     'unit_price' => number_format($unitPrice, 2, '.', ''),
+                    'discount_percent' => number_format($lineDiscPct, 2, '.', ''),
+                    'discount_amount' => number_format($lineDiscAmt, 2, '.', ''),
                     'line_total' => number_format($lineTotal, 2, '.', ''),
                 ];
             }
@@ -365,21 +380,7 @@ class Invoice extends Model
             $discountAmount = round($subtotal * ($discountPercent / 100), 2);
             $total = round(max(0, $subtotal - $discountAmount), 2);
 
-            if ($type === InvoiceType::Cash) {
-                $paid = $total;
-                $debt = 0.0;
-            } else {
-                $paid = round(max(0, min($total, (float) ($paidNow ?? 0))), 2);
-                $debt = round($total - $paid, 2);
-                if ($debt <= 0.0001) {
-                    $paid = $total;
-                    $debt = 0.0;
-                    $type = InvoiceType::Cash;
-                }
-            }
-
-            // Full invoice total becomes store receivable. Any cash the collector
-            // takes now is held as a pending collection until accountant approval.
+            // Debt-only sales: full total is store receivable. Collections repay later.
             $store->current_debt = number_format(
                 (float) $store->current_debt + $total,
                 2,
@@ -393,24 +394,20 @@ class Invoice extends Model
                 'store_id' => $store->id,
                 'warehouse_id' => $warehouse->id,
                 'collector_id' => $collector->id,
-                'invoice_type' => $type,
+                'invoice_type' => InvoiceType::Debt,
                 'status' => InvoiceStatus::PendingSend,
                 'channel' => $channel,
                 'subtotal' => number_format($subtotal, 2, '.', ''),
                 'discount_percent' => number_format($discountPercent, 2, '.', ''),
                 'discount_amount' => number_format($discountAmount, 2, '.', ''),
                 'total_amount' => number_format($total, 2, '.', ''),
-                'paid_amount' => number_format($paid, 2, '.', ''),
-                'debt_amount' => number_format($debt, 2, '.', ''),
+                'paid_amount' => '0.00',
+                'debt_amount' => number_format($total, 2, '.', ''),
                 'currency' => 'IQD',
             ]);
 
             foreach ($built as $row) {
                 $invoice->items()->create($row);
-            }
-
-            if ($paid > 0.0001) {
-                Collection::holdFromSale($collector, $store->fresh(), $invoice, $paid);
             }
 
             return $invoice->load(['items', 'store', 'collector', 'warehouse', 'collections']);

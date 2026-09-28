@@ -15,6 +15,11 @@
                 @include('partials.icons.arrow-back', ['class' => 'btn__icon'])
                 {{ __('ui.back') }}
             </a>
+            @if (auth()->user()?->canAccess('stores') && auth()->user()?->isCollector() && $store->is_active)
+                <a href="{{ route('visits.create', ['store_id' => $store->id]) }}" class="btn btn--primary">
+                    {{ __('ui.visit_start') }}
+                </a>
+            @endif
             @if ($canManage)
                 <a href="{{ route('stores.edit', $store) }}" class="btn btn--primary">
                     @include('partials.icons.pencil', ['class' => 'btn__icon'])

@@ -31,7 +31,6 @@ class CollectionPayTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Debt,
             [['product_unit_id' => $unit->id, 'quantity' => 2]],
         );
 
@@ -83,7 +82,6 @@ class CollectionPayTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Debt,
             [['product_unit_id' => $unit->id, 'quantity' => 2]],
         );
 
@@ -133,7 +131,6 @@ class CollectionPayTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Debt,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
 
@@ -167,7 +164,6 @@ class CollectionPayTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Debt,
             [['product_unit_id' => $unit->id, 'quantity' => 2]],
         );
 
@@ -219,7 +215,6 @@ class CollectionPayTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Debt,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
 
@@ -260,7 +255,6 @@ class CollectionPayTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Debt,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
         $store->refresh();
@@ -296,7 +290,6 @@ class CollectionPayTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Debt,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
         $store->refresh();
@@ -341,7 +334,6 @@ class CollectionPayTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Debt,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
         $store->refresh();

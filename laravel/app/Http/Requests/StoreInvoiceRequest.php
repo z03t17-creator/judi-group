@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\InvoiceType;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreInvoiceRequest extends FormRequest
 {
@@ -15,28 +13,18 @@ class StoreInvoiceRequest extends FormRequest
         return (bool) $user?->canAccess(\App\Enums\PagePermission::InvoicesSell);
     }
 
-    protected function prepareForValidation(): void
-    {
-        if ($this->exists('paid_now')) {
-            $this->merge([
-                'paid_now' => str_replace(',', '', (string) $this->input('paid_now')),
-            ]);
-        }
-    }
-
     public function rules(): array
     {
         $maxDiscount = (float) ($this->user()?->max_discount_percent ?? 0);
 
         return [
             'store_id' => ['required', 'integer', 'exists:stores,id'],
-            'invoice_type' => ['required', Rule::enum(InvoiceType::class)],
             'discount_percent' => ['nullable', 'numeric', 'min:0', 'max:'.$maxDiscount],
-            'paid_now' => ['nullable', 'numeric', 'min:0'],
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.product_unit_id' => ['required', 'integer', 'exists:product_units,id'],
             'lines.*.quantity' => ['nullable', 'numeric', 'min:0', 'max:999999'],
             'lines.*.gift_quantity' => ['nullable', 'numeric', 'min:0', 'max:999999'],
+            'lines.*.discount_percent' => ['nullable', 'numeric', 'min:0', 'max:'.$maxDiscount],
         ];
     }
 
@@ -79,8 +67,8 @@ class StoreInvoiceRequest extends FormRequest
         return [
             'store_id.required' => 'فرۆشگا هەڵبژێرە.',
             'store_id.exists' => 'فرۆشگا نەدۆزرایەوە.',
-            'invoice_type.required' => 'جۆری پسوولە هەڵبژێرە (نەقد / قەرز).',
             'discount_percent.max' => 'داشکاندن لە سنووری مەندوب زیاترە.',
+            'lines.*.discount_percent.max' => 'داشکاندنی هێڵ لە سنووری مەندوب زیاترە.',
             'lines.required' => 'لانیکەم یەک کاڵا زیاد بکە.',
             'lines.min' => 'لانیکەم یەک کاڵا زیاد بکە.',
         ];

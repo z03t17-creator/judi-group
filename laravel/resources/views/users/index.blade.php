@@ -58,14 +58,16 @@
     <div class="directory-cards">
         @forelse ($users as $row)
             @php
+                $profileUrl = $row->isCollector() ? route('collectors.show', $row) : null;
                 $editUrl = $canManageUsers
                     ? route('users.edit', $row)
                     : ($row->isCollector() && $canManageCollectors ? route('collectors.edit', $row) : null);
+                $cardUrl = $profileUrl ?: $editUrl;
             @endphp
             <a
-                href="{{ $editUrl ?: '#' }}"
+                href="{{ $cardUrl ?: '#' }}"
                 class="dir-card"
-                @if (! $editUrl) onclick="return false" @endif
+                @if (! $cardUrl) onclick="return false" @endif
             >
                 <div class="dir-card__body">
                     <div class="dir-card__row">
@@ -82,7 +84,7 @@
                         </div>
                     </div>
                 </div>
-                @if ($editUrl)
+                @if ($cardUrl)
                     @include('partials.icons.chevron', ['class' => 'dir-card__chevron'])
                 @endif
             </a>
@@ -110,6 +112,7 @@
                 <tbody>
                     @forelse ($users as $row)
                         @php
+                            $profileUrl = $row->isCollector() ? route('collectors.show', $row) : null;
                             $editUrl = $canManageUsers
                                 ? route('users.edit', $row)
                                 : ($row->isCollector() && $canManageCollectors ? route('collectors.edit', $row) : null);
@@ -118,7 +121,11 @@
                             <td>
                                 <div class="table-entity">
                                     <img class="table-entity__img table-entity__img--round" src="{{ $row->imageUrl() }}" alt="">
-                                    <strong>{{ $row->name }}</strong>
+                                    @if ($profileUrl)
+                                        <a href="{{ $profileUrl }}"><strong>{{ $row->name }}</strong></a>
+                                    @else
+                                        <strong>{{ $row->name }}</strong>
+                                    @endif
                                 </div>
                             </td>
                             <td><span class="ltr-inline">{{ $row->email }}</span></td>
@@ -138,6 +145,9 @@
                                 </span>
                             </td>
                             <td class="data-table__actions">
+                                @if ($profileUrl)
+                                    <a href="{{ $profileUrl }}" class="btn btn--regular btn--sm">{{ __('ui.collector_profile') }}</a>
+                                @endif
                                 @if ($editUrl)
                                     <a href="{{ $editUrl }}" class="btn btn--regular btn--sm">
                                         @include('partials.icons.pencil', ['class' => 'btn__icon'])

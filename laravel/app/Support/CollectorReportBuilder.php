@@ -98,10 +98,17 @@ final class CollectorReportBuilder
         $debt = $invoices->where('invoice_type', InvoiceType::Debt);
 
         $salesTotal = (float) $invoices->sum(fn (Invoice $i) => (float) $i->total_amount);
+        // Legacy cash/partial-pay invoices only; new sales are debt-only (paid_amount = 0).
         $cashTotal = (float) $invoices->sum(fn (Invoice $i) => (float) $i->paid_amount);
         $debtTotal = (float) $debt->sum(fn (Invoice $i) => (float) $i->debt_amount);
         $paidTotal = $cashTotal;
-        $discountTotal = (float) $invoices->sum(fn (Invoice $i) => (float) $i->discount_amount);
+        $lineDiscountTotal = (float) $invoices->sum(
+            fn (Invoice $i) => (float) $i->items->sum(fn ($line) => (float) ($line->discount_amount ?? 0)),
+        );
+        $discountTotal = round(
+            (float) $invoices->sum(fn (Invoice $i) => (float) $i->discount_amount) + $lineDiscountTotal,
+            2,
+        );
         $soldUnits = (float) $invoices->sum(
             fn (Invoice $i) => (float) $i->items->sum(fn ($line) => (float) $line->quantity),
         );
@@ -116,7 +123,12 @@ final class CollectorReportBuilder
             : round((float) $invoices->avg(fn (Invoice $i) => (float) $i->discount_percent), 2);
         $discountMaxUsed = $invoices->isEmpty()
             ? 0.0
-            : round((float) $invoices->max(fn (Invoice $i) => (float) $i->discount_percent), 2);
+            : round((float) $invoices->max(function (Invoice $i) {
+                $invoicePct = (float) $i->discount_percent;
+                $linePct = (float) $i->items->max(fn ($line) => (float) ($line->discount_percent ?? 0));
+
+                return max($invoicePct, $linePct);
+            }), 2);
         $discountLimit = $list->isEmpty()
             ? 0.0
             : round((float) $list->max(fn (User $u) => (float) ($u->max_discount_percent ?? 0)), 2);
@@ -126,8 +138,7 @@ final class CollectorReportBuilder
         $expenseTotal = (float) $expenses->sum(fn (Expense $e) => (float) $e->amount);
 
         // Only confirmed receipts count toward debt collected / company net cash.
-        // Invoice paid_now sits in the collector wallet as a pending collection until
-        // the accountant confirms — do not treat it as company cash early.
+        // New sales are debt-only; legacy paid_amount on old cash invoices is historical.
         $confirmedCollections = $collections->filter(
             fn (DebtCollection $c) => $c->isConfirmed(),
         );

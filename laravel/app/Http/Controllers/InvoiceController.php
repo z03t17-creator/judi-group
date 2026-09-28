@@ -11,6 +11,7 @@ use App\Models\Category;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Store;
+use App\Models\StoreVisit;
 use App\Models\Warehouse;
 use App\Support\CollectorReportBuilder;
 use App\Support\DatePeriodFilter;
@@ -109,7 +110,7 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
         $this->authorizeSell($request);
 
@@ -118,8 +119,27 @@ class InvoiceController extends Controller
             ? $user->collector_channel
             : CollectorChannel::Wholesale;
 
+        $activeVisit = StoreVisit::openForCollector($user);
+        $visitId = (int) $request->query('visit', 0);
+        $lockedVisit = null;
+        if ($visitId > 0) {
+            $lockedVisit = StoreVisit::query()->with('store')->findOrFail($visitId);
+            $lockedVisit->assertOwnedBy($user);
+            if (! $lockedVisit->isOpen()) {
+                return redirect()
+                    ->route('visits.show', $lockedVisit)
+                    ->withErrors(['visit' => __('ui.visit_closed_no_order')]);
+            }
+        } elseif ($activeVisit) {
+            $lockedVisit = $activeVisit;
+        }
+
         $stores = Store::query()
             ->where('is_active', true)
+            ->when(
+                $lockedVisit,
+                fn ($q) => $q->where('id', $lockedVisit->store_id),
+            )
             ->orderBy('name')
             ->get(['id', 'name', 'owner_name', 'phone', 'address', 'latitude', 'longitude', 'current_debt', 'credit_limit', 'image_path']);
 
@@ -181,6 +201,8 @@ class InvoiceController extends Controller
             'maxDiscount' => (float) ($user->max_discount_percent ?? 0),
             'maxGift' => (float) ($user->max_gift_percent ?? 0),
             'maps' => $maps,
+            'activeVisit' => $lockedVisit,
+            'visitLockedStoreId' => $lockedVisit?->store_id,
         ]);
     }
 
@@ -190,32 +212,34 @@ class InvoiceController extends Controller
 
         $user = $request->user();
         $store = Store::query()->findOrFail($request->integer('store_id'));
-        $type = InvoiceType::from($request->string('invoice_type')->toString());
+        $activeVisit = StoreVisit::openForCollector($user);
+
+        if ($activeVisit && (int) $activeVisit->store_id !== (int) $store->id) {
+            return back()->withInput()->withErrors([
+                'store_id' => __('ui.visit_store_mismatch'),
+            ]);
+        }
 
         try {
             $invoice = Invoice::createSale(
                 $user,
                 $store,
                 Warehouse::primary(),
-                $type,
                 $request->input('lines', []),
                 (float) $request->input('discount_percent', 0),
-                $request->filled('paid_now') ? (float) $request->input('paid_now') : null,
             );
         } catch (InvalidArgumentException $e) {
             return back()->withInput()->withErrors(['invoice' => $e->getMessage()]);
         }
 
+        if ($activeVisit) {
+            $activeVisit->attachInvoice($invoice);
+        }
+
         return redirect()
             ->route('invoices.show', [$invoice, 'print' => 1])
-            ->with('success', $invoice->collections->isNotEmpty()
-                ? __('ui.invoice_saved_cash_pending', [
-                    'invoice' => $invoice->invoice_number,
-                    'amount' => number_format((float) $invoice->paid_amount, 0),
-                ])
-                : 'پسوولە «'.$invoice->invoice_number.'» تۆمارکرا.')
-            ->with('auto_print', 'a4')
-            ->with('auto_print_receipt', $invoice->collections->isNotEmpty());
+            ->with('success', 'پسوولە «'.$invoice->invoice_number.'» تۆمارکرا (قەرز).')
+            ->with('auto_print', 'a4');
     }
 
     public function show(Request $request, Invoice $invoice): View

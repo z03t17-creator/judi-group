@@ -83,4 +83,14 @@ class Store extends Model
     {
         return $this->hasMany(Collection::class);
     }
+
+    public function visits(): HasMany
+    {
+        return $this->hasMany(StoreVisit::class);
+    }
+
+    public function rejects(): HasMany
+    {
+        return $this->hasMany(StoreReject::class);
+    }
 }

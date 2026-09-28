@@ -26,7 +26,7 @@ class CollectorSellTest extends TestCase
         $this->assertSame('INV-000010', InvoiceNumber::next('INV-000009'));
     }
 
-    public function test_collector_can_create_cash_invoice_and_see_print_form(): void
+    public function test_collector_creates_debt_only_invoice_and_sees_print_form(): void
     {
         $this->seed();
 
@@ -37,7 +37,6 @@ class CollectorSellTest extends TestCase
 
         $response = $this->actingAs($collector)->post(route('invoices.store'), [
             'store_id' => $store->id,
-            'invoice_type' => InvoiceType::Cash->value,
             'lines' => [
                 ['product_unit_id' => $unit->id, 'quantity' => 2],
             ],
@@ -48,25 +47,18 @@ class CollectorSellTest extends TestCase
         $response->assertRedirect(route('invoices.show', [$invoice, 'print' => 1]));
 
         $this->assertSame('INV-000001', $invoice->invoice_number);
-        $this->assertSame(InvoiceType::Cash, $invoice->invoice_type);
+        $this->assertSame(InvoiceType::Debt, $invoice->invoice_type);
         $this->assertSame(InvoiceStatus::PendingSend, $invoice->status);
         $this->assertSame(CollectorChannel::Wholesale, $invoice->channel);
         $this->assertCount(1, $invoice->items);
-        $this->assertSame('0.00', (string) $invoice->debt_amount);
-        $this->assertSame((string) $invoice->total_amount, (string) $invoice->paid_amount);
+        $this->assertSame((string) $invoice->total_amount, (string) $invoice->debt_amount);
+        $this->assertSame('0.00', (string) $invoice->paid_amount);
 
         $store->refresh();
         $this->assertSame((string) $invoice->total_amount, (string) $store->current_debt);
 
-        $collection = \App\Models\Collection::query()
-            ->where('invoice_id', $invoice->id)
-            ->first();
-        $this->assertNotNull($collection);
-        $this->assertTrue($collection->isPending());
-        $this->assertSame((string) $invoice->total_amount, (string) $collection->amount);
-        $this->assertSame(
-            '0.00',
-            number_format(\App\Models\Collection::availableDebtForStore($store), 2, '.', ''),
+        $this->assertNull(
+            \App\Models\Collection::query()->where('invoice_id', $invoice->id)->first(),
         );
 
         $expected = number_format((float) $unit->price_wholesale * 2, 2, '.', '');
@@ -79,9 +71,8 @@ class CollectorSellTest extends TestCase
         $print->assertSee('ن.تاک', false);
         $print->assertSee('ن.کۆ', false);
         $print->assertSee('کۆی گشتی', false);
-        $print->assertDontSee('کۆی پێش داشکاندن', false);
-        $print->assertSee('نەقد', false);
-        $print->assertDontSee('<span>قەرز</span>', false);
+        $print->assertSee('قەرز', false);
+        $print->assertDontSee('<span>نەقد</span>', false);
         $print->assertSee('بەڕێز', false);
         $print->assertSee('مەندوب', false);
         $print->assertSee('ئیمزای وەرگر', false);
@@ -103,7 +94,6 @@ class CollectorSellTest extends TestCase
 
         $this->actingAs($collector)->post(route('invoices.store'), [
             'store_id' => $store->id,
-            'invoice_type' => InvoiceType::Debt->value,
             'lines' => [
                 ['product_unit_id' => $unit->id, 'quantity' => 3],
             ],
@@ -121,7 +111,7 @@ class CollectorSellTest extends TestCase
 
         $print = $this->actingAs($collector)->get(route('invoices.show', $invoice));
         $print->assertOk();
-        $print->assertSee(__('ui.invoice_remaining'), false);
+        $print->assertSee(__('ui.invoice_debt'), false);
         $print->assertDontSee('<span>نەقد</span>', false);
     }
 
@@ -140,7 +130,6 @@ class CollectorSellTest extends TestCase
             $wholesale,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
 
@@ -149,7 +138,7 @@ class CollectorSellTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_collector_discount_is_capped_and_gifts_are_free(): void
+    public function test_collector_discount_invoice_and_line_and_gifts(): void
     {
         $this->seed();
 
@@ -161,7 +150,6 @@ class CollectorSellTest extends TestCase
 
         $this->actingAs($collector)->post(route('invoices.store'), [
             'store_id' => $store->id,
-            'invoice_type' => InvoiceType::Cash->value,
             'discount_percent' => 50,
             'lines' => [
                 ['product_unit_id' => $unit->id, 'quantity' => 2, 'gift_quantity' => 1],
@@ -170,7 +158,6 @@ class CollectorSellTest extends TestCase
 
         $this->actingAs($collector)->post(route('invoices.store'), [
             'store_id' => $store->id,
-            'invoice_type' => InvoiceType::Cash->value,
             'discount_percent' => 10,
             'lines' => [
                 ['product_unit_id' => $unit->id, 'quantity' => 2, 'gift_quantity' => 2],
@@ -179,28 +166,51 @@ class CollectorSellTest extends TestCase
 
         $this->actingAs($collector)->post(route('invoices.store'), [
             'store_id' => $store->id,
-            'invoice_type' => InvoiceType::Cash->value,
+            'discount_percent' => 0,
+            'lines' => [
+                [
+                    'product_unit_id' => $unit->id,
+                    'quantity' => 2,
+                    'gift_quantity' => 0,
+                    'discount_percent' => 50,
+                ],
+            ],
+        ])->assertSessionHasErrors('lines.0.discount_percent');
+
+        $this->actingAs($collector)->post(route('invoices.store'), [
+            'store_id' => $store->id,
             'discount_percent' => 10,
             'lines' => [
-                ['product_unit_id' => $unit->id, 'quantity' => 2, 'gift_quantity' => 1],
+                [
+                    'product_unit_id' => $unit->id,
+                    'quantity' => 2,
+                    'gift_quantity' => 1,
+                    'discount_percent' => 10,
+                ],
             ],
         ])->assertRedirect();
 
         $invoice = Invoice::query()->latest('id')->firstOrFail();
-        $subtotal = (float) $unit->price_wholesale * 2;
-        $discount = round($subtotal * 0.1, 2);
-        $this->assertSame(number_format($subtotal, 2, '.', ''), (string) $invoice->subtotal);
-        $this->assertSame(number_format($discount, 2, '.', ''), (string) $invoice->discount_amount);
-        $this->assertSame(number_format($subtotal - $discount, 2, '.', ''), (string) $invoice->total_amount);
-        $this->assertSame('1.00', (string) $invoice->items->first()->gift_quantity);
+        $item = $invoice->items->first();
+        $gross = (float) $unit->price_wholesale * 2;
+        $lineDisc = round($gross * 0.1, 2);
+        $lineNet = round($gross - $lineDisc, 2);
+        $invoiceDisc = round($lineNet * 0.1, 2);
+        $total = round($lineNet - $invoiceDisc, 2);
+
+        $this->assertSame(number_format($lineNet, 2, '.', ''), (string) $invoice->subtotal);
+        $this->assertSame(number_format($lineDisc, 2, '.', ''), (string) $item->discount_amount);
+        $this->assertSame('10.00', (string) $item->discount_percent);
+        $this->assertSame(number_format($invoiceDisc, 2, '.', ''), (string) $invoice->discount_amount);
+        $this->assertSame(number_format($total, 2, '.', ''), (string) $invoice->total_amount);
+        $this->assertSame(number_format($total, 2, '.', ''), (string) $invoice->debt_amount);
+        $this->assertSame('1.00', (string) $item->gift_quantity);
 
         $print = $this->actingAs($collector)->get(route('invoices.show', $invoice));
         $print->assertOk();
         $print->assertSee('داشکاندن', false);
         $print->assertSee('10%', false);
-        $print->assertSee('کۆی گشتی (صافی)', false);
         $print->assertSee('دیاری', false);
-        $print->assertDontSee('−'.number_format($discount, 0), false);
     }
 
     public function test_accountant_cannot_create_invoice_but_can_view(): void
@@ -218,7 +228,6 @@ class CollectorSellTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
 
@@ -262,11 +271,12 @@ class CollectorSellTest extends TestCase
         $this->assertStringContainsString(__('ui.invoices'), $nav);
         $this->assertStringContainsString('stores', $nav);
         $this->assertStringContainsString('invoices', $nav);
+        $this->assertStringContainsString(__('ui.visit'), $nav);
         $this->assertStringNotContainsString(__('ui.reports'), $nav);
         $this->assertStringNotContainsString(__('ui.expenses'), $nav);
     }
 
-    public function test_debt_invoice_can_take_partial_cash_and_shows_remaining(): void
+    public function test_sale_ignores_paid_now_and_stays_full_debt(): void
     {
         $this->seed();
 
@@ -276,45 +286,26 @@ class CollectorSellTest extends TestCase
         $product = Product::query()->with('units')->firstOrFail();
         $unit = $product->units->firstWhere('unit', 'carton') ?? $product->units->first();
         $total = (float) $unit->price_wholesale * 2;
-        $paidNow = round($total / 2, 0);
 
         $this->actingAs($collector)->post(route('invoices.store'), [
             'store_id' => $store->id,
-            'invoice_type' => InvoiceType::Debt->value,
-            'paid_now' => $paidNow,
+            'paid_now' => round($total / 2, 0),
+            'invoice_type' => 'cash',
             'lines' => [
                 ['product_unit_id' => $unit->id, 'quantity' => 2],
             ],
         ])->assertRedirect();
 
         $invoice = Invoice::query()->latest('id')->firstOrFail();
-        $remaining = round($total - $paidNow, 2);
 
         $this->assertSame(InvoiceType::Debt, $invoice->invoice_type);
-        $this->assertSame(number_format($paidNow, 2, '.', ''), (string) $invoice->paid_amount);
-        $this->assertSame(number_format($remaining, 2, '.', ''), (string) $invoice->debt_amount);
+        $this->assertSame('0.00', (string) $invoice->paid_amount);
+        $this->assertSame(number_format($total, 2, '.', ''), (string) $invoice->debt_amount);
 
         $store->refresh();
-        // Full sale total is receivable until accountant confirms the cash hold.
         $this->assertSame(number_format($total, 2, '.', ''), (string) $store->current_debt);
-        $this->assertSame(
-            number_format($remaining, 2, '.', ''),
-            number_format(\App\Models\Collection::availableDebtForStore($store), 2, '.', ''),
+        $this->assertNull(
+            \App\Models\Collection::query()->where('invoice_id', $invoice->id)->first(),
         );
-
-        $collection = \App\Models\Collection::query()
-            ->where('invoice_id', $invoice->id)
-            ->first();
-        $this->assertNotNull($collection);
-        $this->assertTrue($collection->isPending());
-        $this->assertSame(number_format($paidNow, 2, '.', ''), (string) $collection->amount);
-
-        $print = $this->actingAs($collector)->get(route('invoices.show', $invoice));
-        $print->assertOk();
-        $print->assertSee(__('ui.invoice_paid_now'), false);
-        $print->assertSee(__('ui.invoice_remaining'), false);
-        $print->assertSee(number_format($remaining, 0), false);
-        $print->assertSee(__('ui.collection_voucher_title'), false);
-        $print->assertSee($collection->receipt_number, false);
     }
 }

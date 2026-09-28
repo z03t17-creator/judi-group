@@ -99,6 +99,8 @@
             @foreach ($invoice->items as $item)
                 @php
                     $gift = (float) $item->gift_quantity;
+                    $lineDiscPct = (float) ($item->discount_percent ?? 0);
+                    $lineDiscLabel = rtrim(rtrim(number_format($lineDiscPct, 2, '.', ''), '0'), '.');
                 @endphp
                 <tr>
                     <td class="col-name">{{ $item->product_name }}</td>
@@ -114,9 +116,9 @@
                             —
                         @endif
                     </td>
-                    <td @class(['col-disc', 'col-emph', 'is-disc' => $hasDiscount]) dir="ltr">
-                        @if ($hasDiscount)
-                            <strong>{{ $discountPct }}%</strong>
+                    <td @class(['col-disc', 'col-emph', 'is-disc' => $lineDiscPct > 0]) dir="ltr">
+                        @if ($lineDiscPct > 0)
+                            <strong>{{ $lineDiscLabel }}%</strong>
                         @else
                             —
                         @endif
@@ -161,7 +163,7 @@
             @endif
             @if ($debt > 0)
                 <p class="is-remain">
-                    <span>{{ __('ui.invoice_remaining') }}</span>
+                    <span>{{ $paid > 0 ? __('ui.invoice_remaining') : __('ui.invoice_debt') }}</span>
                     <strong dir="ltr">{{ number_format($debt, 0) }}</strong>
                 </p>
             @endif

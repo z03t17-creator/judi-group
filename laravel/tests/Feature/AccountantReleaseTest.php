@@ -34,7 +34,6 @@ class AccountantReleaseTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [
                 [
                     'product_unit_id' => $carton->id,
@@ -86,7 +85,6 @@ class AccountantReleaseTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $carton->id, 'quantity' => 2]],
         );
 
@@ -125,7 +123,6 @@ class AccountantReleaseTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $piece->id, 'quantity' => 4]],
         );
 
@@ -172,7 +169,6 @@ class AccountantReleaseTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $piece->id, 'quantity' => 1]],
         );
 
@@ -180,7 +176,6 @@ class AccountantReleaseTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $piece->id, 'quantity' => 1]],
         );
         $sent->sendFromWarehouse($accountant);
@@ -206,7 +201,6 @@ class AccountantReleaseTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $piece->id, 'quantity' => 1]],
         );
 
@@ -234,7 +228,6 @@ class AccountantReleaseTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $piece->id, 'quantity' => 1]],
         );
 

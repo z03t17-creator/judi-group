@@ -8,9 +8,14 @@
         @include('partials.icon-badge', ['icon' => 'plus', 'tone' => 'emerald', 'size' => 'lg'])
         <div class="page__header-text">
             <h1 class="page__title">{{ __('ui.collection_new') }}</h1>
-            <p class="page__lead">{{ __('ui.collection_lead') }}</p>
+            <p class="page__lead">
+                {{ __('ui.collection_lead') }}
+                @if (!empty($activeVisit))
+                    · {{ $activeVisit->store?->name }}
+                @endif
+            </p>
         </div>
-        <a href="{{ route('collections.index') }}" class="btn btn--regular">
+        <a href="{{ !empty($activeVisit) ? route('visits.show', $activeVisit) : route('collections.index') }}" class="btn btn--regular">
             @include('partials.icons.arrow-back', ['class' => 'btn__icon'])
             {{ __('ui.back') }}
         </a>
@@ -33,13 +38,13 @@
             <div class="form-grid">
                 <label class="field field--grow">
                     <span class="field__label">{{ __('ui.invoice_store') }}</span>
-                    <select class="field__input" name="store_id" required data-collection-store>
+                    <select class="field__input" name="store_id" required data-collection-store @disabled(!empty($activeVisit))>
                         <option value="">{{ __('ui.collection_pick_store') }}</option>
                         @foreach ($stores as $store)
                             <option
                                 value="{{ $store->id }}"
                                 data-debt="{{ (float) $store->available_debt }}"
-                                @selected((int) old('store_id') === (int) $store->id)
+                                @selected((int) old('store_id', $activeVisit->store_id ?? 0) === (int) $store->id)
                             >
                                 {{ $store->name }}
                                 — {{ __('ui.collection_available_debt') }}:
@@ -47,6 +52,9 @@
                             </option>
                         @endforeach
                     </select>
+                    @if (!empty($activeVisit))
+                        <input type="hidden" name="store_id" value="{{ $activeVisit->store_id }}">
+                    @endif
                 </label>
                 <label class="field">
                     <span class="field__label">{{ __('ui.collection_amount') }}</span>

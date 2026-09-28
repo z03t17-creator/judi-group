@@ -63,10 +63,7 @@ class ApprovalDeskTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Debt,
             [['product_unit_id' => $unit->id, 'quantity' => 2]],
-            0,
-            null,
         );
 
         $store->refresh();
@@ -100,14 +97,12 @@ class ApprovalDeskTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
         $second = Invoice::createSale(
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
 

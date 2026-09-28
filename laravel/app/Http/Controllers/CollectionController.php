@@ -8,6 +8,7 @@ use App\Enums\PagePermission;
 use App\Http\Requests\StoreCollectionRequest;
 use App\Models\Collection;
 use App\Models\Store;
+use App\Models\StoreVisit;
 use App\Support\CollectorReportBuilder;
 use App\Support\DatePeriodFilter;
 use App\Support\ProfileImage;
@@ -100,11 +101,32 @@ class CollectionController extends Controller
         ]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
+        $user = $request->user();
+        $activeVisit = StoreVisit::openForCollector($user);
+        $visitId = (int) $request->query('visit', 0);
+        $lockedVisit = null;
+
+        if ($visitId > 0) {
+            $lockedVisit = StoreVisit::query()->with('store')->findOrFail($visitId);
+            $lockedVisit->assertOwnedBy($user);
+            if (! $lockedVisit->isOpen()) {
+                return redirect()
+                    ->route('visits.show', $lockedVisit)
+                    ->withErrors(['visit' => __('ui.visit_closed_no_collect')]);
+            }
+        } elseif ($activeVisit) {
+            $lockedVisit = $activeVisit;
+        }
+
         $stores = Store::query()
             ->where('is_active', true)
             ->where('current_debt', '>', 0)
+            ->when(
+                $lockedVisit,
+                fn ($q) => $q->where('id', $lockedVisit->store_id),
+            )
             ->orderBy('name')
             ->get()
             ->map(function (Store $store) {
@@ -120,6 +142,7 @@ class CollectionController extends Controller
                 'collected_at' => now()->toDateString(),
             ]),
             'stores' => $stores,
+            'activeVisit' => $lockedVisit,
         ]);
     }
 
@@ -127,6 +150,14 @@ class CollectionController extends Controller
     {
         $store = Store::query()->findOrFail((int) $request->validated('store_id'));
         $receiptPath = null;
+        $user = $request->user();
+        $activeVisit = StoreVisit::openForCollector($user);
+
+        if ($activeVisit && (int) $activeVisit->store_id !== (int) $store->id) {
+            return back()->withInput()->withErrors([
+                'store_id' => __('ui.visit_store_mismatch'),
+            ]);
+        }
 
         if ($request->hasFile('receipt')) {
             $receiptPath = ProfileImage::store($request->file('receipt'), 'collections');
@@ -134,7 +165,7 @@ class CollectionController extends Controller
 
         try {
             $collection = Collection::recordPayment(
-                $request->user(),
+                $user,
                 $store,
                 (float) $request->validated('amount'),
                 $request->validated('collected_at'),
@@ -147,6 +178,10 @@ class CollectionController extends Controller
             }
 
             return back()->withInput()->withErrors(['amount' => $e->getMessage()]);
+        }
+
+        if ($activeVisit) {
+            $activeVisit->attachCollection($collection);
         }
 
         return redirect()

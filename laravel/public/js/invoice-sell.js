@@ -11,6 +11,7 @@
     ? window.JudiInvoiceCategories
     : [];
   var labels = window.JudiInvoiceLabels || {};
+  var maxDiscount = Number(window.JudiInvoiceMaxDiscount) || 0;
   var cart = [];
   var oldLines = Array.isArray(window.JudiInvoiceOldLines)
     ? window.JudiInvoiceOldLines
@@ -18,8 +19,7 @@
   var selectedCategoryId = "";
   var selectedSubcategoryId = "";
   var wizardStep = 1;
-  var categoryNeedle = "";
-  var subcategoryNeedle = "";
+  var editingKey = null;
   var TILE_COLORS = [
     "#0f766e",
     "#0369a1",
@@ -33,21 +33,15 @@
 
   var productList = root.querySelector("[data-product-list]");
   var productFilter = root.querySelector("[data-product-filter]");
-  var categoryFilter = root.querySelector("[data-category-filter]");
-  var subcategoryFilter = root.querySelector("[data-subcategory-filter]");
   var categoryRail = root.querySelector("[data-category-rail]");
   var subcategoryRail = root.querySelector("[data-subcategory-rail]");
   var subBlock = root.querySelector("[data-sub-block]");
   var clearFiltersBtn = root.querySelector("[data-clear-filters]");
-  var filterSummary = root.querySelector("[data-filter-summary]");
-  var viewerToggle = root.querySelector("[data-sell-viewer-toggle]");
-  var viewerPanel = root.querySelector("[data-sell-viewer-panel]");
   var storeFilter = root.querySelector("[data-store-filter]");
   var storeOptions = Array.prototype.slice.call(
     root.querySelectorAll("[data-store-option]")
   );
   var storeIdInput = root.querySelector("[data-store-id-input]");
-  var storePick = root.querySelector("[data-store-pick]");
   var lockedStore = root.querySelector("[data-locked-store]");
   var lockedName = root.querySelector("[data-locked-name]");
   var lockedMeta = root.querySelector("[data-locked-meta]");
@@ -57,43 +51,37 @@
   var cartEl = root.querySelector("[data-cart]");
   var cartEmpty = root.querySelector("[data-cart-empty]");
   var linesInputs = root.querySelector("[data-lines-inputs]");
-  var totalEls = root.querySelectorAll("[data-cart-total], [data-cart-total-sticky]");
+  var subtotalEls = root.querySelectorAll("[data-cart-subtotal]");
+  var totalEls = root.querySelectorAll("[data-cart-total-sticky]");
   var submitBtn = root.querySelector("[data-submit-sale]");
   var discountInput = root.querySelector("[data-discount]");
-  var paidNowInput = root.querySelector("[data-paid-now]");
-  var payDialog = root.querySelector("[data-pay-dialog]");
-  var payAmountInput = root.querySelector("[data-pay-amount]");
-  var payTotalEl = root.querySelector("[data-pay-total]");
-  var payRemainEl = root.querySelector("[data-pay-remain]");
-  var payConfirmBtn = root.querySelector("[data-pay-confirm]");
-  var payCancelBtn = root.querySelector("[data-pay-cancel]");
-  var payErrorEl = root.querySelector("[data-pay-error]");
   var form = root.querySelector("#invoice-sell-form");
   var storePanel = root.querySelector('[data-panel="store"]');
-  var cartCountEl = root.querySelector("[data-cart-count]");
-  var stepEls = Array.prototype.slice.call(
-    root.querySelectorAll("[data-sell-step]")
-  );
-  var payConfirmed = false;
-  var storeNeededEl = root.querySelector("[data-store-needed]");
   var catalogPanel = root.querySelector('[data-panel="catalog"]');
+  var cartCountEl = root.querySelector("[data-cart-count]");
+  var storeNeededEl = root.querySelector("[data-store-needed]");
   var wizardTitle = root.querySelector("[data-wizard-title]");
   var wizardBack = root.querySelector("[data-wizard-back]");
   var exitSell = root.querySelector("[data-exit-sell]");
   var sellContext = root.querySelector("[data-sell-context]");
   var stickyCta = root.querySelector("[data-sell-cta]");
-  var payTypeBar = root.querySelector("[data-pay-bar]");
+  var lineSheet = root.querySelector("[data-line-sheet]");
+  var lineSheetName = root.querySelector("[data-line-sheet-name]");
+  var lineSheetGift = root.querySelector("[data-line-sheet-gift]");
+  var lineSheetDiscount = root.querySelector("[data-line-sheet-discount]");
+  var lineSheetSave = root.querySelector("[data-line-sheet-save]");
+  var lineSheetCancel = root.querySelector("[data-line-sheet-cancel]");
 
   function money(n) {
     return Math.round(Number(n) || 0).toLocaleString("en-US");
   }
 
   function preferredUnit(product) {
-    if (!product.units || !product.units.length) return null;
+    if (!product || !product.units || !product.units.length) return null;
     var carton = product.units.find(function (u) {
       return u.unit === "carton";
     });
-    return carton || product.units[product.units.length - 1];
+    return carton || product.units[0];
   }
 
   function findProduct(productId) {
@@ -109,35 +97,42 @@
   }
 
   function cartKey(productId, unitId) {
-    return productId + ":" + unitId;
+    return String(productId) + ":" + String(unitId);
   }
 
-  function addLine(productId, unitId, qty, giftQty) {
+  function addLine(productId, unitId, qty, giftQty, discountPercent) {
     var product = findProduct(productId);
-    if (!product) return;
     var unit = findUnit(product, unitId) || preferredUnit(product);
-    if (!unit) return;
+    if (!product || !unit) return;
+
     var key = cartKey(product.id, unit.id);
     var existing = cart.find(function (line) {
       return line.key === key;
     });
     var amount = Math.max(0, Math.round(Number(qty) || 0));
     var gift = Math.max(0, Math.round(Number(giftQty) || 0));
+    var disc = Math.max(
+      0,
+      Math.min(maxDiscount, Number(discountPercent) || 0)
+    );
+
     if (existing) {
       existing.quantity += amount || (gift ? 0 : 1);
       existing.giftQuantity += gift;
+      if (discountPercent != null && discountPercent !== "") {
+        existing.discountPercent = disc;
+      }
     } else {
       cart.push({
         key: key,
         productId: product.id,
+        unitId: unit.id,
         productUnitId: unit.id,
         name: product.name,
-        image: product.image,
-        unitLabel: unit.label,
-        unitId: unit.id,
         price: Number(unit.price) || 0,
         quantity: amount || (gift ? 0 : 1),
         giftQuantity: gift,
+        discountPercent: disc,
       });
     }
     renderCart();
@@ -171,6 +166,18 @@
     renderCart();
   }
 
+  function setLineDiscount(key, pct) {
+    var line = cart.find(function (item) {
+      return item.key === key;
+    });
+    if (!line) return;
+    line.discountPercent = Math.max(
+      0,
+      Math.min(maxDiscount, Number(pct) || 0)
+    );
+    renderCart();
+  }
+
   function changeUnit(key, unitId) {
     var line = cart.find(function (item) {
       return item.key === key;
@@ -179,21 +186,20 @@
     var product = findProduct(line.productId);
     var unit = findUnit(product, unitId);
     if (!unit) return;
-    var nextKey = cartKey(product.id, unit.id);
+    var nextKey = cartKey(line.productId, unit.id);
     var other = cart.find(function (item) {
-      return item.key === nextKey && item.key !== key;
+      return item.key === nextKey && item !== line;
     });
     if (other) {
       other.quantity += line.quantity;
       other.giftQuantity += line.giftQuantity;
       cart = cart.filter(function (item) {
-        return item.key !== key;
+        return item !== line;
       });
     } else {
       line.key = nextKey;
-      line.productUnitId = unit.id;
       line.unitId = unit.id;
-      line.unitLabel = unit.label;
+      line.productUnitId = unit.id;
       line.price = Number(unit.price) || 0;
     }
     renderCart();
@@ -206,9 +212,15 @@
     renderCart();
   }
 
+  function lineNet(line) {
+    var gross = line.price * line.quantity;
+    var disc = gross * ((Number(line.discountPercent) || 0) / 100);
+    return Math.max(0, gross - disc);
+  }
+
   function cartSubtotal() {
     return cart.reduce(function (sum, line) {
-      return sum + line.price * line.quantity;
+      return sum + lineNet(line);
     }, 0);
   }
 
@@ -216,77 +228,6 @@
     var sub = cartSubtotal();
     var pct = discountInput ? Number(discountInput.value) || 0 : 0;
     return Math.max(0, sub - sub * (pct / 100));
-  }
-
-  function selectedPayType() {
-    var radio = root.querySelector('input[name="invoice_type"]:checked');
-    return radio ? radio.value : "debt";
-  }
-
-  function parseMoneyValue(raw) {
-    return parseFloat(String(raw || "0").replace(/[^\d.]/g, "")) || 0;
-  }
-
-  function digitsOnly(raw) {
-    return String(raw || "").replace(/[^\d]/g, "");
-  }
-
-  function hidePayError() {
-    if (payErrorEl) payErrorEl.hidden = true;
-    if (payAmountInput) payAmountInput.classList.remove("is-invalid");
-  }
-
-  function showPayError() {
-    if (payErrorEl) payErrorEl.hidden = false;
-    if (payAmountInput) {
-      payAmountInput.classList.add("is-invalid");
-      payAmountInput.focus();
-    }
-  }
-
-  function hasPayNumber() {
-    return !!(payAmountInput && digitsOnly(payAmountInput.value));
-  }
-
-  function writePayAmount(n) {
-    if (!payAmountInput) return;
-    payAmountInput.value = money(Math.max(0, Math.round(Number(n) || 0)));
-  }
-
-  function syncPayDialog() {
-    var total = Math.round(cartTotal());
-    var paid = payAmountInput ? Math.max(0, parseMoneyValue(payAmountInput.value)) : 0;
-    if (paid > total) paid = total;
-    var remain = Math.max(0, total - Math.round(paid));
-    if (payTotalEl) payTotalEl.textContent = money(total);
-    if (payRemainEl) {
-      payRemainEl.textContent = money(remain);
-      var remainRow = payRemainEl.closest(".pay-dialog__row");
-      if (remainRow) remainRow.classList.toggle("is-zero", remain <= 0);
-    }
-    return { total: total, paid: Math.round(paid), remain: remain };
-  }
-
-  function setPayChip(kind) {
-    var total = Math.round(cartTotal());
-    var value = 0;
-    if (kind === "half") value = Math.round(total / 2);
-    if (kind === "all") value = total;
-    writePayAmount(value);
-    hidePayError();
-    syncPayDialog();
-  }
-
-  function applyPayToForm() {
-    var result = syncPayDialog();
-    if (paidNowInput) {
-      paidNowInput.disabled = false;
-      paidNowInput.value = String(result.paid);
-    }
-    var type = result.remain > 0 ? "debt" : "cash";
-    var radio = root.querySelector('input[name="invoice_type"][value="' + type + '"]');
-    if (radio) radio.checked = true;
-    return result;
   }
 
   function hasStore() {
@@ -304,109 +245,53 @@
     if (storePanel) storePanel.classList.remove("is-need-store");
   }
 
-  function submitSaleForm() {
-    payConfirmed = true;
-    if (payDialog && payDialog.open) {
+  function openLineSheet(key) {
+    var line = cart.find(function (item) {
+      return item.key === key;
+    });
+    if (!line || !lineSheet) return;
+    editingKey = key;
+    if (lineSheetName) lineSheetName.textContent = line.name;
+    if (lineSheetGift) lineSheetGift.value = String(line.giftQuantity || 0);
+    if (lineSheetDiscount) {
+      lineSheetDiscount.value = String(line.discountPercent || 0);
+    }
+    if (typeof lineSheet.showModal === "function") {
+      lineSheet.showModal();
+    }
+  }
+
+  function closeLineSheet() {
+    editingKey = null;
+    if (lineSheet && lineSheet.open) {
       try {
-        payDialog.close();
+        lineSheet.close();
       } catch (e) {}
     }
-    if (!form) return;
-    if (submitBtn) submitBtn.disabled = true;
-    if (payConfirmBtn) payConfirmBtn.disabled = true;
-    try {
-      sessionStorage.setItem("judiPrintAfterSave", "a4");
-    } catch (e) {}
-    window.setTimeout(function () {
-      try {
-        form.submit();
-      } catch (e) {
-        if (submitBtn) submitBtn.disabled = false;
-        if (payConfirmBtn) payConfirmBtn.disabled = false;
-        payConfirmed = false;
-      }
-    }, 30);
   }
 
-  function finishPayAndSubmit() {
-    if (!hasPayNumber()) {
-      showPayError();
-      return;
-    }
-    applyPayToForm();
-    if (!hasStore()) {
-      if (payDialog && payDialog.open) {
-        try {
-          payDialog.close();
-        } catch (e) {}
-      }
-      showNeedStore();
-      return;
-    }
-    hideNeedStore();
-    submitSaleForm();
-  }
-
-  function openPayDialog() {
-    var total = Math.round(cartTotal());
-    var isCash = selectedPayType() === "cash";
-    var start = isCash ? total : 0;
-    if (paidNowInput && parseMoneyValue(paidNowInput.value) > 0) {
-      start = Math.round(parseMoneyValue(paidNowInput.value));
-    }
-    if (start > 0) writePayAmount(start);
-    else if (payAmountInput) payAmountInput.value = "";
-    hidePayError();
-    syncPayDialog();
-    if (payDialog && typeof payDialog.showModal === "function") {
-      payDialog.showModal();
-      window.setTimeout(function () {
-        if (!payAmountInput) return;
-        payAmountInput.focus();
-        payAmountInput.select();
-      }, 40);
-      return;
-    }
-    var raw = window.prompt(
-      (labels.payAsk || "How much?") +
-        "\n" +
-        (labels.grandTotal || "Total") +
-        ": " +
-        money(total) +
-        "\n" +
-        (labels.remaining || "Remaining") +
-        " = " +
-        (labels.grandTotal || "Total") +
-        " − " +
-        (labels.paidNow || "Paid"),
-      String(start)
-    );
-    if (raw === null) return;
-    if (payAmountInput) payAmountInput.value = raw;
-    if (!hasPayNumber()) {
-      showPayError();
-      return;
-    }
-    finishPayAndSubmit();
+  function saveLineSheet() {
+    if (!editingKey) return;
+    if (lineSheetGift) setGift(editingKey, lineSheetGift.value);
+    if (lineSheetDiscount) setLineDiscount(editingKey, lineSheetDiscount.value);
+    closeLineSheet();
   }
 
   function renderCart() {
+    var sub = cartSubtotal();
     var total = cartTotal();
+    subtotalEls.forEach(function (el) {
+      el.textContent = money(sub);
+    });
     totalEls.forEach(function (el) {
       el.textContent = money(total);
     });
     if (submitBtn) submitBtn.disabled = cart.length === 0;
-    var cartCard = root.querySelector('[data-panel="cart"]');
-      if (cartCard) cartCard.hidden = wizardStep !== 2 || cart.length === 0;
     if (cartCountEl) {
       cartCountEl.textContent =
         (labels.lines || "Lines") + ": " + cart.length;
     }
-    updateSteps();
-
-    if (cartEmpty) {
-      cartEmpty.hidden = cart.length > 0;
-    }
+    if (cartEmpty) cartEmpty.hidden = cart.length > 0;
 
     if (cartEl) {
       cartEl.innerHTML = cart
@@ -420,21 +305,47 @@
                 '"' +
                 (String(u.id) === String(line.unitId) ? " selected" : "") +
                 ">" +
-                u.label +
+                escapeHtml(u.label) +
                 " · " +
                 money(u.price) +
                 "</option>"
               );
             })
             .join("");
+          var badges = [];
+          if (line.giftQuantity > 0) {
+            badges.push(
+              '<span class="sell-cart__badge">' +
+                escapeHtml(labels.gift || "Gift") +
+                " " +
+                line.giftQuantity +
+                "</span>"
+            );
+          }
+          if (line.discountPercent > 0) {
+            badges.push(
+              '<span class="sell-cart__badge sell-cart__badge--disc">' +
+                escapeHtml(labels.discount || "Disc") +
+                " " +
+                line.discountPercent +
+                "%</span>"
+            );
+          }
 
           return (
-            '<li class="sell-cart__item" data-key="' +
-            line.key +
+            '<li class="sell-cart__item sell-cart__item--calm" data-key="' +
+            escapeAttr(line.key) +
             '">' +
+            '<div class="sell-cart__row">' +
             '<span class="sell-cart__name">' +
             escapeHtml(line.name) +
             "</span>" +
+            '<strong class="sell-cart__line-total" dir="ltr">' +
+            money(lineNet(line)) +
+            "</strong>" +
+            '<button type="button" class="sell-cart__remove" data-remove aria-label="×">×</button>' +
+            "</div>" +
+            '<div class="sell-cart__row sell-cart__row--controls">' +
             '<select class="sell-cart__unit" data-unit>' +
             options +
             "</select>" +
@@ -445,15 +356,13 @@
             '" data-qty>' +
             '<button type="button" data-qty-delta="1" aria-label="+">+</button>' +
             "</div>" +
-            '<label class="sell-cart__gift"><span>' +
-            escapeHtml(labels.gift || "Gift") +
-            '</span><input type="number" min="0" step="1" inputmode="numeric" value="' +
-            line.giftQuantity +
-            '" data-gift></label>' +
-            '<strong class="sell-cart__line-total" dir="ltr">' +
-            money(line.price * line.quantity) +
-            "</strong>" +
-            '<button type="button" class="sell-cart__remove" data-remove aria-label="×">×</button>' +
+            '<button type="button" class="btn btn--ghost btn--sm sell-cart__more" data-line-edit>' +
+            escapeHtml(labels.editLine || "Edit") +
+            "</button>" +
+            "</div>" +
+            (badges.length
+              ? '<div class="sell-cart__badges">' + badges.join("") + "</div>"
+              : "") +
             "</li>"
           );
         })
@@ -478,6 +387,11 @@
             index +
             '][gift_quantity]" value="' +
             line.giftQuantity +
+            '">' +
+            '<input type="hidden" name="lines[' +
+            index +
+            '][discount_percent]" value="' +
+            (line.discountPercent || 0) +
             '">'
           );
         })
@@ -517,60 +431,23 @@
     return cat ? cat.subcategories || [] : [];
   }
 
-  function filterSummaryText() {
-    var parts = [];
-    if (selectedCategoryId) {
-      var cat = categories.find(function (c) {
-        return String(c.id) === String(selectedCategoryId);
-      });
-      if (cat) parts.push(cat.name);
-    }
-    if (selectedSubcategoryId) {
-      var sub = currentSubs().find(function (s) {
-        return String(s.id) === String(selectedSubcategoryId);
-      });
-      if (sub) parts.push(sub.name);
-    }
-    return parts.length ? parts.join(" · ") : labels.all || "All";
-  }
-
-  function updateFilterSummary() {
-    if (filterSummary) filterSummary.textContent = filterSummaryText();
-  }
-
-  function nameMatches(name, needle) {
-    if (!needle) return true;
-    return String(name || "")
-      .toLowerCase()
-      .indexOf(needle) !== -1;
-  }
-
-  function syncFilterChrome() {
-    var hasFilter = !!(selectedCategoryId || selectedSubcategoryId);
-    if (clearFiltersBtn) clearFiltersBtn.hidden = !hasFilter;
-    if (subBlock) {
-      var subs = currentSubs();
-      subBlock.hidden = !selectedCategoryId || !subs.length;
-    }
-    updateFilterSummary();
+  function countProducts(catId, subId) {
+    return catalog.filter(function (p) {
+      if (catId && String(p.category_id) !== String(catId)) return false;
+      if (subId && String(p.subcategory_id) !== String(subId)) return false;
+      return true;
+    }).length;
   }
 
   function renderCategoryRail() {
     if (!categoryRail) return;
-    var needle = categoryNeedle.trim().toLowerCase();
     var html =
       '<button type="button" class="sell-pill' +
       (selectedCategoryId ? "" : " is-active") +
-      '" data-category-id="" role="option" aria-selected="' +
-      (selectedCategoryId ? "false" : "true") +
-      '">' +
+      '" data-category-id="">' +
       escapeHtml(labels.allCategories || labels.all || "All") +
       "</button>";
-
-    var shown = 0;
     categories.forEach(function (cat, i) {
-      if (!nameMatches(cat.name, needle)) return;
-      shown += 1;
       var color = TILE_COLORS[i % TILE_COLORS.length];
       var active = String(selectedCategoryId) === String(cat.id);
       html +=
@@ -578,12 +455,9 @@
         (active ? " is-active" : "") +
         '" data-category-id="' +
         escapeAttr(String(cat.id)) +
-        '" role="option" aria-selected="' +
-        (active ? "true" : "false") +
         '" style="--pill:' +
         color +
         '">' +
-        '<span class="sell-pill__dot" aria-hidden="true"></span>' +
         '<span class="sell-pill__label">' +
         escapeHtml(cat.name) +
         "</span>" +
@@ -592,13 +466,6 @@
         "</span>" +
         "</button>";
     });
-
-    if (!shown && needle) {
-      html +=
-        '<p class="sell-pill-rail__empty">' +
-        escapeHtml(labels.noProducts || "No match") +
-        "</p>";
-    }
     categoryRail.innerHTML = html;
   }
 
@@ -607,22 +474,17 @@
     var subs = currentSubs();
     if (!selectedCategoryId || !subs.length) {
       subcategoryRail.innerHTML = "";
+      if (subBlock) subBlock.hidden = true;
       return;
     }
-    var needle = subcategoryNeedle.trim().toLowerCase();
+    if (subBlock) subBlock.hidden = false;
     var html =
       '<button type="button" class="sell-pill sell-pill--sub' +
       (selectedSubcategoryId ? "" : " is-active") +
-      '" data-subcategory-id="" role="option" aria-selected="' +
-      (selectedSubcategoryId ? "false" : "true") +
-      '">' +
+      '" data-subcategory-id="">' +
       escapeHtml(labels.allInCategory || labels.all || "All") +
       "</button>";
-
-    var shown = 0;
     subs.forEach(function (sub, i) {
-      if (!nameMatches(sub.name, needle)) return;
-      shown += 1;
       var color = TILE_COLORS[i % TILE_COLORS.length];
       var active = String(selectedSubcategoryId) === String(sub.id);
       html +=
@@ -630,68 +492,48 @@
         (active ? " is-active" : "") +
         '" data-subcategory-id="' +
         escapeAttr(String(sub.id)) +
-        '" role="option" aria-selected="' +
-        (active ? "true" : "false") +
         '" style="--pill:' +
         color +
         '">' +
         '<span class="sell-pill__label">' +
         escapeHtml(sub.name) +
         "</span>" +
-        '<span class="sell-pill__count">' +
-        countProducts(selectedCategoryId, sub.id) +
-        "</span>" +
         "</button>";
     });
-
-    if (!shown && needle) {
-      html +=
-        '<p class="sell-pill-rail__empty">' +
-        escapeHtml(labels.noProducts || "No match") +
-        "</p>";
-    }
     subcategoryRail.innerHTML = html;
   }
 
   function refreshFilters() {
     renderCategoryRail();
     renderSubcategoryRail();
-    syncFilterChrome();
+    if (clearFiltersBtn) {
+      clearFiltersBtn.hidden = !(selectedCategoryId || selectedSubcategoryId);
+    }
     renderCatalog();
   }
 
   function pickCategoryFilter(id) {
-    selectedCategoryId = String(id || "");
+    selectedCategoryId = id || "";
     selectedSubcategoryId = "";
-    subcategoryNeedle = "";
-    if (subcategoryFilter) subcategoryFilter.value = "";
     refreshFilters();
   }
 
   function pickSubcategoryFilter(id) {
-    selectedSubcategoryId = String(id || "");
+    selectedSubcategoryId = id || "";
     refreshFilters();
   }
 
   function clearFilters() {
     selectedCategoryId = "";
     selectedSubcategoryId = "";
-    categoryNeedle = "";
-    subcategoryNeedle = "";
-    if (categoryFilter) categoryFilter.value = "";
-    if (subcategoryFilter) subcategoryFilter.value = "";
     refreshFilters();
   }
 
   function renderCatalog() {
     if (!productList) return;
-    var needle = (productFilter && productFilter.value
-      ? productFilter.value
-      : ""
-    )
+    var needle = (productFilter ? productFilter.value : "")
       .trim()
       .toLowerCase();
-
     var matches = catalog.filter(function (p) {
       if (selectedCategoryId && String(p.category_id) !== String(selectedCategoryId)) {
         return false;
@@ -705,8 +547,6 @@
       return productMatches(p, needle);
     });
 
-    updateFilterSummary();
-
     if (!matches.length) {
       productList.innerHTML =
         '<p class="empty">' +
@@ -716,27 +556,27 @@
     }
 
     productList.innerHTML = matches
-      .slice(0, 80)
       .map(function (product) {
         var unit = preferredUnit(product);
         var price = unit ? money(unit.price) : "—";
         return (
-          '<button type="button" class="sell-product sell-product--row" data-add-product="' +
-          product.id +
+          '<button type="button" class="sell-product sell-product--calm" data-add-product="' +
+          escapeAttr(String(product.id)) +
           '">' +
           '<img class="sell-product__img" src="' +
           escapeAttr(product.image || "") +
           '" alt="">' +
-          '<span class="sell-product__text">' +
-          '<span class="sell-product__name">' +
+          '<span class="sell-product__body">' +
+          "<strong>" +
           escapeHtml(product.name) +
-          "</span>" +
-          '<span class="sell-product__meta" dir="ltr">' +
+          "</strong>" +
+          '<span class="sell-product__price" dir="ltr">' +
           price +
-          (unit ? " · " + escapeHtml(unit.label) : "") +
           "</span>" +
           "</span>" +
-          '<span class="sell-product__add" aria-hidden="true">+</span>' +
+          '<span class="sell-product__add">' +
+          escapeHtml(labels.add || "+") +
+          "</span>" +
           "</button>"
         );
       })
@@ -744,10 +584,7 @@
   }
 
   function filterStores() {
-    var needle = (storeFilter && storeFilter.value
-      ? storeFilter.value
-      : ""
-    )
+    var needle = (storeFilter ? storeFilter.value : "")
       .trim()
       .toLowerCase();
     storeOptions.forEach(function (el) {
@@ -759,9 +596,37 @@
   function selectedStoreOption() {
     var id = storeIdInput ? storeIdInput.value : "";
     if (!id) return null;
-    return storeOptions.find(function (el) {
-      return String(el.getAttribute("data-store-id")) === String(id);
-    }) || null;
+    return (
+      storeOptions.find(function (el) {
+        return String(el.getAttribute("data-store-id")) === String(id);
+      }) || null
+    );
+  }
+
+  function updateWizardTitle() {
+    if (!wizardTitle) return;
+    wizardTitle.textContent =
+      wizardStep === 1
+        ? labels.pickStoreTitle || "Store"
+        : labels.pickProductsTitle || "Products";
+  }
+
+  function goToStep(n) {
+    wizardStep = n;
+    root.setAttribute("data-step", String(n));
+    if (storePanel) storePanel.hidden = n !== 1;
+    if (catalogPanel) catalogPanel.hidden = n !== 2;
+    if (stickyCta) stickyCta.hidden = n !== 2;
+    if (sellContext) sellContext.hidden = n === 1;
+    if (wizardBack) wizardBack.hidden = n === 1;
+    if (exitSell) exitSell.hidden = n !== 1;
+    updateWizardTitle();
+    if (n === 2) refreshFilters();
+    try {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      window.scrollTo(0, 0);
+    }
   }
 
   function lockStore(opt) {
@@ -793,17 +658,6 @@
     goToStep(2);
   }
 
-  function unlockStore() {
-    if (storePanel) storePanel.classList.remove("is-locked");
-    if (lockedStore) lockedStore.hidden = true;
-    if (storeFilter) {
-      storeFilter.value = "";
-      filterStores();
-      storeFilter.focus();
-    }
-    goToStep(1);
-  }
-
   function selectStore(opt) {
     if (!opt) return;
     var currentId = storeIdInput ? storeIdInput.value : "";
@@ -817,139 +671,39 @@
     lockStore(opt);
   }
 
-  function updateSelectedStore() {
-    var opt = selectedStoreOption();
-    if (opt) lockStore(opt);
-    else unlockStore();
-  }
-
-  function countProducts(catId, subId) {
-    return catalog.filter(function (p) {
-      if (catId && String(p.category_id) !== String(catId)) return false;
-      if (subId && String(p.subcategory_id) !== String(subId)) return false;
-      return true;
-    }).length;
-  }
-
-  function updateWizardTitle() {
-    if (!wizardTitle) return;
-    if (wizardStep === 1) {
-      wizardTitle.textContent = labels.pickStoreTitle || labels.pickStore || "";
-    } else {
-      wizardTitle.textContent = labels.pickProductsTitle || "";
-    }
-  }
-
-  function goToStep(n) {
-    wizardStep = n;
-    root.setAttribute("data-step", String(n));
-    if (storePanel) storePanel.hidden = n !== 1;
-    if (catalogPanel) catalogPanel.hidden = n !== 2;
-    var cartCard = root.querySelector('[data-panel="cart"]');
-    if (cartCard) cartCard.hidden = n !== 2 || cart.length === 0;
-    if (payTypeBar) payTypeBar.hidden = n !== 2;
-    if (stickyCta) stickyCta.hidden = n !== 2;
-    if (sellContext) sellContext.hidden = n === 1;
-    if (wizardBack) wizardBack.hidden = n === 1;
-    if (exitSell) exitSell.hidden = n !== 1;
-    updateWizardTitle();
-    updateSteps();
-    if (n === 2) {
-      refreshFilters();
-    }
-    try {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (e) {
-      window.scrollTo(0, 0);
-    }
-  }
-
-  function wizardGoBack() {
-    if (wizardStep === 2) {
-      goToStep(1);
-    }
-  }
-
-  function updateSteps() {
-    stepEls.forEach(function (el) {
-      var key = el.getAttribute("data-sell-step");
-      var done = false;
-      var active = false;
-      if (key === "store") {
-        active = wizardStep === 1;
-        done = wizardStep > 1;
-      } else if (key === "catalog") {
-        active = wizardStep === 2;
-        done = wizardStep === 2 && cart.length > 0;
-      }
-      el.classList.toggle("is-done", done && !active);
-      el.classList.toggle("is-active", active);
-    });
-  }
-
   if (productFilter) productFilter.addEventListener("input", renderCatalog);
   if (storeFilter) storeFilter.addEventListener("input", filterStores);
   if (discountInput) discountInput.addEventListener("input", renderCart);
 
-  if (payAmountInput) {
-    payAmountInput.addEventListener("input", function () {
-      var raw = digitsOnly(payAmountInput.value);
-      payAmountInput.value = raw ? money(parseInt(raw, 10) || 0) : "";
-      hidePayError();
-      syncPayDialog();
-    });
-    payAmountInput.addEventListener("change", syncPayDialog);
-    payAmountInput.addEventListener("keydown", function (event) {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        if (payConfirmBtn) payConfirmBtn.click();
-      }
-    });
-  }
-  root.querySelectorAll("[data-pay-chip]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      setPayChip(btn.getAttribute("data-pay-chip"));
-      if (payAmountInput) payAmountInput.focus();
-    });
-  });
-  if (payCancelBtn) {
-    payCancelBtn.addEventListener("click", function () {
-      if (payDialog) payDialog.close();
-    });
-  }
-  if (payConfirmBtn) {
-    payConfirmBtn.addEventListener("click", function () {
-      finishPayAndSubmit();
-    });
-  }
   if (submitBtn) {
     submitBtn.addEventListener("click", function (event) {
       event.preventDefault();
       if (cart.length === 0) return;
-      if (payConfirmed && hasStore()) {
-        submitSaleForm();
+      if (!hasStore()) {
+        showNeedStore();
         return;
       }
-      openPayDialog();
+      hideNeedStore();
+      if (submitBtn) submitBtn.disabled = true;
+      try {
+        sessionStorage.setItem("judiPrintAfterSave", "a4");
+      } catch (e) {}
+      if (form) form.submit();
+    });
+  }
+
+  if (form) {
+    form.addEventListener("submit", function (event) {
+      if (cart.length === 0 || !hasStore()) {
+        event.preventDefault();
+        if (!hasStore()) showNeedStore();
+      }
     });
   }
 
   storeOptions.forEach(function (el) {
     el.addEventListener("click", function () {
       selectStore(el);
-    });
-  });
-
-  stepEls.forEach(function (el) {
-    el.addEventListener("click", function () {
-      var key = el.getAttribute("data-sell-step");
-      if (key === "store" && wizardStep > 1) {
-        goToStep(1);
-        return;
-      }
-      if (key === "catalog" && wizardStep === 1 && hasStore()) {
-        goToStep(2);
-      }
     });
   });
 
@@ -961,20 +715,8 @@
   }
 
   if (wizardBack) {
-    wizardBack.addEventListener("click", wizardGoBack);
-  }
-
-  if (categoryFilter) {
-    categoryFilter.addEventListener("input", function () {
-      categoryNeedle = categoryFilter.value || "";
-      renderCategoryRail();
-    });
-  }
-
-  if (subcategoryFilter) {
-    subcategoryFilter.addEventListener("input", function () {
-      subcategoryNeedle = subcategoryFilter.value || "";
-      renderSubcategoryRail();
+    wizardBack.addEventListener("click", function () {
+      if (wizardStep === 2) goToStep(1);
     });
   }
 
@@ -998,17 +740,6 @@
     clearFiltersBtn.addEventListener("click", clearFilters);
   }
 
-  if (viewerToggle && viewerPanel) {
-    viewerToggle.addEventListener("click", function () {
-      var open = viewerToggle.getAttribute("aria-expanded") === "true";
-      var next = !open;
-      viewerToggle.setAttribute("aria-expanded", next ? "true" : "false");
-      viewerPanel.hidden = !next;
-      var wrap = viewerToggle.closest(".sell-viewer");
-      if (wrap) wrap.classList.toggle("is-open", next);
-    });
-  }
-
   if (productList) {
     productList.addEventListener("click", function (event) {
       var btn = event.target.closest("[data-add-product]");
@@ -1016,7 +747,7 @@
       var product = findProduct(btn.getAttribute("data-add-product"));
       var unit = preferredUnit(product);
       if (!unit) return;
-      addLine(product.id, unit.id, 1, 0);
+      addLine(product.id, unit.id, 1, 0, 0);
     });
   }
 
@@ -1027,6 +758,10 @@
       var key = item.getAttribute("data-key");
       if (event.target.closest("[data-remove]")) {
         removeLine(key);
+        return;
+      }
+      if (event.target.closest("[data-line-edit]")) {
+        openLineSheet(key);
         return;
       }
       var deltaBtn = event.target.closest("[data-qty-delta]");
@@ -1046,7 +781,6 @@
       var key = item.getAttribute("data-key");
       if (event.target.matches("[data-unit]")) changeUnit(key, event.target.value);
       if (event.target.matches("[data-qty]")) setQty(key, event.target.value);
-      if (event.target.matches("[data-gift]")) setGift(key, event.target.value);
     });
 
     cartEl.addEventListener("input", function (event) {
@@ -1054,21 +788,14 @@
       if (!item) return;
       var key = item.getAttribute("data-key");
       if (event.target.matches("[data-qty]")) setQty(key, event.target.value);
-      if (event.target.matches("[data-gift]")) setGift(key, event.target.value);
     });
   }
 
-  if (form) {
-    form.addEventListener("submit", function (event) {
-      if (payConfirmed) return;
-      event.preventDefault();
-      if (cart.length === 0) return;
-      if (!hasStore()) {
-        showNeedStore();
-        return;
-      }
-      openPayDialog();
-    });
+  if (lineSheetSave) {
+    lineSheetSave.addEventListener("click", saveLineSheet);
+  }
+  if (lineSheetCancel) {
+    lineSheetCancel.addEventListener("click", closeLineSheet);
   }
 
   oldLines.forEach(function (line) {
@@ -1083,7 +810,8 @@
       product.id,
       line.product_unit_id,
       line.quantity || 0,
-      line.gift_quantity || 0
+      line.gift_quantity || 0,
+      line.discount_percent || 0
     );
   });
 

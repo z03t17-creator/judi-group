@@ -9,11 +9,11 @@
             'enabled' => true,
         ],
         [
-            'route' => 'invoices.create',
-            'match' => ['invoices.create'],
-            'label' => __('ui.sell'),
-            'icon' => 'file',
-            'enabled' => $user->canAccess('invoices.sell'),
+            'route' => 'visits.entry',
+            'match' => ['visits.*', 'invoices.create'],
+            'label' => __('ui.visit'),
+            'icon' => 'store',
+            'enabled' => $user->canAccess('stores'),
         ],
         [
             'route' => 'collections.index',

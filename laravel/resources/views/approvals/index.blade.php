@@ -38,6 +38,12 @@
                 <em>{{ $counts['collections'] }}</em>
             </a>
         @endif
+        @if ($canReviewVisits)
+            <a href="{{ route('approvals.index', ['tab' => 'visits']) }}" class="approvals-tabs__item {{ $tab === 'visits' ? 'is-active' : '' }}">
+                {{ __('ui.visits') }}
+                <em>{{ $counts['visits'] }}</em>
+            </a>
+        @endif
         @if ($canApproveDevices)
             <a href="{{ route('approvals.index', ['tab' => 'devices']) }}" class="approvals-tabs__item {{ $tab === 'devices' ? 'is-active' : '' }}">
                 {{ __('ui.devices') }}
@@ -159,6 +165,80 @@
                 </div>
             </div>
         </form>
+    @endif
+
+    @if ($canReviewVisits && ($tab === 'all' || $tab === 'visits') && ($openVisits->isNotEmpty() || $pendingRejects->isNotEmpty()))
+        @if ($openVisits->isNotEmpty())
+            <section class="approvals-section">
+                <div class="approvals-section__head">
+                    <div>
+                        <h2 class="approvals-section__title">{{ __('ui.visit_status_open') }}</h2>
+                        <p class="approvals-section__lead">{{ __('ui.approvals_visits_lead') }}</p>
+                    </div>
+                </div>
+                <ul class="approvals-list" role="list">
+                    @foreach ($openVisits as $visit)
+                        <li class="approvals-row">
+                            <a href="{{ route('visits.show', $visit) }}" class="approvals-row__body">
+                                <strong class="approvals-row__code">{{ $visit->store?->name }}</strong>
+                                <span class="approvals-row__meta">
+                                    {{ $visit->collector?->name }}
+                                    · <span class="ltr-inline">{{ $visit->started_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') }}</span>
+                                </span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </section>
+        @endif
+
+        @if ($pendingRejects->isNotEmpty())
+            <form method="POST" action="{{ route('approvals.rejects') }}" class="approvals-section" data-approval-section="rejects">
+                @csrf
+                <input type="hidden" name="tab" value="{{ $tab }}">
+                <div class="approvals-section__head">
+                    <div>
+                        <h2 class="approvals-section__title">{{ __('ui.reject_pending_review') }}</h2>
+                        <p class="approvals-section__lead">{{ __('ui.approvals_rejects_lead') }}</p>
+                    </div>
+                    <label class="check approvals-section__all">
+                        <input type="checkbox" data-select-all>
+                        <span>{{ __('ui.approvals_select_all') }}</span>
+                    </label>
+                </div>
+                <ul class="approvals-list" role="list">
+                    @foreach ($pendingRejects as $reject)
+                        <li class="approvals-row">
+                            <label class="approvals-row__check">
+                                <input type="checkbox" name="ids[]" value="{{ $reject->id }}" data-row-check>
+                                <span class="visually-hidden">{{ $reject->id }}</span>
+                            </label>
+                            <a href="{{ route('visits.show', $reject->visit) }}" class="approvals-row__body">
+                                <strong class="approvals-row__code">{{ $reject->store?->name }}</strong>
+                                <span class="approvals-row__meta">
+                                    {{ $reject->collector?->name }}
+                                    · {{ $reject->items->count() }} {{ __('ui.invoice_lines') }}
+                                    · {{ $reject->items->pluck('product_name')->take(2)->implode(' · ') }}
+                                </span>
+                                <span class="approvals-row__amount ltr-inline">{{ number_format((float) $reject->credit_amount, 0) }}</span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+                <div class="approvals-section__foot">
+                    <div class="approvals-section__actions">
+                        <button type="submit" class="btn btn--regular" name="approve_all" value="0" data-approve-selected>
+                            {{ __('ui.reject_mark_reviewed') }}
+                            <span data-selected-count>0</span>
+                        </button>
+                        <button type="submit" class="btn btn--primary" name="approve_all" value="1" data-approve-all>
+                            {{ __('ui.approvals_approve_all') }}
+                            ({{ $pendingRejects->count() }})
+                        </button>
+                    </div>
+                </div>
+            </form>
+        @endif
     @endif
 
     @if ($canApproveDevices && ($tab === 'all' || $tab === 'devices') && $devices->isNotEmpty())

@@ -15,6 +15,7 @@ use InvalidArgumentException;
 #[Fillable([
     'receipt_number',
     'store_id',
+    'store_visit_id',
     'invoice_id',
     'collector_id',
     'amount',
@@ -41,6 +42,11 @@ class Collection extends Model
     public function store(): BelongsTo
     {
         return $this->belongsTo(Store::class);
+    }
+
+    public function visit(): BelongsTo
+    {
+        return $this->belongsTo(StoreVisit::class, 'store_visit_id');
     }
 
     public function invoice(): BelongsTo

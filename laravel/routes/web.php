@@ -16,6 +16,7 @@ use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\StoreVisitController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\ExpenseController;
@@ -49,6 +50,7 @@ Route::middleware(['auth', 'active', 'device'])->group(function () {
     Route::get('/approvals', [ApprovalController::class, 'index'])->name('approvals.index');
     Route::post('/approvals/releases', [ApprovalController::class, 'sendReleases'])->name('approvals.releases');
     Route::post('/approvals/collections', [ApprovalController::class, 'confirmCollections'])->name('approvals.collections');
+    Route::post('/approvals/rejects', [ApprovalController::class, 'reviewRejects'])->name('approvals.rejects');
     Route::post('/approvals/devices', [ApprovalController::class, 'approveDevices'])->name('approvals.devices');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
@@ -74,6 +76,17 @@ Route::middleware(['auth', 'active', 'device'])->group(function () {
 
     Route::middleware('perm:products.manage')->group(function () {
         Route::resource('products', ProductController::class)->except(['show', 'index']);
+    });
+
+    Route::middleware('perm:stores')->group(function () {
+        Route::get('visits', [StoreVisitController::class, 'entry'])->name('visits.entry');
+        Route::get('visits/start', [StoreVisitController::class, 'create'])->name('visits.create');
+        Route::post('visits', [StoreVisitController::class, 'store'])->name('visits.store');
+        Route::get('visits/{visit}', [StoreVisitController::class, 'show'])->name('visits.show');
+        Route::post('visits/{visit}/end', [StoreVisitController::class, 'end'])->name('visits.end');
+        Route::get('visits/{visit}/report', [StoreVisitController::class, 'report'])->name('visits.report');
+        Route::get('visits/{visit}/reject', [StoreVisitController::class, 'rejectCreate'])->name('visits.reject');
+        Route::post('visits/{visit}/reject', [StoreVisitController::class, 'rejectStore'])->name('visits.reject.store');
     });
 
     Route::middleware('perm:stores')->group(function () {
@@ -130,9 +143,17 @@ Route::middleware(['auth', 'active', 'device'])->group(function () {
         })->name('collectors.index');
     });
 
+    // Profile + ledgers: controller authorizes (office / self / admin|accountant for CRUD).
+    Route::get('collectors/{collector}', [CollectorController::class, 'show'])->name('collectors.show');
+    Route::post('collectors/{collector}/salaries', [CollectorController::class, 'storeSalary'])->name('collectors.salaries.store');
+    Route::delete('collectors/{collector}/salaries/{salary}', [CollectorController::class, 'destroySalary'])->name('collectors.salaries.destroy');
+    Route::post('collectors/{collector}/penalties', [CollectorController::class, 'storePenalty'])->name('collectors.penalties.store');
+    Route::delete('collectors/{collector}/penalties/{penalty}', [CollectorController::class, 'destroyPenalty'])->name('collectors.penalties.destroy');
+
     Route::middleware('perm:collectors.manage')->group(function () {
         Route::resource('collectors', CollectorController::class)->except(['show', 'index']);
     });
+
 
     Route::middleware('perm:suppliers')->group(function () {
         Route::resource('suppliers', SupplierController::class)->except(['show']);

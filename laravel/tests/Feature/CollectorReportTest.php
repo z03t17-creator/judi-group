@@ -32,7 +32,6 @@ class CollectorReportTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $unit->id, 'quantity' => 2]],
         );
 
@@ -68,7 +67,6 @@ class CollectorReportTest extends TestCase
             $collector,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $unit->id, 'quantity' => 2, 'gift_quantity' => 1]],
             10,
         );
@@ -99,14 +97,12 @@ class CollectorReportTest extends TestCase
             $collector,
             $first,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
         Invoice::createSale(
             $collector,
             $second,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
 
@@ -191,14 +187,12 @@ class CollectorReportTest extends TestCase
             $wholesale,
             $store,
             $warehouse,
-            InvoiceType::Cash,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
         Invoice::createSale(
             $retail,
             $store,
             $warehouse,
-            InvoiceType::Debt,
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
 

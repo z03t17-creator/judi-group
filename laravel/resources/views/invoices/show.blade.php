@@ -13,7 +13,7 @@
                 {{ $invoice->store?->name }}
                 · {{ $invoice->invoice_type->label() }}
                 @if ((float) $invoice->debt_amount > 0)
-                    · {{ __('ui.invoice_remaining') }}
+                    · {{ (float) $invoice->paid_amount > 0 ? __('ui.invoice_remaining') : __('ui.invoice_debt') }}
                     <span class="ltr-inline">{{ number_format((float) $invoice->debt_amount, 0) }}</span>
                 @endif
                 · {{ $invoice->status->label() }}

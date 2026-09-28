@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Enums\CollectionStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\PagePermission;
+use App\Enums\StoreVisitStatus;
 use App\Models\Collection;
 use App\Models\DeviceLoginRequest;
 use App\Models\Invoice;
+use App\Models\StoreReject;
+use App\Models\StoreVisit;
 use App\Support\DeviceGuard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +25,7 @@ class ApprovalController extends Controller
         $user = $request->user();
 
         $tab = $request->string('tab')->toString();
-        if (! in_array($tab, ['all', 'releases', 'collections', 'devices'], true)) {
+        if (! in_array($tab, ['all', 'releases', 'collections', 'visits', 'devices'], true)) {
             $tab = 'all';
         }
 
@@ -46,6 +49,25 @@ class ApprovalController extends Controller
                 ->get();
         }
 
+        $openVisits = collect();
+        $pendingRejects = collect();
+        if ($user->canAccess(PagePermission::ReportsReview) || $user->canAccess(PagePermission::Stores)) {
+            $openVisits = StoreVisit::query()
+                ->with(['store', 'collector'])
+                ->where('status', StoreVisitStatus::Open)
+                ->latest('started_at')
+                ->limit(100)
+                ->get();
+
+            $pendingRejects = StoreReject::query()
+                ->with(['store', 'collector', 'items', 'visit'])
+                ->whereNull('reviewed_at')
+                ->where('status', 'posted')
+                ->latest('id')
+                ->limit(100)
+                ->get();
+        }
+
         $devices = collect();
         if ($user->canApproveDevices()) {
             $devices = DeviceLoginRequest::query()
@@ -60,18 +82,23 @@ class ApprovalController extends Controller
         $counts = [
             'releases' => $releases->count(),
             'collections' => $collections->count(),
+            'visits' => $openVisits->count() + $pendingRejects->count(),
             'devices' => $devices->count(),
         ];
-        $counts['all'] = $counts['releases'] + $counts['collections'] + $counts['devices'];
+        $counts['all'] = $counts['releases'] + $counts['collections'] + $counts['visits'] + $counts['devices'];
 
         return view('approvals.index', [
             'tab' => $tab,
             'releases' => $releases,
             'collections' => $collections,
+            'openVisits' => $openVisits,
+            'pendingRejects' => $pendingRejects,
             'devices' => $devices,
             'counts' => $counts,
             'canRelease' => $user->canAccess(PagePermission::Releases),
             'canConfirmCollections' => $user->canAccess(PagePermission::ReportsReview),
+            'canReviewVisits' => $user->canAccess(PagePermission::ReportsReview)
+                || $user->canAccess(PagePermission::Stores),
             'canApproveDevices' => $user->canApproveDevices(),
         ]);
     }
@@ -154,6 +181,42 @@ class ApprovalController extends Controller
             $errors,
             __('ui.approvals_collections_done', ['count' => $ok]),
         );
+    }
+
+    public function reviewRejects(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user?->canAccess(PagePermission::ReportsReview) && ! $user?->isAdmin()) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'ids' => ['required_without:approve_all', 'array', 'min:1'],
+            'ids.*' => ['integer', 'distinct'],
+            'approve_all' => ['sometimes', 'boolean'],
+        ], [
+            'ids.required' => __('ui.approvals_select_one'),
+            'ids.required_without' => __('ui.approvals_select_one'),
+        ]);
+
+        $query = StoreReject::query()->whereNull('reviewed_at');
+        if (! $request->boolean('approve_all')) {
+            $query->whereIn('id', $data['ids'] ?? []);
+        }
+
+        $ok = 0;
+        foreach ($query->orderBy('id')->get() as $reject) {
+            try {
+                $reject->markReviewed($user);
+                $ok++;
+            } catch (InvalidArgumentException $e) {
+                // skip
+            }
+        }
+
+        return redirect()
+            ->route('approvals.index', ['tab' => 'visits'])
+            ->with('success', __('ui.approvals_rejects_done', ['count' => $ok]));
     }
 
     public function approveDevices(Request $request): RedirectResponse

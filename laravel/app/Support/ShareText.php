@@ -39,9 +39,14 @@ final class ShareText
             $giftPart = $gift > 0
                 ? ' + '.__('ui.invoice_gift').' '.rtrim(rtrim(number_format($gift, 2, '.', ''), '0'), '.')
                 : '';
+            $lineDisc = (float) ($item->discount_percent ?? 0);
+            $discPart = $lineDisc > 0
+                ? ' ('.__('ui.invoice_discount').' '.rtrim(rtrim(number_format($lineDisc, 2, '.', ''), '0'), '.').'%)'
+                : '';
             $lines[] = '• '.$item->product_name
                 .' — '.$qty.$giftPart.' '.$item->unitLabel()
                 .' × '.number_format((float) $item->unit_price, 0)
+                .$discPart
                 .' = '.number_format((float) $item->line_total, 0);
         }
 
@@ -52,11 +57,12 @@ final class ShareText
             $lines[] = __('ui.invoice_discount').': '.$pct.'%';
             $lines[] = __('ui.invoice_net_total').': '.number_format((float) $invoice->total_amount, 0);
         }
+        // Legacy partial payments only; new sales are full debt.
         if ((float) $invoice->paid_amount > 0) {
             $lines[] = __('ui.invoice_paid_now').': '.number_format((float) $invoice->paid_amount, 0);
         }
         if ((float) $invoice->debt_amount > 0) {
-            $lines[] = __('ui.invoice_remaining').': '.number_format((float) $invoice->debt_amount, 0);
+            $lines[] = __('ui.invoice_debt').': '.number_format((float) $invoice->debt_amount, 0);
         }
 
         if (! empty($company['phones'])) {

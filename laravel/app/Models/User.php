@@ -119,4 +119,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(Invoice::class, 'collector_id');
     }
+
+    public function collections(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Collection::class, 'collector_id');
+    }
+
+    public function salaryEntries(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CollectorSalaryEntry::class, 'collector_id');
+    }
+
+    public function penalties(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CollectorPenalty::class, 'collector_id');
+    }
 }
