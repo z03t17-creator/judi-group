@@ -269,7 +269,43 @@ class InvoiceController extends Controller
             'canRelease' => (bool) $user?->canAccess(PagePermission::Releases)
                 && $invoice->isPendingSend(),
             'canCancel' => $user && $invoice->userCanCancel($user),
+            'backUrl' => $this->invoiceBackUrl($request, $invoice),
+            'backLabel' => $this->invoiceBackLabel($request, $invoice),
         ]);
+    }
+
+    private function invoiceBackUrl(Request $request, Invoice $invoice): string
+    {
+        if ($invoice->store_visit_id) {
+            return route('visits.show', $invoice->store_visit_id);
+        }
+
+        $user = $request->user();
+        if ($user) {
+            $openVisit = StoreVisit::openForCollector($user);
+            if ($openVisit && (int) $openVisit->store_id === (int) $invoice->store_id) {
+                return route('visits.show', $openVisit);
+            }
+        }
+
+        return route('invoices.index');
+    }
+
+    private function invoiceBackLabel(Request $request, Invoice $invoice): string
+    {
+        if ($invoice->store_visit_id) {
+            return __('ui.visit_hub');
+        }
+
+        $user = $request->user();
+        if ($user) {
+            $openVisit = StoreVisit::openForCollector($user);
+            if ($openVisit && (int) $openVisit->store_id === (int) $invoice->store_id) {
+                return __('ui.visit_hub');
+            }
+        }
+
+        return __('ui.back');
     }
 
     public function cancel(Request $request, Invoice $invoice): RedirectResponse

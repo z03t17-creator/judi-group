@@ -22,9 +22,9 @@
             </p>
         </div>
         <div class="page__actions">
-            <a href="{{ route('invoices.index') }}" class="btn btn--regular">
+            <a href="{{ $backUrl ?? route('invoices.index') }}" class="btn btn--regular">
                 @include('partials.icons.arrow-back', ['class' => 'btn__icon'])
-                {{ __('ui.back') }}
+                {{ $backLabel ?? __('ui.back') }}
             </a>
             @if (auth()->user()->canAccess('invoices.sell'))
                 <a href="{{ route('invoices.create') }}" class="btn btn--regular">

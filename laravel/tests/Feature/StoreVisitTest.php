@@ -84,6 +84,11 @@ class StoreVisitTest extends TestCase
 
         $invoice = \App\Models\Invoice::query()->latest('id')->firstOrFail();
         $this->assertSame((int) $visit->id, (int) $invoice->store_visit_id);
+
+        $show = $this->actingAs($collector)->get(route('invoices.show', [$invoice, 'print' => 1]));
+        $show->assertOk();
+        $show->assertSee(route('visits.show', $visit), false);
+        $show->assertSee(__('ui.visit_hub'), false);
     }
 
     public function test_reject_catalog_only_lists_products_sold_to_store(): void
