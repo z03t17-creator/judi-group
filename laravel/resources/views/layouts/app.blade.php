@@ -15,6 +15,8 @@
     data-label-push-disabled="{{ __('ui.notif_push_disabled') }}"
     data-label-push-failed="{{ __('ui.notif_push_failed') }}"
     data-label-push-unsupported="{{ __('ui.notif_push_unsupported') }}"
+    data-label-push-test-ok="{{ __('ui.notif_push_test_ok') }}"
+    data-label-push-test-need="{{ __('ui.notif_push_test_need') }}"
 >
 <head>
     <meta charset="utf-8">
@@ -33,7 +35,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=84">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=86">
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
@@ -44,7 +46,7 @@
     <script src="{{ asset('js/money-input.js') }}?v=2" defer></script>
     <script src="{{ asset('js/image-upload.js') }}?v=1" defer></script>
     <script src="{{ asset('js/notifications.js') }}?v=9" defer></script>
-    <script src="{{ asset('js/push.js') }}?v=3" defer></script>
+    <script src="{{ asset('js/push.js') }}?v=4" defer></script>
     <script src="{{ asset('js/share.js') }}?v=4" defer></script>
     <script src="{{ asset('js/preferences.js') }}?v=2" defer></script>
     <script src="{{ asset('js/print-doc.js') }}?v=12" defer></script>

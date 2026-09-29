@@ -3,7 +3,7 @@
 @section('title', __('ui.visit_action_reject').' — '.$store->name)
 
 @section('content')
-<section class="page reject-page" data-reject-form>
+<section class="page reject-page reject-page--calm" data-reject-form>
     <header class="page__header page__header--iconed">
         @include('partials.icon-badge', ['icon' => 'file', 'tone' => 'amber', 'size' => 'lg'])
         <div class="page__header-text">
@@ -46,7 +46,7 @@
         <div class="sell-cart-block">
             <div class="sell-cart-block__head">
                 <span>{{ __('ui.reject_cart') }}</span>
-                <strong class="sell-cart__total" data-reject-credit dir="ltr">0</strong>
+                <strong class="sell-cart__total num" data-reject-credit dir="ltr">0</strong>
             </div>
             <ul class="sell-cart sell-cart--calm" data-reject-cart role="list"></ul>
             <p class="empty sell-cart__empty" data-reject-empty>{{ __('ui.reject_pick_items') }}</p>
@@ -61,13 +61,23 @@
         <div class="sticky-cta sticky-cta--sell sticky-cta--debt no-print">
             <div class="sticky-cta__meta">
                 <span>{{ __('ui.reject_credit') }}</span>
-                <strong data-reject-credit-sticky dir="ltr">0</strong>
+                <strong class="num" data-reject-credit-sticky dir="ltr">0</strong>
             </div>
             <button type="submit" class="btn btn--primary btn--sell-submit" data-reject-submit disabled>
                 {{ __('ui.reject_submit') }}
             </button>
         </div>
     </form>
+
+    <dialog class="line-sheet line-sheet--order no-print" data-reject-sheet dir="rtl">
+        <h2 class="line-sheet__title">{{ __('ui.reject_add_to_return') }}</h2>
+        <p class="line-sheet__name" data-reject-sheet-name></p>
+        <div class="line-sheet__units" data-reject-sheet-units></div>
+        <div class="line-sheet__actions">
+            <button type="button" class="btn btn--ghost" data-reject-sheet-cancel>{{ __('ui.back') }}</button>
+            <button type="button" class="btn btn--primary" data-reject-sheet-save>{{ __('ui.reject_add_to_return') }}</button>
+        </div>
+    </dialog>
 </section>
 
 <script>
@@ -78,7 +88,11 @@
         empty: @json(__('ui.reject_pick_items')),
         noProducts: @json(__('ui.reject_no_sold_products')),
         available: @json(__('ui.reject_available')),
+        addToReturn: @json(__('ui.reject_add_to_return')),
+        needQty: @json(__('ui.reject_need_qty')),
+        confirmSubmit: @json(__('ui.reject_confirm_submit')),
+        piecePrice: @json(__('ui.invoice_piece_price')),
     };
 </script>
-<script src="{{ asset('js/visit-reject.js') }}?v=2" defer></script>
+<script src="{{ asset('js/visit-reject.js') }}?v=3" defer></script>
 @endsection

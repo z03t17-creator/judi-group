@@ -20,6 +20,9 @@
   var selectedSubcategoryId = "";
   var wizardStep = 1;
   var editingKey = null;
+  var sheetMode = "add";
+  var sheetProductId = null;
+  var UNIT_ORDER = ["carton", "packet", "piece"];
   var TILE_COLORS = [
     "#0f766e",
     "#0369a1",
@@ -66,7 +69,11 @@
   var sellContext = root.querySelector("[data-sell-context]");
   var stickyCta = root.querySelector("[data-sell-cta]");
   var lineSheet = root.querySelector("[data-line-sheet]");
+  var lineSheetTitle = root.querySelector("[data-line-sheet-title]");
   var lineSheetName = root.querySelector("[data-line-sheet-name]");
+  var lineSheetPieceHint = root.querySelector("[data-line-sheet-piece-hint]");
+  var lineSheetUnits = root.querySelector("[data-line-sheet-units]");
+  var lineSheetExtras = root.querySelector("[data-line-sheet-extras]");
   var lineSheetGift = root.querySelector("[data-line-sheet-gift]");
   var lineSheetDiscount = root.querySelector("[data-line-sheet-discount]");
   var lineSheetSave = root.querySelector("[data-line-sheet-save]");
@@ -82,6 +89,26 @@
       return u.unit === "carton";
     });
     return carton || product.units[0];
+  }
+
+  function pieceUnit(product) {
+    if (!product || !product.units) return null;
+    return (
+      product.units.find(function (u) {
+        return u.unit === "piece";
+      }) || null
+    );
+  }
+
+  function sortedUnits(product) {
+    if (!product || !product.units) return [];
+    return product.units.slice().sort(function (a, b) {
+      var ia = UNIT_ORDER.indexOf(a.unit);
+      var ib = UNIT_ORDER.indexOf(b.unit);
+      if (ia < 0) ia = 99;
+      if (ib < 0) ib = 99;
+      return ia - ib;
+    });
   }
 
   function findProduct(productId) {
@@ -100,6 +127,11 @@
     return String(productId) + ":" + String(unitId);
   }
 
+  function unitLabel(unit) {
+    if (!unit) return "";
+    return unit.label || unit.unit || "";
+  }
+
   function addLine(productId, unitId, qty, giftQty, discountPercent) {
     var product = findProduct(productId);
     var unit = findUnit(product, unitId) || preferredUnit(product);
@@ -116,8 +148,10 @@
       Math.min(maxDiscount, Number(discountPercent) || 0)
     );
 
+    if (amount <= 0 && gift <= 0) return;
+
     if (existing) {
-      existing.quantity += amount || (gift ? 0 : 1);
+      existing.quantity += amount;
       existing.giftQuantity += gift;
       if (discountPercent != null && discountPercent !== "") {
         existing.discountPercent = disc;
@@ -128,6 +162,8 @@
         productId: product.id,
         unitId: unit.id,
         productUnitId: unit.id,
+        unitCode: unit.unit,
+        unitLabel: unitLabel(unit),
         name: product.name,
         price: Number(unit.price) || 0,
         quantity: amount || (gift ? 0 : 1),
@@ -200,6 +236,8 @@
       line.key = nextKey;
       line.unitId = unit.id;
       line.productUnitId = unit.id;
+      line.unitCode = unit.unit;
+      line.unitLabel = unitLabel(unit);
       line.price = Number(unit.price) || 0;
     }
     renderCart();
@@ -245,17 +283,131 @@
     if (storePanel) storePanel.classList.remove("is-need-store");
   }
 
+  function stepperHtml(unitId, qty) {
+    return (
+      '<div class="qty-stepper line-sheet__stepper">' +
+      '<button type="button" data-sheet-qty-delta="-1" data-sheet-unit-id="' +
+      escapeAttr(String(unitId)) +
+      '" aria-label="-">−</button>' +
+      '<input class="num" type="number" min="0" step="1" inputmode="numeric" dir="ltr" value="' +
+      qty +
+      '" data-sheet-qty data-sheet-unit-id="' +
+      escapeAttr(String(unitId)) +
+      '">' +
+      '<button type="button" data-sheet-qty-delta="1" data-sheet-unit-id="' +
+      escapeAttr(String(unitId)) +
+      '" aria-label="+">+</button>' +
+      "</div>"
+    );
+  }
+
+  function openAddSheet(productId) {
+    var product = findProduct(productId);
+    if (!product || !lineSheet) return;
+
+    sheetMode = "add";
+    sheetProductId = product.id;
+    editingKey = null;
+
+    if (lineSheetTitle) {
+      lineSheetTitle.textContent = labels.addToOrder || "Add to order";
+    }
+    if (lineSheetName) lineSheetName.textContent = product.name;
+    if (lineSheetSave) {
+      lineSheetSave.textContent = labels.addToOrder || "Add to order";
+    }
+
+    var piece = pieceUnit(product);
+    if (lineSheetPieceHint) {
+      if (piece) {
+        lineSheetPieceHint.hidden = false;
+        lineSheetPieceHint.textContent =
+          (labels.piecePrice || "Piece price") + ": " + money(piece.price);
+      } else {
+        lineSheetPieceHint.hidden = true;
+        lineSheetPieceHint.textContent = "";
+      }
+    }
+
+    var units = sortedUnits(product);
+    if (lineSheetUnits) {
+      lineSheetUnits.hidden = false;
+      lineSheetUnits.innerHTML = units
+        .map(function (unit) {
+          var preferred = preferredUnit(product);
+          var defaultQty =
+            preferred && String(preferred.id) === String(unit.id) ? 1 : 0;
+          return (
+            '<div class="line-sheet__unit" data-sheet-unit-row="' +
+            escapeAttr(String(unit.id)) +
+            '">' +
+            '<div class="line-sheet__unit-meta">' +
+            "<strong>" +
+            escapeHtml(unitLabel(unit)) +
+            "</strong>" +
+            '<span class="num" dir="ltr">' +
+            money(unit.price) +
+            "</span>" +
+            "</div>" +
+            stepperHtml(unit.id, defaultQty) +
+            "</div>"
+          );
+        })
+        .join("");
+    }
+
+    if (lineSheetExtras) lineSheetExtras.hidden = false;
+    if (lineSheetGift) lineSheetGift.value = "0";
+    if (lineSheetDiscount) lineSheetDiscount.value = "0";
+
+    if (typeof lineSheet.showModal === "function") {
+      lineSheet.showModal();
+    }
+  }
+
   function openLineSheet(key) {
     var line = cart.find(function (item) {
       return item.key === key;
     });
     if (!line || !lineSheet) return;
+
+    sheetMode = "edit";
+    sheetProductId = line.productId;
     editingKey = key;
-    if (lineSheetName) lineSheetName.textContent = line.name;
+
+    if (lineSheetTitle) {
+      lineSheetTitle.textContent = labels.editLineTitle || "Edit line";
+    }
+    if (lineSheetName) {
+      lineSheetName.textContent =
+        line.name + " · " + (line.unitLabel || "");
+    }
+    if (lineSheetSave) {
+      lineSheetSave.textContent = labels.editLine || "Save";
+    }
+
+    var product = findProduct(line.productId);
+    var piece = pieceUnit(product);
+    if (lineSheetPieceHint) {
+      if (piece && line.unitCode !== "piece") {
+        lineSheetPieceHint.hidden = false;
+        lineSheetPieceHint.textContent =
+          (labels.piecePrice || "Piece price") + ": " + money(piece.price);
+      } else {
+        lineSheetPieceHint.hidden = true;
+      }
+    }
+
+    if (lineSheetUnits) {
+      lineSheetUnits.hidden = true;
+      lineSheetUnits.innerHTML = "";
+    }
+    if (lineSheetExtras) lineSheetExtras.hidden = false;
     if (lineSheetGift) lineSheetGift.value = String(line.giftQuantity || 0);
     if (lineSheetDiscount) {
       lineSheetDiscount.value = String(line.discountPercent || 0);
     }
+
     if (typeof lineSheet.showModal === "function") {
       lineSheet.showModal();
     }
@@ -263,6 +415,8 @@
 
   function closeLineSheet() {
     editingKey = null;
+    sheetProductId = null;
+    sheetMode = "add";
     if (lineSheet && lineSheet.open) {
       try {
         lineSheet.close();
@@ -270,10 +424,70 @@
     }
   }
 
+  function readSheetQty(unitId) {
+    if (!lineSheetUnits) return 0;
+    var input = lineSheetUnits.querySelector(
+      '[data-sheet-qty][data-sheet-unit-id="' + unitId + '"]'
+    );
+    return Math.max(0, Math.round(Number(input && input.value) || 0));
+  }
+
+  function bumpSheetQty(unitId, delta) {
+    if (!lineSheetUnits) return;
+    var input = lineSheetUnits.querySelector(
+      '[data-sheet-qty][data-sheet-unit-id="' + unitId + '"]'
+    );
+    if (!input) return;
+    input.value = String(
+      Math.max(0, Math.round(Number(input.value) || 0) + delta)
+    );
+  }
+
   function saveLineSheet() {
-    if (!editingKey) return;
-    if (lineSheetGift) setGift(editingKey, lineSheetGift.value);
-    if (lineSheetDiscount) setLineDiscount(editingKey, lineSheetDiscount.value);
+    if (sheetMode === "edit") {
+      if (!editingKey) return;
+      if (lineSheetGift) setGift(editingKey, lineSheetGift.value);
+      if (lineSheetDiscount) {
+        setLineDiscount(editingKey, lineSheetDiscount.value);
+      }
+      closeLineSheet();
+      return;
+    }
+
+    var product = findProduct(sheetProductId);
+    if (!product) return;
+
+    var units = sortedUnits(product);
+    var gift = lineSheetGift
+      ? Math.max(0, Math.round(Number(lineSheetGift.value) || 0))
+      : 0;
+    var disc = lineSheetDiscount
+      ? Math.max(
+          0,
+          Math.min(maxDiscount, Number(lineSheetDiscount.value) || 0)
+        )
+      : 0;
+
+    var any = false;
+    var giftApplied = false;
+    units.forEach(function (unit) {
+      var qty = readSheetQty(unit.id);
+      if (qty <= 0) return;
+      any = true;
+      var lineGift = 0;
+      var lineDisc = disc;
+      if (!giftApplied && gift > 0) {
+        lineGift = gift;
+        giftApplied = true;
+      }
+      addLine(product.id, unit.id, qty, lineGift, lineDisc);
+    });
+
+    if (!any) {
+      window.alert(labels.needQty || "Enter a quantity.");
+      return;
+    }
+
     closeLineSheet();
   }
 
@@ -305,7 +519,7 @@
                 '"' +
                 (String(u.id) === String(line.unitId) ? " selected" : "") +
                 ">" +
-                escapeHtml(u.label) +
+                escapeHtml(unitLabel(u)) +
                 " · " +
                 money(u.price) +
                 "</option>"
@@ -339,19 +553,25 @@
             '<div class="sell-cart__row">' +
             '<span class="sell-cart__name">' +
             escapeHtml(line.name) +
-            "</span>" +
-            '<strong class="sell-cart__line-total" dir="ltr">' +
+            ' <em class="sell-cart__unit-tag">' +
+            escapeHtml(line.unitLabel || "") +
+            "</em></span>" +
+            '<strong class="sell-cart__line-total num" dir="ltr">' +
             money(lineNet(line)) +
             "</strong>" +
-            '<button type="button" class="sell-cart__remove" data-remove aria-label="×">×</button>' +
+            '<button type="button" class="sell-cart__remove" data-remove aria-label="' +
+            escapeAttr(labels.remove || "×") +
+            '">×</button>' +
             "</div>" +
             '<div class="sell-cart__row sell-cart__row--controls">' +
-            '<select class="sell-cart__unit" data-unit>' +
+            '<select class="sell-cart__unit" data-unit aria-label="' +
+            escapeAttr(labels.chooseUnits || "Unit") +
+            '">' +
             options +
             "</select>" +
             '<div class="qty-stepper">' +
             '<button type="button" data-qty-delta="-1" aria-label="-">−</button>' +
-            '<input type="number" min="0" step="1" inputmode="numeric" value="' +
+            '<input class="num" type="number" min="0" step="1" inputmode="numeric" dir="ltr" value="' +
             line.quantity +
             '" data-qty>' +
             '<button type="button" data-qty-delta="1" aria-label="+">+</button>' +
@@ -461,7 +681,7 @@
         '<span class="sell-pill__label">' +
         escapeHtml(cat.name) +
         "</span>" +
-        '<span class="sell-pill__count">' +
+        '<span class="sell-pill__count num" dir="ltr">' +
         countProducts(cat.id) +
         "</span>" +
         "</button>";
@@ -535,7 +755,10 @@
       .trim()
       .toLowerCase();
     var matches = catalog.filter(function (p) {
-      if (selectedCategoryId && String(p.category_id) !== String(selectedCategoryId)) {
+      if (
+        selectedCategoryId &&
+        String(p.category_id) !== String(selectedCategoryId)
+      ) {
         return false;
       }
       if (
@@ -558,10 +781,21 @@
     productList.innerHTML = matches
       .map(function (product) {
         var unit = preferredUnit(product);
-        var price = unit ? money(unit.price) : "—";
+        var piece = pieceUnit(product);
+        var priceLine = unit
+          ? (labels.cartonPrice || unitLabel(unit)) +
+            ": " +
+            money(unit.price)
+          : "—";
+        var pieceLine =
+          piece && unit && piece.id !== unit.id
+            ? (labels.piecePrice || "Piece") + ": " + money(piece.price)
+            : "";
         return (
           '<button type="button" class="sell-product sell-product--calm" data-add-product="' +
           escapeAttr(String(product.id)) +
+          '" aria-label="' +
+          escapeAttr((labels.addToOrder || "Add") + ": " + product.name) +
           '">' +
           '<img class="sell-product__img" src="' +
           escapeAttr(product.image || "") +
@@ -570,13 +804,16 @@
           "<strong>" +
           escapeHtml(product.name) +
           "</strong>" +
-          '<span class="sell-product__price" dir="ltr">' +
-          price +
+          '<span class="sell-product__price num" dir="ltr">' +
+          escapeHtml(priceLine) +
           "</span>" +
+          (pieceLine
+            ? '<span class="sell-product__piece num" dir="ltr">' +
+              escapeHtml(pieceLine) +
+              "</span>"
+            : "") +
           "</span>" +
-          '<span class="sell-product__add">' +
-          escapeHtml(labels.add || "+") +
-          "</span>" +
+          '<span class="sell-product__chevron" aria-hidden="true">‹</span>' +
           "</button>"
         );
       })
@@ -671,6 +908,24 @@
     lockStore(opt);
   }
 
+  function trySubmitSale() {
+    if (cart.length === 0) return;
+    if (!hasStore()) {
+      showNeedStore();
+      return;
+    }
+    hideNeedStore();
+    var ok = window.confirm(
+      labels.confirmSavePrint || "Save and print this order?"
+    );
+    if (!ok) return;
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      sessionStorage.setItem("judiPrintAfterSave", "a4");
+    } catch (e) {}
+    if (form) form.submit();
+  }
+
   if (productFilter) productFilter.addEventListener("input", renderCatalog);
   if (storeFilter) storeFilter.addEventListener("input", filterStores);
   if (discountInput) discountInput.addEventListener("input", renderCart);
@@ -678,17 +933,7 @@
   if (submitBtn) {
     submitBtn.addEventListener("click", function (event) {
       event.preventDefault();
-      if (cart.length === 0) return;
-      if (!hasStore()) {
-        showNeedStore();
-        return;
-      }
-      hideNeedStore();
-      if (submitBtn) submitBtn.disabled = true;
-      try {
-        sessionStorage.setItem("judiPrintAfterSave", "a4");
-      } catch (e) {}
-      if (form) form.submit();
+      trySubmitSale();
     });
   }
 
@@ -697,8 +942,23 @@
       if (cart.length === 0 || !hasStore()) {
         event.preventDefault();
         if (!hasStore()) showNeedStore();
+        return;
+      }
+      // Native submit (e.g. Enter): still require confirm once
+      if (!form.getAttribute("data-confirmed")) {
+        event.preventDefault();
+        trySubmitSale();
       }
     });
+  }
+
+  // Mark confirmed just before programmatic submit
+  var originalSubmit = form && form.submit ? form.submit.bind(form) : null;
+  if (form && originalSubmit) {
+    form.submit = function () {
+      form.setAttribute("data-confirmed", "1");
+      originalSubmit();
+    };
   }
 
   storeOptions.forEach(function (el) {
@@ -744,10 +1004,7 @@
     productList.addEventListener("click", function (event) {
       var btn = event.target.closest("[data-add-product]");
       if (!btn) return;
-      var product = findProduct(btn.getAttribute("data-add-product"));
-      var unit = preferredUnit(product);
-      if (!unit) return;
-      addLine(product.id, unit.id, 1, 0, 0);
+      openAddSheet(btn.getAttribute("data-add-product"));
     });
   }
 
@@ -779,7 +1036,9 @@
       var item = event.target.closest(".sell-cart__item");
       if (!item) return;
       var key = item.getAttribute("data-key");
-      if (event.target.matches("[data-unit]")) changeUnit(key, event.target.value);
+      if (event.target.matches("[data-unit]")) {
+        changeUnit(key, event.target.value);
+      }
       if (event.target.matches("[data-qty]")) setQty(key, event.target.value);
     });
 
@@ -788,6 +1047,16 @@
       if (!item) return;
       var key = item.getAttribute("data-key");
       if (event.target.matches("[data-qty]")) setQty(key, event.target.value);
+    });
+  }
+
+  if (lineSheet) {
+    lineSheet.addEventListener("click", function (event) {
+      var deltaBtn = event.target.closest("[data-sheet-qty-delta]");
+      if (!deltaBtn) return;
+      var unitId = deltaBtn.getAttribute("data-sheet-unit-id");
+      var delta = Number(deltaBtn.getAttribute("data-sheet-qty-delta")) || 0;
+      bumpSheetQty(unitId, delta);
     });
   }
 
@@ -821,6 +1090,8 @@
   var restoredStore = selectedStoreOption();
   if (restoredStore) {
     lockStore(restoredStore);
+  } else if (root.getAttribute("data-visit-locked-store")) {
+    goToStep(2);
   } else {
     goToStep(1);
   }

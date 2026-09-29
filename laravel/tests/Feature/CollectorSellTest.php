@@ -69,7 +69,12 @@ class CollectorSellTest extends TestCase
         $print->assertSee('judi-logo.jpg', false);
         $print->assertSee($invoice->invoice_number, false);
         $print->assertSee('ن.تاک', false);
+        $print->assertSee('ن.تاکی دانە', false);
         $print->assertSee('ن.کۆ', false);
+        $piece = $product->units->firstWhere('unit', 'piece');
+        if ($piece && $unit->unit->value !== 'piece') {
+            $print->assertSee(number_format((float) $piece->price_wholesale, 0), false);
+        }
         $print->assertSee('کۆی گشتی', false);
         $print->assertSee('قەرز', false);
         $print->assertDontSee('<span>نەقد</span>', false);

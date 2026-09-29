@@ -90,6 +90,7 @@
                 <th class="col-name">{{ __('ui.invoice_item_name') }}</th>
                 <th class="col-qty">{{ __('ui.invoice_qty') }}</th>
                 <th class="col-price">{{ __('ui.invoice_unit_price') }}</th>
+                <th class="col-piece-price">{{ __('ui.invoice_piece_price') }}</th>
                 <th class="col-gift">{{ __('ui.invoice_gift') }}</th>
                 <th class="col-disc">{{ __('ui.invoice_discount') }}</th>
                 <th class="col-total">{{ __('ui.invoice_line_total') }}</th>
@@ -101,29 +102,37 @@
                     $gift = (float) $item->gift_quantity;
                     $lineDiscPct = (float) ($item->discount_percent ?? 0);
                     $lineDiscLabel = rtrim(rtrim(number_format($lineDiscPct, 2, '.', ''), '0'), '.');
+                    $piecePrice = $item->pieceUnitPrice($invoice->channel);
                 @endphp
                 <tr>
                     <td class="col-name">{{ $item->product_name }}</td>
                     <td class="col-qty col-emph">
-                        <strong dir="ltr">{{ $fmtQty((float) $item->quantity) }}</strong>
+                        <strong class="num" dir="ltr">{{ $fmtQty((float) $item->quantity) }}</strong>
                         <span class="paper-invoice__unit">{{ $item->unitLabel() }}</span>
                     </td>
-                    <td class="col-price" dir="ltr">{{ number_format((float) $item->unit_price, 0) }}</td>
-                    <td @class(['col-gift', 'col-emph', 'is-gift' => $gift > 0]) dir="ltr">
+                    <td class="col-price num" dir="ltr">{{ number_format((float) $item->unit_price, 0) }}</td>
+                    <td class="col-piece-price num" dir="ltr">
+                        @if ($piecePrice !== null)
+                            {{ number_format($piecePrice, 0) }}
+                        @else
+                            —
+                        @endif
+                    </td>
+                    <td @class(['col-gift', 'col-emph', 'is-gift' => $gift > 0, 'num' => true]) dir="ltr">
                         @if ($gift > 0)
                             <strong>{{ $fmtQty($gift) }}</strong>
                         @else
                             —
                         @endif
                     </td>
-                    <td @class(['col-disc', 'col-emph', 'is-disc' => $lineDiscPct > 0]) dir="ltr">
+                    <td @class(['col-disc', 'col-emph', 'is-disc' => $lineDiscPct > 0, 'num' => true]) dir="ltr">
                         @if ($lineDiscPct > 0)
                             <strong>{{ $lineDiscLabel }}%</strong>
                         @else
                             —
                         @endif
                     </td>
-                    <td class="col-total" dir="ltr">{{ number_format((float) $item->line_total, 0) }}</td>
+                    <td class="col-total num" dir="ltr">{{ number_format((float) $item->line_total, 0) }}</td>
                 </tr>
             @endforeach
         </tbody>

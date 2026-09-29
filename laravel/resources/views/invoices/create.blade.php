@@ -33,7 +33,7 @@
                 <strong data-locked-name>@if (!empty($activeVisit)){{ $activeVisit->store?->name }}@endif</strong>
                 <span class="sell-locked__meta" data-locked-meta dir="ltr">@if (!empty($activeVisit)){{ $activeVisit->store?->phone }}@endif</span>
             </div>
-            <span class="sell-locked__debt" data-locked-debt @if (empty($activeVisit) || (float) ($activeVisit->store?->current_debt ?? 0) <= 0) hidden @endif dir="ltr">
+            <span class="sell-locked__debt num" data-locked-debt @if (empty($activeVisit) || (float) ($activeVisit->store?->current_debt ?? 0) <= 0) hidden @endif dir="ltr">
                 @if (!empty($activeVisit) && (float) ($activeVisit->store?->current_debt ?? 0) > 0)
                     {{ number_format((float) $activeVisit->store->current_debt, 0) }}
                 @endif
@@ -83,7 +83,7 @@
                             <span class="sell-store__phone" dir="ltr">{{ $store->phone }}</span>
                         </span>
                         @if ((float) $store->current_debt > 0)
-                            <span class="sell-store__debt" dir="ltr">{{ number_format((float) $store->current_debt, 0) }}</span>
+                            <span class="sell-store__debt num" dir="ltr">{{ number_format((float) $store->current_debt, 0) }}</span>
                         @endif
                         <span class="sell-tile__go" aria-hidden="true">‹</span>
                     </button>
@@ -125,7 +125,7 @@
             <div class="sell-cart-block" data-panel="cart">
                 <div class="sell-cart-block__head">
                     <span>{{ __('ui.invoice_lines') }}</span>
-                    <strong class="sell-cart__total" data-cart-subtotal dir="ltr">0</strong>
+                    <strong class="sell-cart__total num" data-cart-subtotal dir="ltr">0</strong>
                 </div>
                 <ul class="sell-cart sell-cart--calm" data-cart role="list"></ul>
                 <p class="empty sell-cart__empty" data-cart-empty>{{ __('ui.invoice_cart_empty') }}</p>
@@ -142,6 +142,7 @@
                     <label class="sell-invoice-disc">
                         <span>{{ __('ui.invoice_discount') }} %</span>
                         <input
+                            class="num"
                             type="number"
                             name="discount_percent"
                             min="0"
@@ -150,6 +151,7 @@
                             inputmode="decimal"
                             value="{{ old('discount_percent', 0) }}"
                             data-discount
+                            dir="ltr"
                             aria-label="{{ __('ui.invoice_discount') }}"
                         >
                     </label>
@@ -163,7 +165,7 @@
             </div>
             <div class="sticky-cta__meta">
                 <span data-cart-count>{{ __('ui.invoice_lines') }}: 0</span>
-                <strong data-cart-total-sticky dir="ltr">0</strong>
+                <strong class="num" data-cart-total-sticky dir="ltr">0</strong>
             </div>
             <button type="submit" class="btn btn--primary btn--sell-submit" data-submit-sale disabled>
                 {{ __('ui.invoice_save_print') }}
@@ -171,22 +173,29 @@
         </div>
     </form>
 
-    <dialog class="line-sheet no-print" data-line-sheet dir="rtl">
-        <h2 class="line-sheet__title" data-line-sheet-title>{{ __('ui.invoice_lines') }}</h2>
+    <dialog class="line-sheet line-sheet--order no-print" data-line-sheet dir="rtl">
+        <h2 class="line-sheet__title" data-line-sheet-title>{{ __('ui.sell_add_to_order') }}</h2>
         <p class="line-sheet__name" data-line-sheet-name></p>
-        <label class="line-sheet__field">
-            <span>{{ __('ui.invoice_gift') }}</span>
-            <input type="number" min="0" step="1" inputmode="numeric" value="0" data-line-sheet-gift>
-        </label>
-        @if ($maxDiscount > 0)
+        <p class="line-sheet__piece-hint num" data-line-sheet-piece-hint dir="ltr" hidden></p>
+
+        <div class="line-sheet__units" data-line-sheet-units></div>
+
+        <div class="line-sheet__extras" data-line-sheet-extras>
             <label class="line-sheet__field">
-                <span>{{ __('ui.invoice_discount') }} %</span>
-                <input type="number" min="0" max="{{ $maxDiscount }}" step="0.01" inputmode="decimal" value="0" data-line-sheet-discount>
+                <span>{{ __('ui.invoice_gift') }}</span>
+                <input class="num" type="number" min="0" step="1" inputmode="numeric" value="0" data-line-sheet-gift dir="ltr">
             </label>
-        @endif
+            @if ($maxDiscount > 0)
+                <label class="line-sheet__field">
+                    <span>{{ __('ui.invoice_discount') }} %</span>
+                    <input class="num" type="number" min="0" max="{{ $maxDiscount }}" step="0.01" inputmode="decimal" value="0" data-line-sheet-discount dir="ltr">
+                </label>
+            @endif
+        </div>
+
         <div class="line-sheet__actions">
             <button type="button" class="btn btn--ghost" data-line-sheet-cancel>{{ __('ui.back') }}</button>
-            <button type="button" class="btn btn--primary" data-line-sheet-save>{{ __('ui.save') }}</button>
+            <button type="button" class="btn btn--primary" data-line-sheet-save>{{ __('ui.sell_add_to_order') }}</button>
         </div>
     </dialog>
 </section>
@@ -216,7 +225,15 @@
         category: @json(__('ui.category')),
         subcategory: @json(__('ui.subcategory')),
         debtOnly: @json(__('ui.invoice_debt')),
+        addToOrder: @json(__('ui.sell_add_to_order')),
+        editLineTitle: @json(__('ui.sell_edit_line')),
+        confirmSavePrint: @json(__('ui.sell_confirm_save_print')),
+        piecePrice: @json(__('ui.invoice_piece_price')),
+        cartonPrice: @json(__('ui.sell_carton_price')),
+        chooseUnits: @json(__('ui.sell_choose_units')),
+        needQty: @json(__('ui.sell_need_qty')),
+        remove: @json(__('ui.delete')),
     };
 </script>
-<script src="{{ asset('js/invoice-sell.js') }}?v=30" defer></script>
+<script src="{{ asset('js/invoice-sell.js') }}?v=31" defer></script>
 @endsection

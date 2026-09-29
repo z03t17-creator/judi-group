@@ -91,11 +91,12 @@ class StoreVisitTest extends TestCase
         $show->assertSee(__('ui.visit_hub'), false);
     }
 
-    public function test_reject_catalog_only_lists_products_sold_to_store(): void
+    public function test_reject_catalog_only_lists_warehouse_sent_products(): void
     {
         $this->seed();
 
         $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
+        $accountant = User::query()->where('email', 'accountant@judi.local')->firstOrFail();
         $store = Store::query()->firstOrFail();
         $warehouse = Warehouse::primary();
         $products = Product::query()->with('units')->take(2)->get();
@@ -103,18 +104,38 @@ class StoreVisitTest extends TestCase
 
         $soldUnit = $products[0]->units->first();
         $otherUnit = $products[1]->units->first();
+        $pendingUnit = $products[1]->units->first();
 
-        \App\Models\Invoice::createSale(
+        $soldPieces = (int) round(2 * max(1, (int) $soldUnit->conversion_to_piece));
+        StockInventory::addPieces($warehouse, $products[0], $soldPieces + 10);
+        StockInventory::addPieces(
+            $warehouse,
+            $products[1],
+            (int) round(3 * max(1, (int) $pendingUnit->conversion_to_piece)) + 10,
+        );
+
+        $sent = \App\Models\Invoice::createSale(
             $collector,
             $store,
             $warehouse,
             [['product_unit_id' => $soldUnit->id, 'quantity' => 2]],
+        );
+        $sent->sendFromWarehouse($accountant);
+
+        // Pending (unsent) order must not appear in return catalog.
+        \App\Models\Invoice::createSale(
+            $collector,
+            $store,
+            $warehouse,
+            [['product_unit_id' => $pendingUnit->id, 'quantity' => 3]],
         );
 
         $visit = StoreVisit::start($collector, $store);
         $page = $this->actingAs($collector)->get(route('visits.reject', $visit));
         $page->assertOk();
         $page->assertSee(__('ui.reject_sold_only_hint'), false);
+        $page->assertSee('confirmSubmit', false);
+        $page->assertSee('data-reject-sheet', false);
         $page->assertSee((string) $soldUnit->id, false);
         $page->assertSee('"available":2', false);
         $page->assertDontSee('"id":'.$otherUnit->id.',', false);
@@ -131,18 +152,26 @@ class StoreVisitTest extends TestCase
         $this->seed();
 
         $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
+        $accountant = User::query()->where('email', 'accountant@judi.local')->firstOrFail();
         $store = Store::query()->firstOrFail();
         $warehouse = Warehouse::primary();
         $product = Product::query()->with('units')->firstOrFail();
         $unit = $product->units->firstWhere('unit', 'carton') ?? $product->units->first();
 
-        // Prior debt sale so credit has room.
-        \App\Models\Invoice::createSale(
+        StockInventory::addPieces(
+            $warehouse,
+            $product,
+            (int) round(4 * max(1, (int) $unit->conversion_to_piece)) + 10,
+        );
+
+        // Sent sale only — pending orders are not returnable.
+        $invoice = \App\Models\Invoice::createSale(
             $collector,
             $store,
             $warehouse,
             [['product_unit_id' => $unit->id, 'quantity' => 4]],
         );
+        $invoice->sendFromWarehouse($accountant);
         $store->refresh();
         $debtBefore = (float) $store->current_debt;
         $this->assertGreaterThan(0, $debtBefore);
@@ -194,12 +223,19 @@ class StoreVisitTest extends TestCase
         $product = Product::query()->with('units')->firstOrFail();
         $unit = $product->units->first();
 
-        \App\Models\Invoice::createSale(
+        StockInventory::addPieces(
+            $warehouse,
+            $product,
+            (int) round(2 * max(1, (int) $unit->conversion_to_piece)) + 5,
+        );
+
+        $invoice = \App\Models\Invoice::createSale(
             $collector,
             $store,
             $warehouse,
             [['product_unit_id' => $unit->id, 'quantity' => 2]],
         );
+        $invoice->sendFromWarehouse($accountant);
 
         $visit = StoreVisit::start($collector, $store);
         StoreReject::recordReturn($visit, $collector, [

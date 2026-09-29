@@ -77,7 +77,8 @@ class StoreReject extends Model
     }
 
     /**
-     * Units previously sold to this store (non-cancelled) minus already returned.
+     * Units previously sold to this store on accountant-sent invoices, minus already returned.
+     * Pending (unsent) collector orders are excluded.
      *
      * @return Collection<int, array{product_unit_id: int, product_id: int, available: float, sold: float, returned: float}>
      */
@@ -86,7 +87,7 @@ class StoreReject extends Model
         $sold = DB::table('invoice_items')
             ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
             ->where('invoices.store_id', $store->id)
-            ->where('invoices.status', '!=', InvoiceStatus::Cancelled->value)
+            ->where('invoices.status', InvoiceStatus::Sent->value)
             ->groupBy('invoice_items.product_unit_id', 'invoice_items.product_id')
             ->selectRaw(
                 'invoice_items.product_unit_id, invoice_items.product_id, '

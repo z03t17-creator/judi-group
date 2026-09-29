@@ -2,6 +2,7 @@
   const canPush = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   const csrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
   const statusEl = () => document.querySelector('[data-push-status]');
+  const testBtn = () => document.querySelector('[data-push-test]');
   const ASKED_KEY = 'judi_push_asked_v2';
 
   function setStatus(text, tone) {
@@ -9,6 +10,12 @@
     if (!el) return;
     el.textContent = text || '';
     el.dataset.tone = tone || '';
+  }
+
+  function setTestVisible(on) {
+    const btn = testBtn();
+    if (!btn) return;
+    btn.hidden = !on;
   }
 
   function urlBase64ToUint8Array(base64String) {
@@ -74,6 +81,7 @@
   async function enablePush({ interactive } = {}) {
     if (!canPush) {
       setStatus(document.documentElement.getAttribute('data-label-push-unsupported') || 'Push not supported on this browser.', 'err');
+      setTestVisible(false);
       return false;
     }
 
@@ -82,6 +90,7 @@
 
       if (Notification.permission === 'denied') {
         setStatus(document.documentElement.getAttribute('data-label-push-blocked') || 'Notifications blocked in browser settings.', 'err');
+        setTestVisible(false);
         return false;
       }
 
@@ -91,12 +100,14 @@
         try { localStorage.setItem(ASKED_KEY, '1'); } catch (e) {}
         if (perm !== 'granted') {
           setStatus(document.documentElement.getAttribute('data-label-push-denied') || 'Permission not granted.', 'err');
+          setTestVisible(false);
           return false;
         }
       }
 
       await subscribe(reg);
       setStatus(document.documentElement.getAttribute('data-label-push-on') || 'Closed-app alerts are on for this device.', 'ok');
+      setTestVisible(true);
       return true;
     } catch (e) {
       const msg = (e && e.message) ? String(e.message) : 'error';
@@ -105,9 +116,38 @@
       } else {
         setStatus((document.documentElement.getAttribute('data-label-push-failed') || 'Could not enable alerts.') + ' ' + msg, 'err');
       }
+      setTestVisible(false);
       if (interactive) console.warn('judi push', e);
       return false;
     }
+  }
+
+  async function sendTest() {
+    const res = await fetch('/api/push/test', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        Accept: 'application/json',
+        'X-CSRF-TOKEN': csrf(),
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.ok) {
+      setStatus(document.documentElement.getAttribute('data-label-push-test-ok') || 'Test sent.', 'ok');
+      return true;
+    }
+    if (data.error === 'no-subscription') {
+      setStatus(document.documentElement.getAttribute('data-label-push-test-need') || 'Enable alerts first.', 'err');
+      setTestVisible(false);
+      return false;
+    }
+    if (data.error === 'push-disabled') {
+      setStatus(document.documentElement.getAttribute('data-label-push-disabled') || 'Server push is not configured.', 'err');
+      return false;
+    }
+    setStatus(document.documentElement.getAttribute('data-label-push-failed') || 'Could not send test.', 'err');
+    return false;
   }
 
   window.judiEnablePush = function () {
@@ -128,15 +168,26 @@
 
     if (Notification.permission === 'default') {
       setStatus(document.documentElement.getAttribute('data-label-push-hint') || 'Tap Enable alerts so you get notified when the app is closed.', 'muted');
+      setTestVisible(false);
     }
   }
 
   document.addEventListener('click', (event) => {
-    const btn = event.target.closest('[data-push-enable]');
+    const enableBtn = event.target.closest('[data-push-enable]');
+    if (enableBtn) {
+      event.preventDefault();
+      enableBtn.disabled = true;
+      enablePush({ interactive: true }).finally(() => {
+        enableBtn.disabled = false;
+      });
+      return;
+    }
+
+    const btn = event.target.closest('[data-push-test]');
     if (!btn) return;
     event.preventDefault();
     btn.disabled = true;
-    enablePush({ interactive: true }).finally(() => {
+    sendTest().finally(() => {
       btn.disabled = false;
     });
   });

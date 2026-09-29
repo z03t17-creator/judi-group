@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PushSubscription;
+use App\Support\WebPushNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -54,5 +55,31 @@ class PushSubscriptionController extends Controller
             ->delete();
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Send a test push to the current user's subscribed devices (like the video demo).
+     */
+    public function test(Request $request): JsonResponse
+    {
+        if (! WebPushNotifier::enabled()) {
+            return response()->json(['ok' => false, 'error' => 'push-disabled'], 503);
+        }
+
+        $user = $request->user();
+        $count = PushSubscription::query()->where('user_id', $user->id)->count();
+        if ($count < 1) {
+            return response()->json(['ok' => false, 'error' => 'no-subscription'], 422);
+        }
+
+        WebPushNotifier::sendToUserIds(
+            [$user->id],
+            __('ui.notif_push_test_title'),
+            __('ui.notif_push_test_body'),
+            route('settings.index', absolute: false).'#settings-inbox',
+            ['tag' => 'judi-push-test'],
+        );
+
+        return response()->json(['ok' => true, 'devices' => $count]);
     }
 }

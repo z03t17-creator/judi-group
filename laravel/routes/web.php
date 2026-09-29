@@ -75,6 +75,7 @@ Route::middleware(['auth', 'active', 'device'])->group(function () {
     Route::get('/api/push/vapid-public-key', [PushSubscriptionController::class, 'publicKey'])->name('push.public_key');
     Route::post('/api/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
     Route::delete('/api/push/subscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+    Route::post('/api/push/test', [PushSubscriptionController::class, 'test'])->name('push.test');
 
     Route::middleware('perm:products')->group(function () {
         Route::get('products', [ProductController::class, 'index'])->name('products.index');

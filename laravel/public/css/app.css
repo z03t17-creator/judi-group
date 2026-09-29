@@ -3423,26 +3423,30 @@ html[data-theme="dark"] .purchase-sub.is-active {
 
 .paper-invoice__table .col-qty,
 .paper-invoice__table .col-price,
+.paper-invoice__table .col-piece-price,
 .paper-invoice__table .col-gift,
 .paper-invoice__table .col-disc,
 .paper-invoice__table .col-total {
   text-align: center;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .paper-invoice__table .col-name {
-  width: 34%;
+  width: 30%;
 }
 
 .paper-invoice__table .col-qty {
-  width: 14%;
+  width: 12%;
 }
 
 .paper-invoice__table .col-price,
+.paper-invoice__table .col-piece-price,
 .paper-invoice__table .col-gift,
 .paper-invoice__table .col-disc,
 .paper-invoice__table .col-total {
-  width: 13%;
+  width: 11.5%;
 }
 
 .paper-invoice__table .col-emph {
@@ -4716,21 +4720,23 @@ html[data-theme="dark"] .purchase-sub.is-active {
   }
 
   .paper-invoice__table .col-name {
-    width: 32%;
+    width: 28%;
     white-space: normal;
   }
 
   .paper-invoice__table .col-qty {
-    width: 14%;
+    width: 12%;
     white-space: nowrap;
   }
 
   .paper-invoice__table .col-price,
+  .paper-invoice__table .col-piece-price,
   .paper-invoice__table .col-gift,
   .paper-invoice__table .col-disc,
   .paper-invoice__table .col-total {
-    width: 13.5%;
+    width: 12%;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
   }
 
   .paper-invoice__table .col-emph strong {
@@ -9246,21 +9252,175 @@ html[data-theme="dark"] .sell-tile {
 .sell-filter-deck--slim { display: flex; flex-direction: column; gap: 0.4rem; }
 .sell-catalog--calm { display: flex; flex-direction: column; gap: 0.4rem; min-height: 6rem; }
 .sell-product--calm {
-  display: grid; grid-template-columns: 2.75rem minmax(0, 1fr) auto;
-  align-items: center; gap: 0.65rem; width: 100%; min-height: 3.25rem;
-  padding: 0.45rem 0.65rem; border: 1px solid rgb(var(--line));
-  border-radius: 0.85rem; background: rgb(var(--surface)); color: inherit;
-  text-align: start; cursor: pointer;
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) 1.25rem;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgb(var(--line));
+  border-radius: 0.85rem;
+  background: rgb(var(--surface));
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.sell-product--calm:hover,
+.sell-product--calm:focus-visible {
+  border-color: var(--judi-500);
+  background: var(--judi-50);
 }
 .sell-product--calm .sell-product__img {
-  width: 2.75rem; height: 2.75rem; object-fit: cover; border-radius: 0.55rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  object-fit: cover;
+  border-radius: 0.55rem;
+  flex-shrink: 0;
 }
-.sell-product--calm .sell-product__body { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.sell-product--calm .sell-product__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+}
 .sell-product--calm .sell-product__body strong {
-  font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 0.92rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.sell-product--calm .sell-product__price { font-size: 0.8rem; color: rgb(var(--fg-muted)); }
-.sell-product--calm .sell-product__add { font-size: 0.85rem; font-weight: 650; color: var(--judi-700); }
+.sell-product--calm .sell-product__price {
+  font-size: 0.8rem;
+  color: rgb(var(--fg-muted));
+  font-variant-numeric: tabular-nums;
+}
+.sell-product--calm .sell-product__piece {
+  font-size: 0.72rem;
+  color: var(--judi-700);
+  font-variant-numeric: tabular-nums;
+}
+.sell-product--calm .sell-product__add { display: none; }
+.sell-product__chevron {
+  color: var(--judi-700);
+  font-size: 1.1rem;
+  line-height: 1;
+  justify-self: center;
+}
+.sell-cart__unit-tag {
+  font-style: normal;
+  font-weight: 600;
+  color: rgb(var(--fg-muted));
+  font-size: 0.8rem;
+  margin-inline-start: 0.25rem;
+}
+.sell-cart__line-total,
+.sell-cart__total,
+.sell-locked__debt,
+.sticky-cta__meta strong,
+.sell-store__debt {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: 0.01em;
+}
+.num {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  letter-spacing: 0.01em;
+  unicode-bidi: isolate;
+}
+.line-sheet--order {
+  width: min(24rem, calc(100vw - 1.5rem));
+  max-height: min(90dvh, 40rem);
+  overflow: auto;
+  border: 1px solid rgb(var(--line));
+  border-radius: 1.15rem;
+  padding: 1.1rem 1.15rem 1.15rem;
+  background: rgb(var(--surface));
+  color: inherit;
+  box-shadow: 0 18px 40px rgb(15 36 34 / 0.18);
+}
+.line-sheet--order::backdrop {
+  background: rgb(15 36 34 / 0.5);
+}
+.line-sheet__piece-hint {
+  margin: 0 0 0.85rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.55rem;
+  background: var(--judi-50);
+  color: var(--judi-900);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.line-sheet__units {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+}
+.line-sheet__unit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid rgb(var(--line));
+  border-radius: 0.75rem;
+  background: rgb(var(--muted) / 0.35);
+}
+.line-sheet__unit-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.line-sheet__unit-meta strong {
+  font-size: 0.9rem;
+}
+.line-sheet__unit-meta .num {
+  font-size: 0.8rem;
+  color: rgb(var(--fg-muted));
+}
+.line-sheet__stepper {
+  flex-shrink: 0;
+}
+.line-sheet__extras {
+  display: grid;
+  gap: 0.65rem;
+}
+.qty-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.qty-stepper button {
+  appearance: none;
+  width: 2.35rem;
+  height: 2.35rem;
+  border: 1px solid rgb(var(--line-strong));
+  border-radius: 0.55rem;
+  background: rgb(var(--surface));
+  color: inherit;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.qty-stepper input {
+  width: 3.25rem;
+  min-height: 2.35rem;
+  text-align: center;
+  border: 1px solid rgb(var(--line-strong));
+  border-radius: 0.55rem;
+  background: #fff;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.sell-invoice-disc input.num {
+  text-align: center;
+}
 .sell-cart-block {
   margin-top: 0.5rem; padding: 0.75rem; border: 1px dashed rgb(var(--line));
   border-radius: 1rem; background: rgb(var(--muted) / 0.25);

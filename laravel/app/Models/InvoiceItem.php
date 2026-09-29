@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CollectorChannel;
 use App\Enums\ProductUnitKind;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -59,5 +60,43 @@ class InvoiceItem extends Model
         return $this->unit instanceof ProductUnitKind
             ? $this->unit->label()
             : (string) $this->unit;
+    }
+
+    /**
+     * Price of one piece for comparison when the line is carton/packet.
+     * Returns null when the line is already piece or no piece unit exists.
+     */
+    public function pieceUnitPrice(?CollectorChannel $channel = null): ?float
+    {
+        if ($this->unit === ProductUnitKind::Piece) {
+            return null;
+        }
+
+        $channel ??= $this->invoice?->channel;
+        if (! $channel instanceof CollectorChannel) {
+            $channel = CollectorChannel::Wholesale;
+        }
+
+        $product = $this->relationLoaded('product')
+            ? $this->product
+            : $this->product()->with('units')->first();
+
+        if (! $product) {
+            return null;
+        }
+
+        $units = $product->relationLoaded('units')
+            ? $product->units
+            : $product->units()->get();
+
+        $piece = $units->first(
+            fn (ProductUnit $unit) => $unit->unit === ProductUnitKind::Piece
+        );
+
+        if (! $piece) {
+            return null;
+        }
+
+        return round((float) $piece->priceFor($channel), 2);
     }
 }

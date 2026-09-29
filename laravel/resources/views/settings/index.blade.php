@@ -79,9 +79,15 @@
             <p class="muted">{{ __('ui.notif_toast_hint') }}</p>
             <div class="push-enable" data-push-panel>
                 <p class="muted">{{ __('ui.notif_push_hint') }}</p>
-                <button type="button" class="btn btn--primary btn--sm" data-push-enable>
-                    {{ __('ui.notif_push_enable') }}
-                </button>
+                <p class="muted">{{ __('ui.notif_push_install_hint') }}</p>
+                <div class="push-enable__actions" style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center">
+                    <button type="button" class="btn btn--primary btn--sm" data-push-enable>
+                        {{ __('ui.notif_push_enable') }}
+                    </button>
+                    <button type="button" class="btn btn--ghost btn--sm" data-push-test hidden>
+                        {{ __('ui.notif_push_test') }}
+                    </button>
+                </div>
                 <p class="push-enable__status muted" data-push-status></p>
             </div>
             <ul class="notif-list">

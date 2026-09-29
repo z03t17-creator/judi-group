@@ -254,7 +254,15 @@ class InvoiceController extends Controller
     {
         $this->authorizeView($request, $invoice);
 
-        $invoice->load(['items.product', 'store', 'collector', 'warehouse', 'sentBy', 'collections.store', 'collections.collector']);
+        $invoice->load([
+            'items.product.units',
+            'store',
+            'collector',
+            'warehouse',
+            'sentBy',
+            'collections.store',
+            'collections.collector',
+        ]);
         $user = $request->user();
         $saleCollection = $invoice->saleCollection();
 
