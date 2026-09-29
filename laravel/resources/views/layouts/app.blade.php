@@ -15,6 +15,7 @@
     data-label-push-disabled="{{ __('ui.notif_push_disabled') }}"
     data-label-push-failed="{{ __('ui.notif_push_failed') }}"
     data-label-push-unsupported="{{ __('ui.notif_push_unsupported') }}"
+    data-label-push-service="{{ __('ui.notif_push_service') }}"
     data-label-push-test-ok="{{ __('ui.notif_push_test_ok') }}"
     data-label-push-test-need="{{ __('ui.notif_push_test_need') }}"
 >
@@ -46,7 +47,7 @@
     <script src="{{ asset('js/money-input.js') }}?v=2" defer></script>
     <script src="{{ asset('js/image-upload.js') }}?v=1" defer></script>
     <script src="{{ asset('js/notifications.js') }}?v=9" defer></script>
-    <script src="{{ asset('js/push.js') }}?v=4" defer></script>
+    <script src="{{ asset('js/push.js') }}?v=5" defer></script>
     <script src="{{ asset('js/share.js') }}?v=4" defer></script>
     <script src="{{ asset('js/preferences.js') }}?v=2" defer></script>
     <script src="{{ asset('js/print-doc.js') }}?v=12" defer></script>

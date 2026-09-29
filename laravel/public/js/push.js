@@ -27,6 +27,12 @@
     return out;
   }
 
+  async function sleep(ms) {
+    return new Promise(function (resolve) {
+      setTimeout(resolve, ms);
+    });
+  }
+
   async function ensureServiceWorker() {
     const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
     await navigator.serviceWorker.ready;
@@ -56,6 +62,15 @@
     }
   }
 
+  async function clearExistingSubscription(reg) {
+    try {
+      const existing = await reg.pushManager.getSubscription();
+      if (existing) {
+        await existing.unsubscribe();
+      }
+    } catch (e) {}
+  }
+
   async function subscribe(reg) {
     const keyRes = await fetch('/api/push/vapid-public-key', {
       headers: { Accept: 'application/json' },
@@ -66,12 +81,36 @@
       throw new Error('push-disabled');
     }
 
-    let sub = await reg.pushManager.getSubscription();
+    const appKey = urlBase64ToUint8Array(String(keyData.publicKey).trim());
+    if (appKey.byteLength !== 65) {
+      throw new Error('push-bad-vapid');
+    }
+
+    // Old subscription (different VAPID / corrupt FCM) breaks new subscribe.
+    await clearExistingSubscription(reg);
+
+    let lastErr = null;
+    let sub = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: appKey,
+        });
+        lastErr = null;
+        break;
+      } catch (e) {
+        lastErr = e;
+        await clearExistingSubscription(reg);
+        await sleep(400 * (attempt + 1));
+      }
+    }
     if (!sub) {
-      sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(keyData.publicKey),
-      });
+      const msg = (lastErr && lastErr.message) ? String(lastErr.message) : 'subscribe-failed';
+      if (/push service error/i.test(msg) || /AbortError/i.test(String(lastErr && lastErr.name))) {
+        throw new Error('push-service');
+      }
+      throw lastErr || new Error(msg);
     }
 
     await saveSubscription(sub);
@@ -113,6 +152,8 @@
       const msg = (e && e.message) ? String(e.message) : 'error';
       if (msg === 'push-disabled') {
         setStatus(document.documentElement.getAttribute('data-label-push-disabled') || 'Server push is not configured.', 'err');
+      } else if (msg === 'push-service' || msg === 'push-bad-vapid') {
+        setStatus(document.documentElement.getAttribute('data-label-push-service') || 'Push service failed. Reinstall the app / clear site data, use HTTPS, then try again.', 'err');
       } else {
         setStatus((document.documentElement.getAttribute('data-label-push-failed') || 'Could not enable alerts.') + ' ' + msg, 'err');
       }

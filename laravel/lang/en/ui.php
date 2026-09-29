@@ -475,6 +475,7 @@ return [
     'notif_push_denied' => 'Permission not granted.',
     'notif_push_disabled' => 'Server push is not configured yet (VAPID keys).',
     'notif_push_failed' => 'Could not enable alerts.',
+    'notif_push_service' => 'Push service failed. Remove the Home Screen app and reinstall, or clear site data, use HTTPS, then try Enable again.',
     'notif_push_unsupported' => 'Push not supported on this browser.',
     'notif_send_title' => 'Send notification',
     'notif_send_hint' => 'Message appears on every device when users open the app (and as a browser alert if allowed).',

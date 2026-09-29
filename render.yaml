@@ -53,5 +53,11 @@ services:
         value: local
       - key: MAIL_MAILER
         value: log
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
       - key: RUN_SEED
         sync: false
