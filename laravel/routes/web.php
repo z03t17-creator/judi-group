@@ -54,6 +54,7 @@ Route::middleware(['auth', 'active', 'device'])->group(function () {
     Route::post('/approvals/devices', [ApprovalController::class, 'approveDevices'])->name('approvals.devices');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::get('/notifications', [SettingsController::class, 'notifications'])->name('notifications.index');
     Route::post('/settings/preferences', [SettingsController::class, 'updatePreferences'])->name('settings.preferences');
     Route::get('/settings/backup', [SettingsController::class, 'backup'])->name('settings.backup');
     Route::post('/settings/devices/{deviceLoginRequest}/approve', [SettingsController::class, 'approveDevice'])->name('settings.devices.approve');

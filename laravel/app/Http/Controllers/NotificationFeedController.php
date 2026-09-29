@@ -41,7 +41,7 @@ class NotificationFeedController extends Controller
                 'unread' => ! in_array($n->id, $readIds, true),
                 'href' => $n->type === 'device_login'
                     ? route('settings.index', absolute: false).'#settings-devices-pending'
-                    : route('settings.index', absolute: false).'#settings-inbox',
+                    : route('notifications.index', absolute: false),
             ];
         });
 

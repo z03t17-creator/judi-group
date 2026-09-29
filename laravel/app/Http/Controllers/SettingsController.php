@@ -58,6 +58,22 @@ class SettingsController extends Controller
                 ->get()
             : collect();
 
+        $currentDevice = DeviceFingerprint::token($request, $user);
+
+        return view('settings.index', [
+            'theme' => in_array($theme, ['light', 'dark'], true) ? $theme : 'light',
+            'density' => in_array($density, ['small', 'big'], true) ? $density : 'small',
+            'pendingDevices' => $pendingDevices,
+            'myDevices' => $myDevices,
+            'allDevices' => $allDevices,
+            'currentDevice' => $currentDevice,
+        ]);
+    }
+
+    public function notifications(Request $request): View
+    {
+        $user = $request->user();
+
         $notifications = AppNotification::query()
             ->visibleTo($user)
             ->latest()
@@ -70,17 +86,9 @@ class SettingsController extends Controller
             ->pluck('app_notification_id')
             ->all();
 
-        $currentDevice = DeviceFingerprint::token($request, $user);
-
-        return view('settings.index', [
-            'theme' => in_array($theme, ['light', 'dark'], true) ? $theme : 'light',
-            'density' => in_array($density, ['small', 'big'], true) ? $density : 'small',
-            'pendingDevices' => $pendingDevices,
-            'myDevices' => $myDevices,
-            'allDevices' => $allDevices,
+        return view('notifications.index', [
             'notifications' => $notifications,
             'readIds' => $readIds,
-            'currentDevice' => $currentDevice,
         ]);
     }
 
@@ -298,17 +306,19 @@ class SettingsController extends Controller
 
         if ($audience === 'all') {
             $userIds = User::query()->where('is_active', true)->pluck('id')->all();
-            WebPushNotifier::sendToUserIds($userIds, $data['title'], $data['body'], '/settings#settings-inbox');
+            WebPushNotifier::sendToUserIds($userIds, $data['title'], $data['body'], '/notifications');
         } else {
             WebPushNotifier::notifyRoles(
                 [$targetRole],
                 $data['title'],
                 $data['body'],
-                '/settings#settings-inbox',
+                '/notifications',
             );
         }
 
-        return back()->with('status', __('ui.notif_sent'));
+        return redirect()
+            ->route('notifications.index')
+            ->with('status', __('ui.notif_sent'));
     }
 
     public function markNotificationsRead(Request $request): RedirectResponse

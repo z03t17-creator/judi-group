@@ -2,7 +2,7 @@
   const feedUrl = document.body?.dataset?.notifFeed;
   if (!feedUrl) return;
 
-  const inboxUrl = document.body?.dataset?.notifInbox || '/settings#settings-inbox';
+  const inboxUrl = document.body?.dataset?.notifInbox || '/notifications';
   const devicesUrl = (document.body?.dataset?.notifInbox || '/settings').replace(/#.*$/, '') + '#settings-devices-pending';
   const SEEN_KEY = 'judi_notif_seen_v2';
   const LAST_KEY = 'judi_notif_last_id_v2';

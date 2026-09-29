@@ -38,7 +38,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
     {{-- Flaticon Uicons (Solid Rounded) — https://www.flaticon.com/uicons --}}
     <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=88">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=89">
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
@@ -48,7 +48,7 @@
     </script>
     <script src="{{ asset('js/money-input.js') }}?v=2" defer></script>
     <script src="{{ asset('js/image-upload.js') }}?v=1" defer></script>
-    <script src="{{ asset('js/notifications.js') }}?v=9" defer></script>
+    <script src="{{ asset('js/notifications.js') }}?v=10" defer></script>
     <script src="{{ asset('js/push.js') }}?v=5" defer></script>
     <script src="{{ asset('js/share.js') }}?v=4" defer></script>
     <script src="{{ asset('js/preferences.js') }}?v=2" defer></script>
@@ -59,7 +59,7 @@
     data-brand-name="{{ __('ui.brand_name') }}"
     data-brand-short="{{ __('ui.brand_short') }}"
     data-notif-feed="{{ auth()->check() ? route('notifications.feed', absolute: false) : '' }}"
-    data-notif-inbox="{{ auth()->check() ? route('settings.index', absolute: false).'#settings-inbox' : '' }}"
+    data-notif-inbox="{{ auth()->check() ? route('notifications.index', absolute: false) : '' }}"
     data-prefs-url="{{ auth()->check() ? route('settings.preferences', absolute: false) : '' }}"
 >@php
     $user = auth()->user();

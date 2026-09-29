@@ -345,12 +345,25 @@ class SettingsAndDevicesTest extends TestCase
                 'body' => 'Team note',
                 'audience' => 'all',
             ])
-            ->assertRedirect();
+            ->assertRedirect(route('notifications.index'));
 
         $this->assertDatabaseHas('app_notifications', [
             'title' => 'Hello',
             'body' => 'Team note',
             'audience' => 'all',
         ]);
+    }
+
+    public function test_notifications_page_loads(): void
+    {
+        $this->seed();
+        $admin = User::query()->where('email', 'admin@judi.local')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->get(route('notifications.index'))
+            ->assertOk()
+            ->assertSee(__('ui.notifications'), false)
+            ->assertSee(__('ui.notif_inbox'), false)
+            ->assertDontSee(__('ui.settings_appearance'), false);
     }
 }

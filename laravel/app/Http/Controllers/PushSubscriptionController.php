@@ -76,7 +76,7 @@ class PushSubscriptionController extends Controller
             [$user->id],
             __('ui.notif_push_test_title'),
             __('ui.notif_push_test_body'),
-            route('settings.index', absolute: false).'#settings-inbox',
+            route('notifications.index', absolute: false),
             ['tag' => 'judi-push-test'],
         );
 

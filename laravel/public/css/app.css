@@ -1,4 +1,4 @@
-/* JUDI design system â mirrored from the Next.js app (tokens, shell, touch) */
+/* JUDI design system ? mirrored from the Next.js app (tokens, shell, touch) */
 
 :root {
   --canvas: 250 250 249;
@@ -121,7 +121,7 @@ textarea {
   }
 }
 
-/* âââ Shell âââ */
+/* ??? Shell ??? */
 
 .shell {
   display: flex;
@@ -150,7 +150,7 @@ html.office-menu-lock body {
   overflow: hidden;
 }
 
-/* Desktop rail (hidden on phones — drawer opens from the menu button) */
+/* Desktop rail (hidden on phones ? drawer opens from the menu button) */
 .office-sidebar {
   position: sticky;
   top: 0;
@@ -175,7 +175,7 @@ html.office-menu-lock body {
   display: none;
 }
 
-/* —— Phone / tablet office layout —— */
+/* ?? Phone / tablet office layout ?? */
 @media (max-width: 1023px) {
   .shell--office {
     display: flex;
@@ -370,17 +370,25 @@ html.office-menu-lock body {
 
   .office-topbar__approvals {
     position: relative;
-    display: grid;
-    place-items: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 2.5rem;
     height: 2.5rem;
+    padding: 0;
     border-radius: 0.7rem;
     color: inherit;
   }
 
   .office-topbar__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 1.2rem;
     height: 1.2rem;
+    font-size: 1.15rem;
+    line-height: 1;
+    margin: 0;
   }
 
   .office-topbar__badge,
@@ -462,13 +470,20 @@ html.office-menu-lock body {
 
   .office-tab__icon-wrap {
     position: relative;
-    display: grid;
-    place-items: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .office-tab__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 1.25rem;
     height: 1.25rem;
+    font-size: 1.25rem;
+    line-height: 1;
+    margin: 0;
   }
 
   /* Keep list filters from blowing past the phone width */
@@ -938,8 +953,14 @@ html.office-menu-lock body {
 }
 
 .field-tab__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.25rem;
   height: 1.25rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  margin: 0;
   flex-shrink: 0;
 }
 
@@ -1015,7 +1036,7 @@ html.office-menu-lock body {
   color: var(--judi-700);
 }
 
-/* âââ Components âââ */
+/* ??? Components ??? */
 
 .btn {
   appearance: none;
@@ -1420,7 +1441,7 @@ html.office-menu-lock body {
   vertical-align: middle;
   overflow-wrap: anywhere;
   /* Keep header + cell content on the same edge (RTL-safe).
-     Never put dir="ltr" on the <td>/<th> itself â that flips text-align:start. */
+     Never put dir="ltr" on the <td>/<th> itself ? that flips text-align:start. */
   direction: inherit;
 }
 
@@ -1900,7 +1921,7 @@ a.kpi-card:hover {
   border: 0;
 }
 
-/* Login — one centered brand composition */
+/* Login ? one centered brand composition */
 
 .login-body {
   position: relative;
@@ -2287,7 +2308,7 @@ html[data-theme="dark"] .field__input--surface:focus {
   }
 }
 
-/* âââ Product form âââ */
+/* ??? Product form ??? */
 
 .product-form {
   display: grid;
@@ -2983,7 +3004,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
   }
 }
 
-/* ï¿½ï¿½ï¿½ FACE L2: sell + paper invoice ï¿½ï¿½ï¿½ */
+/* ??? FACE L2: sell + paper invoice ??? */
 
 .page__eyebrow {
   margin: 0 0 0.25rem;
@@ -3882,7 +3903,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     max-width: none !important;
     width: 100% !important;
     margin: 0 !important;
-    /* Keep inner padding — @page margin alone left content flush to the border */
+    /* Keep inner padding ? @page margin alone left content flush to the border */
     padding: 8mm 9mm 7mm !important;
     border: 1.5px solid #111 !important;
     border-radius: 0 !important;
@@ -3988,7 +4009,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     height: auto !important;
     min-height: 0 !important;
     margin: 0 !important;
-    /* Real inset: Chrome often ignores @page margin (and “Margins: None”). */
+    /* Real inset: Chrome often ignores @page margin (and ?Margins: None?). */
     padding: 12mm 14mm !important;
   }
 
@@ -4177,7 +4198,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     page-break-inside: avoid;
   }
 
-  /* —— Document head (QERAT-style letterhead) —— */
+  /* ?? Document head (QERAT-style letterhead) ?? */
   .print-doc-head {
     display: block !important;
     margin: 0 0 0.75rem;
@@ -4309,7 +4330,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     font-size: 8.5pt;
   }
 
-  /* —— Strip web card chrome —— */
+  /* ?? Strip web card chrome ?? */
   .report-section,
   .report-block,
   .directory-table,
@@ -4392,7 +4413,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     border: 0 !important;
   }
 
-  /* ââ Print tables (document style) ââ */
+  /* ?? Print tables (document style) ?? */
   .report-table,
   .data-table,
   .price-matrix {
@@ -4522,7 +4543,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     display: none !important;
   }
 
-  /* Chips â plain text for print */
+  /* Chips ? plain text for print */
   .report-chip,
   .badge {
     display: inline !important;
@@ -4607,7 +4628,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     text-decoration: none !important;
   }
 
-  /* Invoice paper â stay inside printable area */
+  /* Invoice paper ? stay inside printable area */
   .page--invoice-show {
     padding: 0 !important;
     margin: 0 !important;
@@ -5112,7 +5133,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
   height: 1.15rem;
 }
 
-/* ï¿½ï¿½ï¿½ Icon system (match Next.js icon-badge / tile tones) ï¿½ï¿½ï¿½ */
+/* ??? Icon system (match Next.js icon-badge / tile tones) ??? */
 
 .icon-badge {
   display: inline-flex;
@@ -5502,7 +5523,7 @@ html[dir="rtl"] .btn__icon--back {
   transform: scaleX(-1);
 }
 
-/* Share menu â WhatsApp / social (text only, no system URL) */
+/* Share menu ? WhatsApp / social (text only, no system URL) */
 .share-menu {
   position: relative;
   display: inline-flex;
@@ -5568,7 +5589,7 @@ html[dir="rtl"] .btn__icon--back {
 }
 
 
-/* ï¿½ï¿½ï¿½ Settings / theme / density / notifications ï¿½ï¿½ï¿½ */
+/* ??? Settings / theme / density / notifications ??? */
 
 html[data-theme="dark"] {
   --canvas: 15 36 34;
@@ -5867,11 +5888,23 @@ html[dir="rtl"] .notif-list__item.is-unread {
   height: 2.5rem;
   min-width: 2.75rem;
   min-height: 2.5rem;
+  padding: 0;
   border-radius: 0.85rem;
   color: inherit;
   background: rgb(255 255 255 / 0.06);
   border: 1px solid rgb(255 255 255 / 0.1);
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.notif-bell__btn .fi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  font-size: 1.15rem;
+  line-height: 1;
+  margin: 0;
 }
 
 .notif-bell__btn:hover {
@@ -5971,8 +6004,14 @@ html.theme-switching * {
 
 .chrome-btn__icon,
 .chrome-btn .nav-item__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.25rem;
   height: 1.25rem;
+  font-size: 1.15rem;
+  line-height: 1;
+  margin: 0;
   flex-shrink: 0;
 }
 
@@ -6090,9 +6129,10 @@ html.theme-switching * {
 
 .theme-toggle__icon {
   display: none;
-  width: 1.25rem;
-  height: 1.25rem;
+  position: absolute;
+  inset: 0;
   place-items: center;
+  place-content: center;
   pointer-events: none;
 }
 
@@ -6102,8 +6142,11 @@ html.theme-switching * {
 }
 
 .theme-toggle__svg {
-  width: 100%;
-  height: 100%;
+  width: 1.15rem;
+  height: 1.15rem;
+  font-size: 1.15rem;
+  line-height: 1;
+  margin: 0;
 }
 
 .choice-pill--theme {
@@ -6111,16 +6154,22 @@ html.theme-switching * {
 }
 
 .choice-pill__ico {
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   width: 1.15rem;
   height: 1.15rem;
+  overflow: hidden;
   opacity: 0.75;
 }
 
 .choice-pill__svg {
-  width: 100%;
-  height: 100%;
+  width: 1.1rem;
+  height: 1.1rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  margin: 0;
 }
 
 .choice-pill:has(input:checked) .choice-pill__ico {
@@ -6286,7 +6335,7 @@ html[data-theme="light"] .notif-toast__close {
   }
 }
 
-/* ï¿½ï¿½ï¿½ Reports page ï¿½ï¿½ï¿½ */
+/* ??? Reports page ??? */
 
 .report-page {
   display: flex;
@@ -6773,7 +6822,7 @@ html[data-theme="dark"] .btn--print:hover {
   border-color: var(--judi-400);
 }
 
-/* ï¿½ï¿½ï¿½ Shared list pages (same language as reports) ï¿½ï¿½ï¿½ */
+/* ??? Shared list pages (same language as reports) ??? */
 
 .list-page {
   display: flex;
@@ -6933,7 +6982,7 @@ html[data-theme="dark"] .btn--print:hover {
   }
 }
 
-/* ï¿½ï¿½ï¿½ Collector sell / invoice create ï¿½ï¿½ï¿½ */
+/* ??? Collector sell / invoice create ??? */
 
 .sell-page {
   display: flex;
@@ -7371,7 +7420,7 @@ html[data-theme="dark"] .sell-form__cart .sell-cart__total {
   }
 }
 
-/* ââ Store map (form + sell picker) ââ */
+/* ?? Store map (form + sell picker) ?? */
 .store-map {
   display: grid;
   gap: 0.65rem;
@@ -7836,7 +7885,7 @@ html[data-theme="dark"] .sell-product--row {
   color: #fff;
 }
 
-/* ââ Store profile ââ */
+/* ?? Store profile ?? */
 .store-profile {
   gap: 0.85rem;
 }
@@ -8559,7 +8608,7 @@ html[data-theme="dark"] .sell-product--row {
   min-height: 2.55rem;
 }
 
-/* Sell wizard: store → products (with live category filters) */
+/* Sell wizard: store ? products (with live category filters) */
 
 .sell-wizard[data-panel][hidden],
 .sell-wizard [data-panel][hidden],
@@ -8701,7 +8750,7 @@ html[data-theme="dark"] .sell-wizard .sell-store--page {
   line-height: 1.25;
 }
 
-/* Filter deck — searchable category / subcategory pills */
+/* Filter deck ? searchable category / subcategory pills */
 .sell-filter-deck {
   position: relative;
   margin: 0 0 0.85rem;
@@ -8889,6 +8938,12 @@ html[data-theme="dark"] .sell-filter-deck {
     linear-gradient(180deg, rgb(var(--surface)), rgb(var(--muted) / 0.25));
 }
 
+html[data-theme="dark"] .sell-filter-deck::before {
+  background: linear-gradient(180deg, #5eead4, #38bdf8);
+  box-shadow: 0 0 10px rgb(45 212 191 / 0.55);
+  opacity: 1;
+}
+
 html[data-theme="dark"] .sell-filter-deck__eyebrow {
   color: #5eead4;
 }
@@ -9013,7 +9068,7 @@ html[data-theme="dark"] .sell-tile {
   flex-shrink: 0;
 }
 
-/* �� Mobile app simplify: less text, less chrome �� */
+/* ?? Mobile app simplify: less text, less chrome ?? */
 @media (max-width: 1023px) {
   .page__lead,
   .page__eyebrow,
@@ -10013,35 +10068,57 @@ html[data-theme="dark"] .sell-tile {
 
 /* Flaticon Uicons sizing (replaces stroke SVGs) */
 i.fi {
-  display: inline-flex;
+  display: inline-flex !important;
   align-items: center;
   justify-content: center;
-  line-height: 1;
+  line-height: 1 !important;
+  vertical-align: middle;
   speak: none;
+  box-sizing: border-box;
+}
+i.fi::before {
+  display: block !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+  width: 1em;
+  height: 1em;
 }
 .icon-badge__svg.fi,
 i.icon-badge__svg {
-  width: auto !important;
-  height: auto !important;
+  width: 1.15rem !important;
+  height: 1.15rem !important;
   font-size: 1.15rem;
 }
-.icon-badge--sm .icon-badge__svg.fi { font-size: 0.95rem; }
-.icon-badge--lg .icon-badge__svg.fi { font-size: 1.4rem; }
+.icon-badge--sm .icon-badge__svg.fi {
+  width: 0.95rem !important;
+  height: 0.95rem !important;
+  font-size: 0.95rem;
+}
+.icon-badge--lg .icon-badge__svg.fi {
+  width: 1.4rem !important;
+  height: 1.4rem !important;
+  font-size: 1.4rem;
+}
 .field-tab__icon.fi,
 .office-tab__icon.fi {
-  width: auto;
-  height: auto;
+  width: 1.35rem !important;
+  height: 1.35rem !important;
   font-size: 1.35rem;
+  margin: 0 auto;
 }
 .btn__icon.fi,
 .chrome-btn__icon.fi,
 .nav-item__icon.fi,
-.office-topbar__icon.fi {
-  width: auto;
-  height: auto;
+.office-topbar__icon.fi,
+.notif-bell__btn .fi {
+  width: 1.15rem !important;
+  height: 1.15rem !important;
   font-size: 1.15rem;
 }
-.theme-toggle__svg.fi {
+.theme-toggle__svg.fi,
+.choice-pill__svg.fi {
+  width: 1.1rem !important;
+  height: 1.1rem !important;
   font-size: 1.1rem;
 }
 html[dir="rtl"] .fi-sr-arrow-left,
