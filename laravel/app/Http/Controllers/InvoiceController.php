@@ -22,9 +22,15 @@ use InvalidArgumentException;
 
 class InvoiceController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $user = $request->user();
+
+        // Collectors use the personal report tab — not the old standalone invoice list/order.
+        if ($user->isCollector()) {
+            return redirect()->route('reports.index');
+        }
+
         $canFilterCollectors = ! $user->isCollector();
 
         [$from, $to, $period] = DatePeriodFilter::resolve($request, 'month');
@@ -132,6 +138,11 @@ class InvoiceController extends Controller
             }
         } elseif ($activeVisit) {
             $lockedVisit = $activeVisit;
+        } elseif ($user->isCollector()) {
+            // Collectors must order from an open store visit — not the old standalone sell page.
+            return redirect()
+                ->route('visits.entry')
+                ->with('status', __('ui.sell_via_visit_hint'));
         }
 
         $stores = Store::query()
@@ -294,6 +305,10 @@ class InvoiceController extends Controller
             if ($openVisit && (int) $openVisit->store_id === (int) $invoice->store_id) {
                 return route('visits.show', $openVisit);
             }
+
+            if ($user->isCollector()) {
+                return route('reports.index');
+            }
         }
 
         return route('invoices.index');
@@ -310,6 +325,10 @@ class InvoiceController extends Controller
             $openVisit = StoreVisit::openForCollector($user);
             if ($openVisit && (int) $openVisit->store_id === (int) $invoice->store_id) {
                 return __('ui.visit_hub');
+            }
+
+            if ($user->isCollector()) {
+                return __('ui.my_report');
             }
         }
 

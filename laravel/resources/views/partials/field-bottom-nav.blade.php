@@ -30,11 +30,16 @@
             'enabled' => $user->canAccess('stores'),
         ],
         [
-            'route' => 'invoices.index',
-            'match' => ['invoices.index', 'invoices.show'],
-            'label' => __('ui.invoices'),
-            'icon' => 'file',
-            'enabled' => $user->canAccess('invoices'),
+            // Collectors: personal report (invoices / collections / rejects). Office: invoice list.
+            'route' => $user->isCollector() ? 'reports.index' : 'invoices.index',
+            'match' => $user->isCollector()
+                ? ['reports.*']
+                : ['invoices.index', 'invoices.show'],
+            'label' => $user->isCollector() ? __('ui.my_report') : __('ui.invoices'),
+            'icon' => $user->isCollector() ? 'clipboard' : 'file',
+            'enabled' => $user->isCollector()
+                ? $user->canAccess('reports')
+                : $user->canAccess('invoices'),
         ],
     ];
 @endphp

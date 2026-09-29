@@ -1,0 +1,34 @@
+@php
+    /** Flaticon Uicons — https://www.flaticon.com/uicons */
+    $fi = match ($name ?? '') {
+        'arrow-back' => 'fi-sr-arrow-left',
+        'banknote' => 'fi-sr-dollar',
+        'bell' => 'fi-sr-bell',
+        'cash' => 'fi-sr-coins',
+        'chevron' => 'fi-sr-angle-left',
+        'clipboard' => 'fi-sr-clipboard-list',
+        'dashboard' => 'fi-sr-apps',
+        'file' => 'fi-sr-document',
+        'folder' => 'fi-sr-folder',
+        'folder-tree' => 'fi-sr-folders',
+        'home' => 'fi-sr-home',
+        'logout' => 'fi-sr-exit',
+        'moon' => 'fi-sr-moon',
+        'more' => 'fi-sr-menu-dots',
+        'package' => 'fi-sr-box',
+        'pencil' => 'fi-sr-pencil',
+        'plus' => 'fi-sr-plus',
+        'print' => 'fi-sr-print',
+        'search' => 'fi-sr-search',
+        'settings' => 'fi-sr-settings',
+        'share' => 'fi-sr-share',
+        'store' => 'fi-sr-shop',
+        'sun' => 'fi-sr-sun',
+        'tags' => 'fi-sr-tags',
+        'users' => 'fi-sr-users',
+        'wallet' => 'fi-sr-wallet',
+        'warehouse' => 'fi-sr-warehouse-alt',
+        default => 'fi-sr-circle',
+    };
+@endphp
+<i class="fi {{ $fi }} {{ $class ?? '' }}" aria-hidden="true"></i>

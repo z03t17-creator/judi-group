@@ -1,4 +1,4 @@
-/* JUDI design system Ã¢ÂÂ mirrored from the Next.js app (tokens, shell, touch) */
+/* JUDI design system â mirrored from the Next.js app (tokens, shell, touch) */
 
 :root {
   --canvas: 250 250 249;
@@ -121,7 +121,7 @@ textarea {
   }
 }
 
-/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Shell Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
+/* âââ Shell âââ */
 
 .shell {
   display: flex;
@@ -150,7 +150,7 @@ html.office-menu-lock body {
   overflow: hidden;
 }
 
-/* Desktop rail (hidden on phones â drawer opens from the menu button) */
+/* Desktop rail (hidden on phones — drawer opens from the menu button) */
 .office-sidebar {
   position: sticky;
   top: 0;
@@ -175,7 +175,7 @@ html.office-menu-lock body {
   display: none;
 }
 
-/* ââ Phone / tablet office layout ââ */
+/* —— Phone / tablet office layout —— */
 @media (max-width: 1023px) {
   .shell--office {
     display: flex;
@@ -1015,7 +1015,7 @@ html.office-menu-lock body {
   color: var(--judi-700);
 }
 
-/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Components Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
+/* âââ Components âââ */
 
 .btn {
   appearance: none;
@@ -1420,7 +1420,7 @@ html.office-menu-lock body {
   vertical-align: middle;
   overflow-wrap: anywhere;
   /* Keep header + cell content on the same edge (RTL-safe).
-     Never put dir="ltr" on the <td>/<th> itself Ã¢ÂÂ that flips text-align:start. */
+     Never put dir="ltr" on the <td>/<th> itself â that flips text-align:start. */
   direction: inherit;
 }
 
@@ -1900,7 +1900,7 @@ a.kpi-card:hover {
   border: 0;
 }
 
-/* Login â one centered brand composition */
+/* Login — one centered brand composition */
 
 .login-body {
   position: relative;
@@ -2287,7 +2287,7 @@ html[data-theme="dark"] .field__input--surface:focus {
   }
 }
 
-/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Product form Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
+/* âââ Product form âââ */
 
 .product-form {
   display: grid;
@@ -2983,7 +2983,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
   }
 }
 
-/* Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ FACE L2: sell + paper invoice Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ */
+/* ï¿½ï¿½ï¿½ FACE L2: sell + paper invoice ï¿½ï¿½ï¿½ */
 
 .page__eyebrow {
   margin: 0 0 0.25rem;
@@ -3882,7 +3882,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     max-width: none !important;
     width: 100% !important;
     margin: 0 !important;
-    /* Keep inner padding â @page margin alone left content flush to the border */
+    /* Keep inner padding — @page margin alone left content flush to the border */
     padding: 8mm 9mm 7mm !important;
     border: 1.5px solid #111 !important;
     border-radius: 0 !important;
@@ -3988,7 +3988,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     height: auto !important;
     min-height: 0 !important;
     margin: 0 !important;
-    /* Real inset: Chrome often ignores @page margin (and âMargins: Noneâ). */
+    /* Real inset: Chrome often ignores @page margin (and “Margins: None”). */
     padding: 12mm 14mm !important;
   }
 
@@ -4177,7 +4177,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     page-break-inside: avoid;
   }
 
-  /* ââ Document head (QERAT-style letterhead) ââ */
+  /* —— Document head (QERAT-style letterhead) —— */
   .print-doc-head {
     display: block !important;
     margin: 0 0 0.75rem;
@@ -4309,7 +4309,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     font-size: 8.5pt;
   }
 
-  /* ââ Strip web card chrome ââ */
+  /* —— Strip web card chrome —— */
   .report-section,
   .report-block,
   .directory-table,
@@ -4392,7 +4392,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     border: 0 !important;
   }
 
-  /* Ã¢ÂÂÃ¢ÂÂ Print tables (document style) Ã¢ÂÂÃ¢ÂÂ */
+  /* ââ Print tables (document style) ââ */
   .report-table,
   .data-table,
   .price-matrix {
@@ -4522,7 +4522,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     display: none !important;
   }
 
-  /* Chips Ã¢ÂÂ plain text for print */
+  /* Chips â plain text for print */
   .report-chip,
   .badge {
     display: inline !important;
@@ -4607,7 +4607,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
     text-decoration: none !important;
   }
 
-  /* Invoice paper Ã¢ÂÂ stay inside printable area */
+  /* Invoice paper â stay inside printable area */
   .page--invoice-show {
     padding: 0 !important;
     margin: 0 !important;
@@ -5112,7 +5112,7 @@ html[data-theme="dark"] .purchase-sub.is-active {
   height: 1.15rem;
 }
 
-/* Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ Icon system (match Next.js icon-badge / tile tones) Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ */
+/* ï¿½ï¿½ï¿½ Icon system (match Next.js icon-badge / tile tones) ï¿½ï¿½ï¿½ */
 
 .icon-badge {
   display: inline-flex;
@@ -5502,7 +5502,7 @@ html[dir="rtl"] .btn__icon--back {
   transform: scaleX(-1);
 }
 
-/* Share menu Ã¢ÂÂ WhatsApp / social (text only, no system URL) */
+/* Share menu â WhatsApp / social (text only, no system URL) */
 .share-menu {
   position: relative;
   display: inline-flex;
@@ -5568,7 +5568,7 @@ html[dir="rtl"] .btn__icon--back {
 }
 
 
-/* Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ Settings / theme / density / notifications Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ */
+/* ï¿½ï¿½ï¿½ Settings / theme / density / notifications ï¿½ï¿½ï¿½ */
 
 html[data-theme="dark"] {
   --canvas: 15 36 34;
@@ -6286,7 +6286,7 @@ html[data-theme="light"] .notif-toast__close {
   }
 }
 
-/* Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ Reports page Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ */
+/* ï¿½ï¿½ï¿½ Reports page ï¿½ï¿½ï¿½ */
 
 .report-page {
   display: flex;
@@ -6773,7 +6773,7 @@ html[data-theme="dark"] .btn--print:hover {
   border-color: var(--judi-400);
 }
 
-/* Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ Shared list pages (same language as reports) Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ */
+/* ï¿½ï¿½ï¿½ Shared list pages (same language as reports) ï¿½ï¿½ï¿½ */
 
 .list-page {
   display: flex;
@@ -6933,7 +6933,7 @@ html[data-theme="dark"] .btn--print:hover {
   }
 }
 
-/* Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ Collector sell / invoice create Ã¯Â¿Â½Ã¯Â¿Â½Ã¯Â¿Â½ */
+/* ï¿½ï¿½ï¿½ Collector sell / invoice create ï¿½ï¿½ï¿½ */
 
 .sell-page {
   display: flex;
@@ -7371,7 +7371,7 @@ html[data-theme="dark"] .sell-form__cart .sell-cart__total {
   }
 }
 
-/* Ã¢ÂÂÃ¢ÂÂ Store map (form + sell picker) Ã¢ÂÂÃ¢ÂÂ */
+/* ââ Store map (form + sell picker) ââ */
 .store-map {
   display: grid;
   gap: 0.65rem;
@@ -7836,7 +7836,7 @@ html[data-theme="dark"] .sell-product--row {
   color: #fff;
 }
 
-/* Ã¢ÂÂÃ¢ÂÂ Store profile Ã¢ÂÂÃ¢ÂÂ */
+/* ââ Store profile ââ */
 .store-profile {
   gap: 0.85rem;
 }
@@ -8559,7 +8559,7 @@ html[data-theme="dark"] .sell-product--row {
   min-height: 2.55rem;
 }
 
-/* Sell wizard: store â products (with live category filters) */
+/* Sell wizard: store → products (with live category filters) */
 
 .sell-wizard[data-panel][hidden],
 .sell-wizard [data-panel][hidden],
@@ -8701,7 +8701,7 @@ html[data-theme="dark"] .sell-wizard .sell-store--page {
   line-height: 1.25;
 }
 
-/* Filter deck â searchable category / subcategory pills */
+/* Filter deck — searchable category / subcategory pills */
 .sell-filter-deck {
   position: relative;
   margin: 0 0 0.85rem;
@@ -8767,14 +8767,14 @@ html[data-theme="dark"] .sell-wizard .sell-store--page {
 
 .sell-pill-rail {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 0.4rem;
+  flex-wrap: wrap;
+  gap: 0.45rem;
   padding: 0.15rem 0.55rem 0.35rem;
   margin: 0 0 0.35rem;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scroll-snap-type: x proximity;
+  overflow-x: visible;
+  -webkit-overflow-scrolling: auto;
+  scrollbar-width: none;
+  scroll-snap-type: none;
 }
 
 .sell-pill-rail__empty {
@@ -8787,23 +8787,24 @@ html[data-theme="dark"] .sell-wizard .sell-store--page {
 
 .sell-pill {
   --pill: #0f766e;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  min-height: 2.2rem;
-  padding: 0.35rem 0.7rem;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.85rem;
   border: 1px solid rgb(var(--line));
   border-radius: 999px;
   background: rgb(var(--surface));
   color: inherit;
   font: inherit;
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-weight: 650;
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: 100%;
   cursor: pointer;
-  scroll-snap-align: start;
+  scroll-snap-align: none;
   transition:
     border-color 0.15s ease,
     background 0.15s ease,
@@ -8837,9 +8838,10 @@ html[data-theme="dark"] .sell-wizard .sell-store--page {
 }
 
 .sell-pill__label {
-  max-width: 10rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: none;
+  overflow: visible;
+  text-overflow: unset;
+  white-space: normal;
 }
 
 .sell-pill__count {
@@ -9011,7 +9013,7 @@ html[data-theme="dark"] .sell-tile {
   flex-shrink: 0;
 }
 
-/*  Mobile app simplify: less text, less chrome  */
+/* �� Mobile app simplify: less text, less chrome �� */
 @media (max-width: 1023px) {
   .page__lead,
   .page__eyebrow,
@@ -9242,7 +9244,7 @@ html[data-theme="dark"] .sell-tile {
   }
 }
 
-/* FACE F1 — calm debt-only order page */
+/* FACE F1 ? calm debt-only order page */
 .sell-order .sell-steps { display: none; }
 .sell-form--calm {
   display: flex; flex-direction: column; gap: 0.85rem;
@@ -9475,7 +9477,7 @@ html[data-theme="dark"] .sell-tile {
   .sticky-cta--debt { grid-template-columns: auto 1fr auto; align-items: center; }
 }
 
-/* FACE F2 — store visit hub + reject */
+/* FACE F2 ? store visit hub + reject */
 .visit-hub-page { display: flex; flex-direction: column; gap: 1rem; max-width: 36rem; margin-inline: auto; }
 .visit-hub__last-invoice {
   display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
@@ -9666,7 +9668,7 @@ html[data-theme="dark"] .sell-tile {
   }
 }
 
-/* FACE F3 — collector employee profile */
+/* FACE F3 ? collector employee profile */
 .collector-profile { display: flex; flex-direction: column; gap: 1rem; }
 .collector-profile__hero {
   display: flex; gap: 0.85rem; align-items: center; padding: 0.9rem 1rem;
@@ -9703,3 +9705,358 @@ html[data-theme="dark"] .sell-tile {
 }
 .collector-ledger-list li > div { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
 .collector-ledger-list a { color: inherit; text-decoration: none; display: flex; flex-direction: column; gap: 0.1rem; }
+
+/* ??? Mobile-first sell + invoice preview (all roles) ??? */
+.sell-form--calm {
+  max-width: 42rem;
+  width: 100%;
+  padding-inline: 0;
+  box-sizing: border-box;
+}
+.sell-product--calm {
+  min-height: 4.25rem;
+  padding: 0.75rem 0.85rem;
+  grid-template-columns: 3.25rem minmax(0, 1fr) 1.35rem;
+  gap: 0.75rem;
+}
+.sell-product--calm .sell-product__img {
+  width: 3.25rem;
+  height: 3.25rem;
+}
+.sell-product--calm .sell-product__body strong {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  font-size: 0.98rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sell-product--calm .sell-product__price {
+  font-size: 0.86rem;
+}
+.sell-product--calm .sell-product__piece {
+  font-size: 0.78rem;
+}
+.sell-filter-deck--slim {
+  padding: 0.7rem 0.65rem 0.75rem;
+}
+.sell-pill__label {
+  white-space: normal;
+  text-align: start;
+  line-height: 1.25;
+}
+
+@media (max-width: 720px) {
+  .sell-order .sell-top {
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  .sell-order .sell-top__title {
+    font-size: 1.15rem;
+    line-height: 1.3;
+  }
+  .sell-form--calm {
+    max-width: none;
+    gap: 0.7rem;
+  }
+  .sell-catalog--calm {
+    gap: 0.55rem;
+  }
+  .sell-product--calm {
+    min-height: 4.6rem;
+    border-radius: 1rem;
+    padding: 0.85rem 0.9rem;
+  }
+  .sell-search__input {
+    min-height: 3rem;
+    font-size: 1rem;
+    border-radius: 0.9rem;
+  }
+  .sticky-cta--sell {
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+  .sticky-cta--sell .btn--sell-submit {
+    flex: 1 1 100%;
+    min-height: 3rem;
+    font-size: 1rem;
+  }
+  .page-frame--field,
+  .page--sell {
+    overflow-x: clip;
+  }
+}
+
+/* Invoice paper sizes + mobile screen preview */
+.paper-size-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-width: 48rem;
+  margin: 0 auto 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgb(var(--line));
+  border-radius: 1rem;
+  background: rgb(var(--surface));
+}
+.paper-size-bar__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgb(var(--fg-muted));
+}
+.paper-size-bar__actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+.paper-size-bar__btn {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  min-height: 3.4rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgb(var(--line));
+  border-radius: 0.85rem;
+  background: rgb(var(--canvas));
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+.paper-size-bar__btn strong {
+  font-size: 0.95rem;
+}
+.paper-size-bar__btn span {
+  font-size: 0.72rem;
+  color: rgb(var(--fg-muted));
+  line-height: 1.25;
+}
+.paper-size-bar__btn.is-active,
+.paper-size-bar__btn[aria-pressed="true"] {
+  border-color: var(--judi-600, #0f766e);
+  background: var(--judi-50, #f0fdfa);
+  box-shadow: 0 0 0 1px var(--judi-600, #0f766e);
+}
+.sticky-cta--paper {
+  flex-wrap: wrap;
+  row-gap: 0.55rem;
+}
+.sticky-cta__prints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  width: 100%;
+}
+.sticky-cta__prints .btn {
+  flex: 1 1 auto;
+  min-width: 4.75rem;
+  justify-content: center;
+  min-height: 2.75rem;
+}
+.sticky-cta__prints .btn span {
+  display: inline !important;
+  font-weight: 700;
+}
+.invoice-preview-shell {
+  max-width: 48rem;
+  margin-inline: auto;
+  overflow-x: clip;
+}
+
+@media screen and (max-width: 720px) {
+  .page--invoice-show {
+    overflow-x: clip;
+  }
+  .page--invoice-show .page__header {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+  .page--invoice-show .page__actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .page--invoice-show .page__actions .btn {
+    flex: 1 1 auto;
+  }
+  .invoice-preview-shell {
+    margin-inline: 0;
+    max-width: none;
+  }
+  .page--invoice-show .paper-invoice {
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0.7rem 0.65rem 0.9rem;
+    border-radius: 0.75rem;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page--invoice-show .paper-invoice__header {
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+  .page--invoice-show .paper-invoice__brand {
+    width: 100%;
+  }
+  .page--invoice-show .paper-invoice__logo {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+  .page--invoice-show .paper-invoice__name {
+    font-size: 1.15rem;
+  }
+  .page--invoice-show .paper-invoice__meta {
+    max-width: none;
+    width: 100%;
+    font-size: 0.8rem;
+  }
+  .page--invoice-show .paper-invoice__party {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.55rem;
+  }
+  .page--invoice-show .paper-invoice__table {
+    width: 100%;
+    table-layout: fixed;
+    font-size: 0.68rem;
+  }
+  .page--invoice-show .paper-invoice__table th,
+  .page--invoice-show .paper-invoice__table td {
+    padding: 0.28rem 0.22rem;
+    word-break: break-word;
+  }
+  .page--invoice-show .paper-invoice__table .col-name {
+    width: 34%;
+  }
+  .page--invoice-show .paper-invoice__table .col-qty {
+    width: 16%;
+  }
+  .page--invoice-show .paper-invoice__table .col-price,
+  .page--invoice-show .paper-invoice__table .col-total {
+    width: 16%;
+  }
+  /* Hide secondary cols on phone screen ? still print on paper */
+  .page--invoice-show .paper-invoice__table .col-piece-price,
+  .page--invoice-show .paper-invoice__table .col-gift,
+  .page--invoice-show .paper-invoice__table .col-disc {
+    display: none;
+  }
+  .page--invoice-show .paper-invoice__footer {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .page--invoice-show .paper-invoice__totals {
+    width: 100%;
+  }
+  .page--invoice-show .paper-slip {
+    max-width: 100%;
+    margin-inline: 0;
+  }
+  .sticky-cta--invoice .sticky-cta__label {
+    display: inline !important;
+  }
+  .sticky-cta__check {
+    flex: 1 1 100%;
+    white-space: normal;
+  }
+  .sticky-cta__check span {
+    max-width: none;
+    overflow: visible;
+    text-overflow: unset;
+  }
+}
+
+/* Preview size cues (screen only) */
+@media screen {
+  .invoice-preview-shell[data-preview-size="a5"] .paper-invoice {
+    max-width: 28rem;
+  }
+  .invoice-preview-shell[data-preview-size="slip"] .paper-invoice {
+    display: none;
+  }
+  .invoice-preview-shell[data-preview-size="slip"] .paper-slip {
+    display: block;
+    max-width: 18rem;
+    margin-inline: auto;
+  }
+  .invoice-preview-shell:not([data-preview-size="slip"]) .paper-slip {
+    display: none;
+  }
+}
+
+@media print {
+  .paper-size-bar,
+  .sticky-cta,
+  .invoice-show__secondary,
+  .invoice-show__receipt {
+    display: none !important;
+  }
+  html.print-a5 .paper-invoice {
+    max-width: none;
+    border: 0;
+    box-shadow: none;
+  }
+  .page--invoice-show .paper-invoice__table .col-piece-price,
+  .page--invoice-show .paper-invoice__table .col-gift,
+  .page--invoice-show .paper-invoice__table .col-disc {
+    display: table-cell !important;
+  }
+}
+
+/* Flaticon Uicons sizing (replaces stroke SVGs) */
+i.fi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  speak: none;
+}
+.icon-badge__svg.fi,
+i.icon-badge__svg {
+  width: auto !important;
+  height: auto !important;
+  font-size: 1.15rem;
+}
+.icon-badge--sm .icon-badge__svg.fi { font-size: 0.95rem; }
+.icon-badge--lg .icon-badge__svg.fi { font-size: 1.4rem; }
+.field-tab__icon.fi,
+.office-tab__icon.fi {
+  width: auto;
+  height: auto;
+  font-size: 1.35rem;
+}
+.btn__icon.fi,
+.chrome-btn__icon.fi,
+.nav-item__icon.fi,
+.office-topbar__icon.fi {
+  width: auto;
+  height: auto;
+  font-size: 1.15rem;
+}
+.theme-toggle__svg.fi {
+  font-size: 1.1rem;
+}
+html[dir="rtl"] .fi-sr-arrow-left,
+html[dir="rtl"] .fi-sr-angle-left {
+  transform: scaleX(-1);
+}
+.flaticon-credit {
+  margin: 0.75rem auto 0;
+  max-width: 48rem;
+  padding: 0 0.85rem 1rem;
+  font-size: 0.68rem;
+  color: rgb(var(--fg-muted));
+  text-align: center;
+}
+.flaticon-credit a {
+  color: inherit;
+  text-decoration: underline;
+}

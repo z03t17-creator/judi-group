@@ -8,6 +8,8 @@ use App\Enums\Role;
 use App\Models\Collection as DebtCollection;
 use App\Models\Expense;
 use App\Models\Invoice;
+use App\Models\StoreReject;
+use App\Models\StoreVisit;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -91,6 +93,23 @@ final class CollectorReportBuilder
             ->whereDate('collected_at', '<=', $toDay->toDateString())
             ->when($storeId && $storeId > 0, fn ($q) => $q->where('store_id', $storeId))
             ->orderByDesc('collected_at')
+            ->orderByDesc('id')
+            ->get();
+
+        $visits = StoreVisit::query()
+            ->with(['store', 'collector'])
+            ->whereIn('collector_id', $ids ?: [0])
+            ->whereBetween('started_at', [$fromDay, $toDay])
+            ->when($storeId && $storeId > 0, fn ($q) => $q->where('store_id', $storeId))
+            ->orderByDesc('started_at')
+            ->orderByDesc('id')
+            ->get();
+
+        $rejects = StoreReject::query()
+            ->with(['store', 'collector', 'items'])
+            ->whereIn('collector_id', $ids ?: [0])
+            ->whereBetween('created_at', [$fromDay, $toDay])
+            ->when($storeId && $storeId > 0, fn ($q) => $q->where('store_id', $storeId))
             ->orderByDesc('id')
             ->get();
 
@@ -197,6 +216,9 @@ final class CollectorReportBuilder
             'to' => $toDay->toDateString(),
             'invoice_count' => $invoices->count(),
             'stores_visited' => $stores->count(),
+            'visit_count' => $visits->count(),
+            'reject_count' => $rejects->count(),
+            'reject_credit_total' => (float) $rejects->sum(fn (StoreReject $r) => (float) $r->credit_amount),
             'cash_count' => $cash->count(),
             'debt_count' => $debt->count(),
             'sales_total' => $salesTotal,
@@ -222,6 +244,8 @@ final class CollectorReportBuilder
             // Full list (pending + confirmed) so pending rows can show with a badge.
             'collections' => $collections,
             'invoices' => $invoices,
+            'visits' => $visits,
+            'rejects' => $rejects,
         ];
     }
 

@@ -22,7 +22,7 @@
             <a href="{{ route('visits.show', $activeVisit) }}" class="btn btn--ghost btn--sm">{{ __('ui.visit_hub') }}</a>
         @else
             <button type="button" class="btn btn--ghost btn--sm" data-wizard-back hidden>{{ __('ui.back') }}</button>
-            <a href="{{ route('invoices.index') }}" class="btn btn--ghost btn--sm" data-exit-sell>{{ __('ui.back') }}</a>
+            <a href="{{ auth()->user()?->isCollector() ? route('reports.index') : route('invoices.index') }}" class="btn btn--ghost btn--sm" data-exit-sell>{{ __('ui.back') }}</a>
         @endif
     </header>
 
@@ -235,5 +235,5 @@
         remove: @json(__('ui.delete')),
     };
 </script>
-<script src="{{ asset('js/invoice-sell.js') }}?v=31" defer></script>
+<script src="{{ asset('js/invoice-sell.js') }}?v=32" defer></script>
 @endsection

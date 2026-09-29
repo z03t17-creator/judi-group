@@ -10,6 +10,8 @@
             el.textContent = '@page{size:80mm auto;margin:3mm}';
         } else if (mode === 'voucher') {
             el.textContent = '@page{size:A5 landscape;margin:0}';
+        } else if (mode === 'a5') {
+            el.textContent = '@page{size:A5 portrait;margin:8mm}';
         } else {
             el.textContent = '@page{size:A4 portrait;margin:0}';
         }
@@ -23,6 +25,18 @@
         } catch (e) {}
     }
 
+    function setPreviewMode(mode) {
+        var shell = document.querySelector('[data-invoice-preview]');
+        if (!shell) return;
+        var size = mode === 'slip' || mode === 'a5' ? mode : 'a4';
+        shell.setAttribute('data-preview-size', size);
+        document.querySelectorAll('[data-paper-preview]').forEach(function (btn) {
+            var on = btn.getAttribute('data-paper-preview') === size;
+            btn.classList.toggle('is-active', on);
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+    }
+
     window.judiPrint = function (mode, options) {
         options = options || {};
         var html = document.documentElement;
@@ -34,15 +48,19 @@
             document.title = pageName + ' — ' + brand;
         }
 
-        html.classList.toggle('print-thermal', mode === 'slip');
-        html.classList.toggle('print-voucher', mode === 'voucher');
-        setPageStyle(mode === 'slip' ? 'slip' : (mode === 'voucher' ? 'voucher' : 'a4'));
+        var normalized = mode === 'slip' ? 'slip' : (mode === 'voucher' ? 'voucher' : (mode === 'a5' ? 'a5' : 'a4'));
+        setPreviewMode(normalized === 'voucher' ? 'a5' : normalized);
+
+        html.classList.toggle('print-thermal', normalized === 'slip');
+        html.classList.toggle('print-voucher', normalized === 'voucher');
+        html.classList.toggle('print-a5', normalized === 'a5');
+        setPageStyle(normalized);
 
         var cleaned = false;
         var cleanup = function () {
             if (cleaned) return;
             cleaned = true;
-            html.classList.remove('print-thermal', 'print-voucher', 'print-section-mode');
+            html.classList.remove('print-thermal', 'print-voucher', 'print-a5', 'print-section-mode');
             document.querySelectorAll('.is-print-target').forEach(function (el) {
                 el.classList.remove('is-print-target');
             });
@@ -137,4 +155,8 @@
         event.preventDefault();
         window.judiPrint(btn.getAttribute('data-print') || 'a4');
     });
+
+    if (document.querySelector('[data-invoice-preview]')) {
+        setPreviewMode('a4');
+    }
 })();

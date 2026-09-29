@@ -36,7 +36,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=86">
+    {{-- Flaticon Uicons (Solid Rounded) — https://www.flaticon.com/uicons --}}
+    <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=88">
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
@@ -50,7 +52,7 @@
     <script src="{{ asset('js/push.js') }}?v=5" defer></script>
     <script src="{{ asset('js/share.js') }}?v=4" defer></script>
     <script src="{{ asset('js/preferences.js') }}?v=2" defer></script>
-    <script src="{{ asset('js/print-doc.js') }}?v=12" defer></script>
+    <script src="{{ asset('js/print-doc.js') }}?v=13" defer></script>
     <script src="{{ asset('js/office-nav.js') }}?v=2" defer></script>
 </head>
 <body
@@ -89,5 +91,8 @@
         </div>
     </div>
 @endif
+<p class="flaticon-credit no-print">
+    <a href="https://www.flaticon.com/uicons" target="_blank" rel="noopener noreferrer">Icons by Flaticon</a>
+</p>
 </body>
 </html>

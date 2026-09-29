@@ -101,7 +101,7 @@
             </a>
         @endif
 
-        @if ($user->canAccess('invoices.sell'))
+        @if ($user->canAccess('invoices.sell') && ! $user->isCollector())
             <a href="{{ route('invoices.create') }}" class="kpi-card kpi-card--iconed">
                 @include('partials.icon-badge', ['icon' => 'plus', 'tone' => 'teal', 'size' => 'md'])
                 <div>
@@ -111,7 +111,25 @@
             </a>
         @endif
 
-        @if ($user->canAccess('invoices'))
+        @if ($user->isCollector() && $user->canAccess('stores'))
+            <a href="{{ route('visits.entry') }}" class="kpi-card kpi-card--iconed">
+                @include('partials.icon-badge', ['icon' => 'store', 'tone' => 'teal', 'size' => 'md'])
+                <div>
+                    <h2>{{ __('ui.visit') }}</h2>
+                    <p class="kpi-card__value">{{ __('ui.visit_start') }}</p>
+                </div>
+            </a>
+        @endif
+
+        @if ($user->isCollector() && $user->canAccess('reports'))
+            <a href="{{ route('reports.index') }}" class="kpi-card kpi-card--iconed">
+                @include('partials.icon-badge', ['icon' => 'clipboard', 'tone' => 'amber', 'size' => 'md'])
+                <div>
+                    <h2>{{ __('ui.my_report') }}</h2>
+                    <p class="kpi-card__value">{{ number_format($invoiceCount) }}</p>
+                </div>
+            </a>
+        @elseif ($user->canAccess('invoices'))
             <a href="{{ route('invoices.index') }}" class="kpi-card kpi-card--iconed">
                 @include('partials.icon-badge', ['icon' => 'file', 'tone' => 'amber', 'size' => 'md'])
                 <div>

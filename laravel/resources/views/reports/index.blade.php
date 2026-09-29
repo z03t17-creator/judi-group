@@ -7,7 +7,7 @@
     <header class="page__header page__header--iconed report-page__hero no-print">
         @include('partials.icon-badge', ['icon' => 'clipboard', 'tone' => 'amber', 'size' => 'lg'])
         <div class="page__header-text">
-            <h1 class="page__title">{{ __('ui.reports') }}</h1>
+            <h1 class="page__title">{{ $canReviewAll ? __('ui.reports') : __('ui.my_report') }}</h1>
             <p class="page__lead">
                 @if ($canReviewAll)
                     {{ __('ui.reports_review_lead') }}
@@ -182,8 +182,9 @@
             <article class="kpi-card kpi-card--iconed report-kpi report-kpi--orange">
                 @include('partials.icon-badge', ['icon' => 'store', 'tone' => 'orange', 'size' => 'md'])
                 <div>
-                    <h2>{{ __('ui.report_stores_visited') }}</h2>
-                    <p class="kpi-card__value">{{ number_format($report['stores_visited']) }}</p>
+                    <h2>{{ __('ui.report_visits') }}</h2>
+                    <p class="kpi-card__value">{{ number_format($report['visit_count'] ?? 0) }}</p>
+                    <p class="kpi-card__hint">{{ __('ui.report_stores_visited') }}: {{ number_format($report['stores_visited']) }}</p>
                 </div>
             </article>
             <article class="kpi-card kpi-card--iconed report-kpi report-kpi--amber">
@@ -194,6 +195,25 @@
                     <p class="kpi-card__hint">
                         {{ __('ui.invoice_cash') }} {{ $report['cash_count'] }}
                         · {{ __('ui.invoice_debt') }} {{ $report['debt_count'] }}
+                    </p>
+                </div>
+            </article>
+            <article class="kpi-card kpi-card--iconed report-kpi report-kpi--teal">
+                @include('partials.icon-badge', ['icon' => 'cash', 'tone' => 'teal', 'size' => 'md'])
+                <div>
+                    <h2>{{ __('ui.report_collections') }}</h2>
+                    <p class="kpi-card__value ltr-inline">{{ number_format($report['collection_total'], 0) }}</p>
+                    <p class="kpi-card__hint">{{ number_format($report['collection_count']) }} {{ __('ui.collections') }}</p>
+                </div>
+            </article>
+            <article class="kpi-card kpi-card--iconed report-kpi report-kpi--violet">
+                @include('partials.icon-badge', ['icon' => 'package', 'tone' => 'violet', 'size' => 'md'])
+                <div>
+                    <h2>{{ __('ui.report_rejects') }}</h2>
+                    <p class="kpi-card__value">{{ number_format($report['reject_count'] ?? 0) }}</p>
+                    <p class="kpi-card__hint">
+                        {{ __('ui.reject_credit') }}:
+                        <span class="ltr-inline">{{ number_format($report['reject_credit_total'] ?? 0, 0) }}</span>
                     </p>
                 </div>
             </article>
@@ -210,14 +230,6 @@
                 <div>
                     <h2>{{ __('ui.report_debt_sales') }}</h2>
                     <p class="kpi-card__value ltr-inline">{{ number_format($report['debt_total'], 0) }}</p>
-                </div>
-            </article>
-            <article class="kpi-card kpi-card--iconed report-kpi report-kpi--teal">
-                @include('partials.icon-badge', ['icon' => 'cash', 'tone' => 'teal', 'size' => 'md'])
-                <div>
-                    <h2>{{ __('ui.report_collections') }}</h2>
-                    <p class="kpi-card__value ltr-inline">{{ number_format($report['collection_total'], 0) }}</p>
-                    <p class="kpi-card__hint">{{ number_format($report['collection_count']) }} {{ __('ui.collections') }}</p>
                 </div>
             </article>
             <article class="kpi-card kpi-card--iconed report-kpi report-kpi--sky">
@@ -457,6 +469,90 @@
                             </tr>
                         @empty
                             <tr><td colspan="{{ $showCollectorCol ? 8 : 7 }}" class="empty">{{ __('ui.invoice_empty') }}</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="report-section" id="report-section-visits" data-print-block style="--report-accent: #ea580c">
+            <div class="report-section__head">
+                <h2 class="report-section__title">{{ __('ui.visit') }}</h2>
+                @include('partials.print-section-button', ['target' => '#report-section-visits'])
+            </div>
+            <div class="table-wrap report-table-wrap">
+                <table class="data-table report-table">
+                    <thead>
+                        <tr>
+                            <th>{{ __('ui.invoice_store') }}</th>
+                            @if ($canReviewAll && ! $report['collector'])
+                                <th>{{ __('ui.invoice_delegate') }}</th>
+                            @endif
+                            <th>{{ __('ui.invoice_status') }}</th>
+                            <th>{{ __('ui.visit_started_at') }}</th>
+                            <th>{{ __('ui.visit_ended_at') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse (($report['visits'] ?? collect()) as $visit)
+                            <tr>
+                                <td>
+                                    <a href="{{ route('visits.show', $visit) }}" class="report-link">
+                                        <strong>{{ $visit->store?->name ?? '—' }}</strong>
+                                    </a>
+                                </td>
+                                @if ($canReviewAll && ! $report['collector'])
+                                    <td>{{ $visit->collector?->name }}</td>
+                                @endif
+                                <td>
+                                    <span class="report-chip">{{ $visit->status?->label() ?? '—' }}</span>
+                                </td>
+                                <td><span class="ltr-inline">{{ $visit->started_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') }}</span></td>
+                                <td><span class="ltr-inline">{{ $visit->ended_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') ?: '—' }}</span></td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="{{ ($canReviewAll && ! $report['collector']) ? 5 : 4 }}" class="empty">{{ __('ui.visits_empty') }}</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="report-section" id="report-section-rejects" data-print-block style="--report-accent: #7c3aed">
+            <div class="report-section__head">
+                <h2 class="report-section__title">{{ __('ui.reject_history') }}</h2>
+                @include('partials.print-section-button', ['target' => '#report-section-rejects'])
+            </div>
+            <div class="table-wrap report-table-wrap">
+                <table class="data-table report-table">
+                    <thead>
+                        <tr>
+                            <th>{{ __('ui.invoice_date') }}</th>
+                            @if ($canReviewAll && ! $report['collector'])
+                                <th>{{ __('ui.invoice_delegate') }}</th>
+                            @endif
+                            <th>{{ __('ui.invoice_store') }}</th>
+                            <th>{{ __('ui.invoice_status') }}</th>
+                            <th>{{ __('ui.reject_credit') }}</th>
+                            <th>{{ __('ui.notes') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse (($report['rejects'] ?? collect()) as $reject)
+                            <tr>
+                                <td><span class="ltr-inline">{{ $reject->created_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') }}</span></td>
+                                @if ($canReviewAll && ! $report['collector'])
+                                    <td>{{ $reject->collector?->name }}</td>
+                                @endif
+                                <td>{{ $reject->store?->name }}</td>
+                                <td>
+                                    <span class="report-chip">{{ $reject->status?->label() ?? '—' }}</span>
+                                </td>
+                                <td><span class="ltr-inline report-num">{{ number_format((float) $reject->credit_amount, 0) }}</span></td>
+                                <td>{{ $reject->note ?: '—' }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="{{ ($canReviewAll && ! $report['collector']) ? 6 : 5 }}" class="empty">{{ __('ui.rejects_empty') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

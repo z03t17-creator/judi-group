@@ -26,7 +26,7 @@
                 @include('partials.icons.arrow-back', ['class' => 'btn__icon'])
                 {{ $backLabel ?? __('ui.back') }}
             </a>
-            @if (auth()->user()->canAccess('invoices.sell'))
+            @if (auth()->user()->canAccess('invoices.sell') && ! auth()->user()->isCollector())
                 <a href="{{ route('invoices.create') }}" class="btn btn--regular">
                     @include('partials.icons.plus', ['class' => 'btn__icon'])
                     {{ __('ui.invoice_another') }}
@@ -55,15 +55,19 @@
         </div>
     @endif
 
-    {{-- Paper first so accountant can print before send --}}
-    @include('invoices.partials.paper-form', [
-        'invoice' => $invoice,
-        'company' => $company,
-    ])
-    @include('invoices.partials.paper-slip', [
-        'invoice' => $invoice,
-        'company' => $company,
-    ])
+    @include('invoices.partials.paper-size-bar')
+
+    <div class="invoice-preview-shell no-print-keep" data-invoice-preview>
+        {{-- Paper first so accountant can print before send --}}
+        @include('invoices.partials.paper-form', [
+            'invoice' => $invoice,
+            'company' => $company,
+        ])
+        @include('invoices.partials.paper-slip', [
+            'invoice' => $invoice,
+            'company' => $company,
+        ])
+    </div>
 
     @if (!empty($saleCollection))
         <div class="invoice-show__receipt no-print">
@@ -117,7 +121,7 @@
         <form
             method="POST"
             action="{{ route('releases.send', $invoice) }}"
-            class="sticky-cta no-print sticky-cta--invoice sticky-cta--release"
+            class="sticky-cta no-print sticky-cta--invoice sticky-cta--release sticky-cta--paper"
             onsubmit="return confirm(@json(__('ui.release_confirm')));"
         >
             @csrf
@@ -125,14 +129,20 @@
                 <span>{{ __('ui.invoice_grand_total') }}</span>
                 <strong class="ltr-inline">{{ number_format((float) $invoice->total_amount, 0) }}</strong>
             </div>
-            <button type="button" class="btn btn--regular" data-print="slip" title="{{ __('ui.print_slip') }}">
-                @include('partials.icons.print', ['class' => 'btn__icon'])
-                <span class="sticky-cta__label">{{ __('ui.print_slip') }}</span>
-            </button>
-            <button type="button" class="btn btn--regular" data-print="a4" title="{{ __('ui.print_a4') }}">
-                @include('partials.icons.print', ['class' => 'btn__icon'])
-                <span class="sticky-cta__label">{{ __('ui.print_a4') }}</span>
-            </button>
+            <div class="sticky-cta__prints" role="group" aria-label="{{ __('ui.paper_size') }}">
+                <button type="button" class="btn btn--regular" data-print="a4" title="{{ __('ui.print_a4') }}">
+                    @include('partials.icons.print', ['class' => 'btn__icon'])
+                    <span>A4</span>
+                </button>
+                <button type="button" class="btn btn--regular" data-print="a5" title="{{ __('ui.print_a5') }}">
+                    @include('partials.icons.print', ['class' => 'btn__icon'])
+                    <span>A5</span>
+                </button>
+                <button type="button" class="btn btn--regular" data-print="slip" title="{{ __('ui.print_slip') }}">
+                    @include('partials.icons.print', ['class' => 'btn__icon'])
+                    <span>80mm</span>
+                </button>
+            </div>
             <label class="check sticky-cta__check" title="{{ __('ui.release_printed_confirm') }}">
                 <input type="checkbox" name="printed_confirmed" value="1" required>
                 <span>{{ __('ui.release_printed_confirm') }}</span>
@@ -149,7 +159,7 @@
             @enderror
         </form>
     @else
-        <div class="sticky-cta no-print sticky-cta--invoice">
+        <div class="sticky-cta no-print sticky-cta--invoice sticky-cta--paper">
             <div class="sticky-cta__meta">
                 <span>{{ __('ui.invoice_grand_total') }}</span>
                 <strong class="ltr-inline">{{ number_format((float) $invoice->total_amount, 0) }}</strong>
@@ -160,14 +170,20 @@
                 'shareId' => 'share-invoice-'.$invoice->id,
                 'compact' => true,
             ])
-            <button type="button" class="btn btn--regular" data-print="slip" title="{{ __('ui.print_slip') }}">
-                @include('partials.icons.print', ['class' => 'btn__icon'])
-                <span class="sticky-cta__label">{{ __('ui.print_slip') }}</span>
-            </button>
-            <button type="button" class="btn btn--primary" data-print="a4">
-                @include('partials.icons.print', ['class' => 'btn__icon'])
-                {{ __('ui.print_a4') }}
-            </button>
+            <div class="sticky-cta__prints" role="group" aria-label="{{ __('ui.paper_size') }}">
+                <button type="button" class="btn btn--regular" data-print="a4" title="{{ __('ui.print_a4') }}">
+                    @include('partials.icons.print', ['class' => 'btn__icon'])
+                    <span>A4</span>
+                </button>
+                <button type="button" class="btn btn--regular" data-print="a5" title="{{ __('ui.print_a5') }}">
+                    @include('partials.icons.print', ['class' => 'btn__icon'])
+                    <span>A5</span>
+                </button>
+                <button type="button" class="btn btn--primary" data-print="slip" title="{{ __('ui.print_slip') }}">
+                    @include('partials.icons.print', ['class' => 'btn__icon'])
+                    <span>80mm</span>
+                </button>
+            </div>
         </div>
     @endif
 </section>
