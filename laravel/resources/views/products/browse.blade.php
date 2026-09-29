@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.products').' — JUDI')
+@section('title', __('ui.products'). ' — '.__('ui.brand_short'))
 
 @section('content')
 @php

@@ -2,6 +2,9 @@
 
 return [
     'language' => 'زمان',
+    'brand_name' => 'کۆگای جودی',
+    'brand_short' => 'کۆگای جودی',
+    'brand_tagline' => 'سروشت • کوالێتی • متمانە',
     'home' => 'سەرەتا',
     'welcome' => 'بەخێربێیت، :name',
     'filters_more' => 'فلتەری زیاتر',
@@ -100,7 +103,7 @@ return [
     'share' => 'هاوبەشکردن',
     'share_hint' => 'لیستی هاوبەشکردنی مۆبایل دەکاتەوە (WhatsApp و ئەپەکان). تەنها دەق — بێ لینکی سیستەم.',
     'share_device' => 'هاوبەشکردن لەم ئامێرە…',
-    'share_device_done' => 'لە JUDI هاوبەش کرا',
+    'share_device_done' => 'لە کۆگای جودی هاوبەش کرا',
     'share_more' => 'ئەپڵیکەیشنی تر…',
     'share_sms' => 'نامە (SMS)',
     'share_copy' => 'کۆپیکردنی دەق',
@@ -209,7 +212,7 @@ return [
     'cheque_details' => 'وردەکاری چەک',
     'collection_receipt_title' => 'پسوولەی وەرگرتن',
     'collection_voucher_title' => 'پسوولەی پارە وەرگرتن',
-    'company_legal_name' => 'کۆمپانیای جودی',
+    'company_legal_name' => 'کۆگای جودی',
     'company_branch' => 'لقی هەولێر',
     'received_from_dear' => 'وەرمگرت لە بەڕێز',
     'amount_in_dinar' => 'بڕ بە دینار',

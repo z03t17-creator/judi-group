@@ -1,4 +1,4 @@
-/* JUDI service worker — installable PWA + Web Push with Accept/Reject actions. */
+/* Judy's Shelter service worker — installable PWA + Web Push with Accept/Reject actions. */
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
@@ -28,7 +28,7 @@ function openOrFocus(url) {
 }
 
 function showLocal(title, body) {
-  return self.registration.showNotification(title || 'JUDI', {
+  return self.registration.showNotification(title || "Judy's Shelter", {
     body: body || '',
     icon: '/icon-192.png',
     badge: '/icon-192.png',
@@ -38,7 +38,7 @@ function showLocal(title, body) {
 
 self.addEventListener('push', (event) => {
   let data = {
-    title: 'JUDI',
+    title: "Judy's Shelter",
     body: '',
     url: '/settings#settings-devices-pending',
     icon: '/icon-192.png',
@@ -78,7 +78,7 @@ self.addEventListener('push', (event) => {
     }));
   }
 
-  event.waitUntil(self.registration.showNotification(data.title || 'JUDI', options));
+  event.waitUntil(self.registration.showNotification(data.title || "Judy's Shelter", options));
 });
 
 self.addEventListener('notificationclick', (event) => {
@@ -110,14 +110,14 @@ self.addEventListener('notificationclick', (event) => {
             payload = await res.json();
           } catch (e) {}
           if (res.ok && payload.ok) {
-            await showLocal(payload.title || 'JUDI', payload.message || '');
+            await showLocal(payload.title || "Judy's Shelter", payload.message || '');
             return;
           }
           if (res.status === 401 || res.status === 403 || res.status === 419) {
             return openOrFocus(target);
           }
           await showLocal(
-            payload.title || 'JUDI',
+            payload.title || "Judy's Shelter",
             payload.message || ('HTTP ' + res.status)
           );
           return openOrFocus(data.url || '/settings#settings-devices-pending');

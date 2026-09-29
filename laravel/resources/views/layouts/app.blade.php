@@ -24,9 +24,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="JUDI">
-    <meta name="application-name" content="JUDI">
-    <title>@yield('title', 'JUDI')</title>
+    <meta name="apple-mobile-web-app-title" content="{{ __('ui.brand_short') }}">
+    <meta name="application-name" content="{{ __('ui.brand_short') }}">
+    <title>@yield('title', __('ui.brand_short'))</title>
     <link rel="icon" href="{{ asset('icon-192.png') }}" type="image/png">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icon-192.png') }}">
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
@@ -45,12 +45,14 @@
     <script src="{{ asset('js/image-upload.js') }}?v=1" defer></script>
     <script src="{{ asset('js/notifications.js') }}?v=9" defer></script>
     <script src="{{ asset('js/push.js') }}?v=3" defer></script>
-    <script src="{{ asset('js/share.js') }}?v=3" defer></script>
+    <script src="{{ asset('js/share.js') }}?v=4" defer></script>
     <script src="{{ asset('js/preferences.js') }}?v=2" defer></script>
-    <script src="{{ asset('js/print-doc.js') }}?v=11" defer></script>
+    <script src="{{ asset('js/print-doc.js') }}?v=12" defer></script>
     <script src="{{ asset('js/office-nav.js') }}?v=2" defer></script>
 </head>
 <body
+    data-brand-name="{{ __('ui.brand_name') }}"
+    data-brand-short="{{ __('ui.brand_short') }}"
     data-notif-feed="{{ auth()->check() ? route('notifications.feed', absolute: false) : '' }}"
     data-notif-inbox="{{ auth()->check() ? route('settings.index', absolute: false).'#settings-inbox' : '' }}"
     data-prefs-url="{{ auth()->check() ? route('settings.preferences', absolute: false) : '' }}"

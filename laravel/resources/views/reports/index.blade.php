@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.reports').' — JUDI')
+@section('title', __('ui.reports'). ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page report-page">

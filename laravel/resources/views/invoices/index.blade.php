@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.invoices').' — JUDI')
+@section('title', __('ui.invoices'). ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page list-page">
@@ -138,7 +138,7 @@
                             <td class="data-table__actions">
                                 @include('partials.share-button', [
                                     'shareTitle' => $invoice->invoice_number,
-                                    'shareText' => \App\Support\ShareText::invoice($invoice, config('judi.company')),
+                                    'shareText' => \App\Support\ShareText::invoice($invoice, \App\Support\Brand::company()),
                                     'shareId' => 'share-inv-'.$invoice->id,
                                     'compact' => true,
                                 ])

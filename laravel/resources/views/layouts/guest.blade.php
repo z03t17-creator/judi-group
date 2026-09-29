@@ -15,9 +15,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="JUDI">
-    <meta name="application-name" content="JUDI">
-    <title>@yield('title', 'JUDI')</title>
+    <meta name="apple-mobile-web-app-title" content="{{ __('ui.brand_short') }}">
+    <meta name="application-name" content="{{ __('ui.brand_short') }}">
+    <title>@yield('title', __('ui.brand_short'))</title>
     <link rel="icon" href="{{ asset('icon-192.png') }}" type="image/png">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icon-192.png') }}">
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">

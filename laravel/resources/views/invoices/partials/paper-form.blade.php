@@ -15,11 +15,11 @@
         <div class="paper-invoice__brand">
             <img
                 src="{{ $judiLogoUrl }}"
-                alt="JUDI"
+                alt="{{ $company['name'] ?? __('ui.brand_name') }}"
                 class="paper-invoice__logo"
             >
             <div class="paper-invoice__brand-text">
-                <p class="paper-invoice__name">{{ $company['name'] ?? 'JUDI' }}</p>
+                <p class="paper-invoice__name">{{ $company['name'] ?? __('ui.brand_name') }}</p>
                 @if (! empty($company['tagline']))
                     <p class="paper-invoice__tagline">{{ $company['tagline'] }}</p>
                 @endif

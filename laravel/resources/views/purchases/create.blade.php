@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.purchase_new').' — JUDI')
+@section('title', __('ui.purchase_new'). ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page" data-purchase-receive>

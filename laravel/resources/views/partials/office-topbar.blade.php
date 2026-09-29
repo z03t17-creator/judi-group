@@ -23,9 +23,9 @@
     <button type="button" class="office-topbar__menu" data-office-menu-open aria-label="{{ __('ui.menu') }}">
         @include('partials.icons.more', ['class' => 'office-topbar__menu-icon'])
     </button>
-    <a href="{{ route('home') }}" class="office-topbar__brand" aria-label="JUDI">
+    <a href="{{ route('home') }}" class="office-topbar__brand" aria-label="{{ $brandShort }}">
         <img src="{{ $judiLogoUrl }}" alt="" class="office-topbar__logo">
-        <span>JUDI</span>
+        <span>{{ $brandShort }}</span>
     </a>
     <div class="office-topbar__actions">
         @if ($user->canAccess('releases') || $user->canAccess('reports.review') || $user->canApproveDevices())

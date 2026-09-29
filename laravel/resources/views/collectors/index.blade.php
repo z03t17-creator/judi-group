@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.collectors').' — JUDI')
+@section('title', __('ui.collectors'). ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page list-page">

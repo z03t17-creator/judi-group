@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.invoice_new').' — JUDI')
+@section('title', __('ui.invoice_new'). ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page page--sell sell-page sell-order" data-invoice-sell data-step="1" data-max-discount="{{ $maxDiscount }}" data-max-gift="{{ $maxGift }}" @if (!empty($visitLockedStoreId)) data-visit-locked-store="{{ $visitLockedStoreId }}" @endif>

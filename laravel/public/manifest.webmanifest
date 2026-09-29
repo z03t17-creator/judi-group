@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "JUDI",
-  "short_name": "JUDI",
+  "name": "Judy's Shelter",
+  "short_name": "Judy's Shelter",
   "description": "Distribution & inventory — sales, collections, stock, and reports.",
   "start_url": "/login",
   "scope": "/",

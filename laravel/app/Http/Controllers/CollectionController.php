@@ -204,7 +204,7 @@ class CollectionController extends Controller
 
         return view('collections.show', [
             'collection' => $collection,
-            'company' => config('judi.company'),
+            'company' => \App\Support\Brand::company(),
             'autoPrint' => $request->query('print') === 'slip'
                 ? 'slip'
                 : ($request->boolean('print') ? 'a4' : null),

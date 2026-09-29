@@ -1,14 +1,13 @@
 <header class="field-header">
     <div class="field-header__inner">
-        <a href="{{ route('home') }}" class="brand-mark" aria-label="JUDI">
+        <a href="{{ route('home') }}" class="brand-mark" aria-label="{{ $brandShort }}">
             <img
                 src="{{ $judiLogoUrl }}"
                 alt=""
                 class="brand-mark__img"
             >
             <span class="brand-mark__text">
-                <span class="brand-mark__name">Judi</span>
-                <span class="brand-mark__sub">Group</span>
+                <span class="brand-mark__name">{{ $brandShort }}</span>
             </span>
         </a>
         <div class="field-header__actions">

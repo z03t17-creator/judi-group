@@ -1,6 +1,6 @@
 @extends('layouts.guest')
 
-@section('title', __('auth.login_title') . ' — JUDI')
+@section('title', __('auth.login_title') . ' — '.__('ui.brand_short'))
 @section('body_class', 'login-body')
 
 @section('content')
@@ -16,7 +16,7 @@
         <div class="login-brand">
             <img
                 src="{{ $judiLogoUrl }}"
-                alt="JUDI — Nature • Quality • Trust"
+                alt="{{ __('ui.brand_name') }} — {{ __('ui.brand_tagline') }}"
                 class="login-logo"
             >
             <h1 class="login-title">{{ __('auth.login_title') }}</h1>

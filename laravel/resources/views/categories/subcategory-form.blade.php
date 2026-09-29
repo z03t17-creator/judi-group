@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', ($subcategory->exists ? __('ui.subcategory_edit') : __('ui.subcategory_new')).' — JUDI')
+@section('title', ($subcategory->exists ? __('ui.subcategory_edit') : __('ui.subcategory_new')). ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page">

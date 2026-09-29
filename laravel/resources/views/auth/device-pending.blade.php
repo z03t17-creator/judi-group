@@ -1,6 +1,6 @@
 @extends('layouts.guest')
 
-@section('title', __('ui.device_pending_title').' — JUDI')
+@section('title', __('ui.device_pending_title'). ' — '.__('ui.brand_short'))
 @section('body_class', 'login-body')
 
 @section('content')

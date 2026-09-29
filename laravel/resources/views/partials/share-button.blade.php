@@ -1,5 +1,5 @@
 @php
-    $shareTitle = $shareTitle ?? (config('judi.company.name') ?? 'JUDI');
+    $shareTitle = $shareTitle ?? ($brandName ?? __('ui.brand_name'));
     $shareText = $shareText ?? '';
     $shareId = $shareId ?? ('share-'.substr(md5($shareTitle.$shareText), 0, 8));
     $compact = ! empty($compact);

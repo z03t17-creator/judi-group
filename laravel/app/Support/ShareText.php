@@ -13,10 +13,10 @@ final class ShareText
      */
     public static function invoice(Invoice $invoice, ?array $company = null): string
     {
-        $company ??= config('judi.company', []);
+        $company ??= Brand::company();
         $lines = [];
 
-        $lines[] = ($company['name'] ?? 'JUDI');
+        $lines[] = ($company['name'] ?? Brand::name());
         if (! empty($company['tagline'])) {
             $lines[] = (string) $company['tagline'];
         }
@@ -78,10 +78,10 @@ final class ShareText
      */
     public static function collection(Collection $collection, ?array $company = null): string
     {
-        $company ??= config('judi.company', []);
+        $company ??= Brand::company();
         $lines = [];
 
-        $lines[] = ($company['name'] ?? 'JUDI');
+        $lines[] = ($company['name'] ?? Brand::name());
         if (! empty($company['tagline'])) {
             $lines[] = (string) $company['tagline'];
         }
@@ -113,10 +113,10 @@ final class ShareText
      */
     public static function purchase(Purchase $purchase, ?array $company = null): string
     {
-        $company ??= config('judi.company', []);
+        $company ??= Brand::company();
         $lines = [];
 
-        $lines[] = ($company['name'] ?? 'JUDI');
+        $lines[] = ($company['name'] ?? Brand::name());
         $lines[] = '';
         $lines[] = __('ui.purchase_no').': '.$purchase->purchase_number;
         $lines[] = __('ui.invoice_date').': '.($purchase->purchased_at?->format('Y-m-d') ?? '—');

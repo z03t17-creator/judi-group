@@ -7,7 +7,7 @@
 @endphp
 
 <article class="paper-slip" dir="rtl">
-    <p class="paper-slip__company">{{ $company['name'] ?? 'JUDI' }}</p>
+    <p class="paper-slip__company">{{ $company['name'] ?? __('ui.brand_name') }}</p>
     @if ($phones)
         <p class="paper-slip__phone" dir="ltr">{{ implode(' · ', $phones) }}</p>
     @endif

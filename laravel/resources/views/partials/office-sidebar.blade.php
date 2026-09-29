@@ -121,15 +121,14 @@
 
 <aside class="office-sidebar" aria-label="{{ __('ui.home') }}" data-office-sidebar>
     <div class="office-sidebar__brand">
-        <a href="{{ route('home') }}" class="brand-mark brand-mark--center" aria-label="JUDI">
+        <a href="{{ route('home') }}" class="brand-mark brand-mark--center" aria-label="{{ $brandShort }}">
             <img
                 src="{{ $judiLogoUrl }}"
                 alt=""
                 class="brand-mark__img"
             >
             <span class="brand-mark__text">
-                <span class="brand-mark__name">Judi</span>
-                <span class="brand-mark__sub">Group</span>
+                <span class="brand-mark__name">{{ $brandShort }}</span>
             </span>
         </a>
         <button type="button" class="office-sidebar__close" data-office-menu-close aria-label="{{ __('ui.close') }}">

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $store->name.' — JUDI')
+@section('title', $store->name. ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page list-page store-profile">

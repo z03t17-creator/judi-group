@@ -5,7 +5,7 @@ return [
     'logo_version' => '2',
 
     'company' => [
-        'name' => env('JUDI_COMPANY_NAME', 'JUDI'),
+        'name' => env('JUDI_COMPANY_NAME', "Judy's Shelter"),
         'tagline' => env('JUDI_COMPANY_TAGLINE', 'NATURE • QUALITY • TRUST'),
         'phones' => array_values(array_filter(array_map(
             'trim',

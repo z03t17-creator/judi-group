@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.collections').' — JUDI')
+@section('title', __('ui.collections'). ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page list-page">
@@ -167,7 +167,7 @@
                             <td class="data-table__actions">
                                 @include('partials.share-button', [
                                     'shareTitle' => $collection->receipt_number,
-                                    'shareText' => \App\Support\ShareText::collection($collection, config('judi.company')),
+                                    'shareText' => \App\Support\ShareText::collection($collection, \App\Support\Brand::company()),
                                     'shareId' => 'share-col-'.$collection->id,
                                     'compact' => true,
                                 ])

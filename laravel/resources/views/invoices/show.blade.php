@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $invoice->invoice_number.' — JUDI')
+@section('title', $invoice->invoice_number. ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page page--invoice-show">

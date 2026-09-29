@@ -261,7 +261,7 @@ class InvoiceController extends Controller
         return view('invoices.show', [
             'invoice' => $invoice,
             'saleCollection' => $saleCollection,
-            'company' => config('judi.company'),
+            'company' => \App\Support\Brand::company(),
             'autoPrint' => $request->query('print') === 'slip'
                 ? 'slip'
                 : ($request->boolean('print') || session('auto_print') ? 'a4' : null),

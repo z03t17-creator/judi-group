@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', ($selectedCategory?->name ?? __('ui.products')).' — JUDI')
+@section('title', ($selectedCategory?->name ?? __('ui.products')). ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page list-page">

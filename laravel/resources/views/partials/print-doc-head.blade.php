@@ -1,8 +1,8 @@
 @php
-    $printTitle = $printTitle ?? 'JUDI';
+    $printTitle = $printTitle ?? __('ui.brand_short');
     $printSubtitle = $printSubtitle ?? null;
     $printFilters = $printFilters ?? null;
-    $company = config('judi.company', []);
+    $company = $judiCompany ?? \App\Support\Brand::company();
     $phones = $company['phones'] ?? [];
 @endphp
 <div class="print-doc-head print-only" aria-hidden="true">
@@ -16,7 +16,7 @@
                 height="56"
             >
             <div class="print-doc-head__text">
-                <strong class="print-doc-head__company">{{ $company['name'] ?? 'JUDI' }}</strong>
+                <strong class="print-doc-head__company">{{ $company['name'] }}</strong>
                 @if (! empty($company['tagline']))
                     <p class="print-doc-head__tagline">{{ $company['tagline'] }}</p>
                 @endif

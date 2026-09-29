@@ -18,7 +18,7 @@
         : (float) ($collection->store?->current_debt ?? 0);
     $legal = $company['legal_name'] ?: __('ui.company_legal_name');
     $branch = $company['branch'] ?: __('ui.company_branch');
-    $brand = $company['name'] ?? 'JUDI';
+    $brand = $company['name'] ?? __('ui.brand_name');
     $tagline = $company['tagline'] ?? '';
     $words = MoneyWords::dinar($amount);
     $no = $collection->receipt_number;
@@ -46,7 +46,7 @@
         </div>
 
         <div class="paper-voucher__brand">
-            <img class="paper-voucher__logo" src="{{ $judiLogoUrl }}" alt="JUDI">
+            <img class="paper-voucher__logo" src="{{ $judiLogoUrl }}" alt="{{ $brand }}">
             <p class="paper-voucher__brand-name">{{ $brand }}</p>
             @if ($tagline !== '')
                 <p class="paper-voucher__brand-tag">{{ $tagline }}</p>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', ($collector->exists ? __('ui.collector_edit') : __('ui.collector_new')).' — JUDI')
+@section('title', ($collector->exists ? __('ui.collector_edit') : __('ui.collector_new')). ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page">

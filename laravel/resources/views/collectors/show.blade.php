@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $collector->name.' — JUDI')
+@section('title', $collector->name. ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page collector-profile">

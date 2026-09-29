@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.approvals').' — JUDI')
+@section('title', __('ui.approvals'). ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page approvals-page" data-approvals>

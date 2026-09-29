@@ -1,4 +1,8 @@
 (() => {
+  const brandFallback = () =>
+    (document.body && (document.body.getAttribute('data-brand-name') || document.body.getAttribute('data-brand-short')))
+    || "Judy's Shelter";
+
   const closeAll = (except) => {
     document.querySelectorAll('[data-share-root]').forEach((root) => {
       if (except && root === except) return;
@@ -14,7 +18,7 @@
     const titleEl = root.querySelector('[data-share-title]');
     const doneEl = root.querySelector('[data-share-done]');
     return {
-      title: (titleEl && titleEl.value) || 'JUDI',
+      title: (titleEl && titleEl.value) || brandFallback(),
       text: (textEl && textEl.value) || '',
       doneLabel: (doneEl && doneEl.value) || '',
     };
@@ -51,7 +55,7 @@
       + '</span>'
       + '<span class="notif-toast__close" aria-hidden="true">×</span>';
 
-    el.querySelector('.notif-toast__title').textContent = title || 'JUDI';
+    el.querySelector('.notif-toast__title').textContent = title || brandFallback();
     el.querySelector('.notif-toast__text').textContent = body || '';
 
     let closed = false;
@@ -115,7 +119,7 @@
   };
 
   const afterShared = (title, doneLabel) => {
-    notifyShared(title || 'JUDI', doneLabel || 'Shared');
+    notifyShared(title || brandFallback(), doneLabel || 'Shared');
   };
 
   document.addEventListener('click', async (event) => {

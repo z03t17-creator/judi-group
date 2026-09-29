@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.home').' — JUDI')
+@section('title', __('ui.home'). ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="home-board">

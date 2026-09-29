@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', ($supplier->exists ? __('ui.supplier_edit') : __('ui.supplier_new')).' — JUDI')
+@section('title', ($supplier->exists ? __('ui.supplier_edit') : __('ui.supplier_new')). ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page">

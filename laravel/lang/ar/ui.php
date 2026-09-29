@@ -2,6 +2,9 @@
 
 return [
     'language' => 'اللغة',
+    'brand_name' => 'المأوى جودي',
+    'brand_short' => 'المأوى جودي',
+    'brand_tagline' => 'طبيعة • جودة • ثقة',
     'home' => 'الرئيسية',
     'welcome' => 'مرحباً، :name',
     'filters_more' => 'مزيد من التصفية',
@@ -100,7 +103,7 @@ return [
     'share' => 'مشاركة',
     'share_hint' => 'يفتح قائمة المشاركة على الجهاز (واتساب والتطبيقات). نص فقط — بدون رابط النظام.',
     'share_device' => 'مشاركة من هذا الجهاز…',
-    'share_device_done' => 'تمت المشاركة من جودي',
+    'share_device_done' => 'تمت المشاركة من المأوى جودي',
     'share_more' => 'تطبيقات أخرى…',
     'share_sms' => 'رسالة نصية',
     'share_copy' => 'نسخ النص',
@@ -209,7 +212,7 @@ return [
     'cheque_details' => 'تفاصيل الشيكات',
     'collection_receipt_title' => 'سند قبض',
     'collection_voucher_title' => 'سند قبض نقدي',
-    'company_legal_name' => 'شركة جودي',
+    'company_legal_name' => 'المأوى جودي',
     'company_branch' => 'فرع أربيل',
     'received_from_dear' => 'استلمنا من السيد',
     'amount_in_dinar' => 'المبلغ بالدينار',

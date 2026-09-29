@@ -29,8 +29,9 @@
         var prevTitle = document.title;
         var titleEl = document.querySelector('.print-doc-head__title');
         var pageName = titleEl ? titleEl.textContent.trim() : '';
+        var brand = (document.body && document.body.getAttribute('data-brand-short')) || "Judy's Shelter";
         if (pageName) {
-            document.title = pageName + ' — JUDI';
+            document.title = pageName + ' — ' + brand;
         }
 
         html.classList.toggle('print-thermal', mode === 'slip');

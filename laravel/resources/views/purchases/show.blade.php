@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $purchase->purchase_number.' — JUDI')
+@section('title', $purchase->purchase_number. ' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page">
@@ -21,7 +21,7 @@
             </a>
             @include('partials.share-button', [
                 'shareTitle' => $purchase->purchase_number,
-                'shareText' => \App\Support\ShareText::purchase($purchase, config('judi.company')),
+                'shareText' => \App\Support\ShareText::purchase($purchase, \App\Support\Brand::company()),
             ])
             <a href="{{ route('purchases.create') }}" class="btn btn--primary">
                 @include('partials.icons.plus', ['class' => 'btn__icon'])

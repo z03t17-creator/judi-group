@@ -2,6 +2,9 @@
 
 return [
     'language' => 'Language',
+    'brand_name' => "Judy's Shelter",
+    'brand_short' => "Judy's Shelter",
+    'brand_tagline' => 'NATURE • QUALITY • TRUST',
     'home' => 'Home',
     'welcome' => 'Welcome, :name',
     'filters_more' => 'More filters',
@@ -100,7 +103,7 @@ return [
     'share' => 'Share',
     'share_hint' => 'Opens your phone share sheet (WhatsApp & apps). Text only — no system link.',
     'share_device' => 'Share on this device…',
-    'share_device_done' => 'Shared from JUDI',
+    'share_device_done' => "Shared from Judy's Shelter",
     'share_more' => 'More apps…',
     'share_sms' => 'SMS',
     'share_copy' => 'Copy text',
@@ -209,7 +212,7 @@ return [
     'cheque_details' => 'Cheque details',
     'collection_receipt_title' => 'Collection receipt',
     'collection_voucher_title' => 'Payment receipt',
-    'company_legal_name' => 'JUDI Company',
+    'company_legal_name' => "Judy's Shelter",
     'company_branch' => 'Erbil branch',
     'received_from_dear' => 'Received from',
     'amount_in_dinar' => 'Amount in dinar',
