@@ -346,6 +346,13 @@ html.office-menu-lock body {
     text-decoration: none;
   }
 
+  .office-topbar__brand span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 11rem;
+  }
+
   .office-topbar__logo {
     width: 1.65rem;
     height: 1.65rem;
