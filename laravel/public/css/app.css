@@ -7975,6 +7975,60 @@ html[data-theme="dark"] .sell-product--row {
 
 .store-profile__kpis {
   margin: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.store-invoice-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.store-invoice-list__empty {
+  padding: 0.85rem 0.75rem;
+  border: 1px dashed rgb(var(--line));
+  border-radius: 0.75rem;
+  text-align: center;
+}
+
+.store-invoice-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgb(var(--line));
+  border-radius: 0.85rem;
+  background: rgb(var(--surface));
+  color: inherit;
+  text-decoration: none;
+}
+
+.store-invoice-row__top,
+.store-invoice-row__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.store-invoice-row__no {
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.store-invoice-row__bottom .report-num {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.store-invoice-row__bottom time {
+  font-size: 0.75rem;
+  color: rgb(var(--fg-muted));
+  white-space: nowrap;
 }
 
 .store-profile__location-body {

@@ -46,29 +46,26 @@
                 @if ($store->owner_name)
                     <p class="store-profile__owner">{{ __('ui.store_owner') }}: <strong>{{ $store->owner_name }}</strong></p>
                 @endif
-                <p class="store-profile__meta" dir="ltr">{{ $store->phone }} · {{ $store->address ?: '—' }}</p>
+                @if ($store->address)
+                    <p class="store-profile__meta">{{ $store->address }}</p>
+                @endif
+                @if ($store->phone)
+                    <p class="store-profile__meta">
+                        <a class="store-profile__tel" href="tel:{{ preg_replace('/\s+/', '', $store->phone) }}" dir="ltr">{{ $store->phone }}</a>
+                    </p>
+                @endif
             </div>
         </div>
     </div>
 
     <div class="kpi-grid store-profile__kpis">
-        <div class="kpi-card kpi-card--accent report-kpi--amber" style="--kpi-accent: #d97706">
-            <h2>{{ __('ui.credit_limit') }}</h2>
-            <p class="kpi-card__value ltr-inline report-num">{{ number_format((float) $store->credit_limit, 0) }}</p>
-        </div>
         <div class="kpi-card kpi-card--accent report-kpi--amber" style="--kpi-accent: #b45309">
             <h2>{{ __('ui.current_debt') }}</h2>
             <p class="kpi-card__value ltr-inline report-num report-num--debt">{{ number_format((float) $store->current_debt, 0) }}</p>
         </div>
-        <div class="kpi-card kpi-card--accent report-kpi--teal" style="--kpi-accent: var(--judi-500)">
-            <h2>{{ __('ui.phone') }}</h2>
-            <p class="kpi-card__value">
-                <a class="store-profile__tel" href="tel:{{ preg_replace('/\s+/', '', $store->phone) }}" dir="ltr">{{ $store->phone }}</a>
-            </p>
-        </div>
-        <div class="kpi-card kpi-card--accent report-kpi--orange" style="--kpi-accent: #ea580c">
-            <h2>{{ __('ui.address') }}</h2>
-            <p class="kpi-card__value kpi-card__value--sm">{{ $store->address ?: '—' }}</p>
+        <div class="kpi-card kpi-card--accent report-kpi--amber" style="--kpi-accent: #d97706">
+            <h2>{{ __('ui.credit_limit') }}</h2>
+            <p class="kpi-card__value ltr-inline report-num">{{ number_format((float) $store->credit_limit, 0) }}</p>
         </div>
     </div>
 
@@ -118,45 +115,31 @@
             'showAllPeriod' => true,
         ])
 
-        <div class="table-wrap report-table-wrap">
-            <table class="data-table report-table">
-                <thead>
-                    <tr>
-                        <th>{{ __('ui.invoice_no') }}</th>
-                        <th>{{ __('ui.invoice_type') }}</th>
-                        <th>{{ __('ui.invoice_grand_total') }}</th>
-                        <th>{{ __('ui.invoice_date') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($recentInvoices as $invoice)
-                        @php
-                            $type = $invoice->invoice_type?->value ?? 'cash';
-                        @endphp
-                        <tr>
-                            <td>
-                                <a href="{{ route('invoices.show', $invoice) }}" class="report-link ltr-inline">{{ $invoice->invoice_number }}</a>
-                            </td>
-                            <td>
-                                <span class="report-chip report-chip--{{ $type === 'debt' ? 'debt' : 'cash' }}">
-                                    {{ $invoice->invoice_type?->label() ?? '—' }}
-                                </span>
-                            </td>
-                            <td dir="ltr">
-                                <span class="report-num report-num--{{ $type === 'debt' ? 'debt' : 'cash' }}">
-                                    {{ number_format((float) $invoice->total_amount, 0) }}
-                                </span>
-                            </td>
-                            <td dir="ltr">{{ optional($invoice->created_at)->format('Y-m-d H:i') }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="empty">{{ __('ui.invoice_empty') }}</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        <ul class="store-invoice-list">
+            @forelse ($recentInvoices as $invoice)
+                @php
+                    $type = $invoice->invoice_type?->value ?? 'cash';
+                @endphp
+                <li>
+                    <a href="{{ route('invoices.show', $invoice) }}" class="store-invoice-row">
+                        <div class="store-invoice-row__top">
+                            <strong class="store-invoice-row__no" dir="ltr">{{ $invoice->invoice_number }}</strong>
+                            <span class="report-chip report-chip--{{ $type === 'debt' ? 'debt' : 'cash' }}">
+                                {{ $invoice->invoice_type?->label() ?? '—' }}
+                            </span>
+                        </div>
+                        <div class="store-invoice-row__bottom">
+                            <span class="report-num report-num--{{ $type === 'debt' ? 'debt' : 'cash' }}" dir="ltr">
+                                {{ number_format((float) $invoice->total_amount, 0) }}
+                            </span>
+                            <time dir="ltr">{{ optional($invoice->created_at)->format('Y-m-d H:i') }}</time>
+                        </div>
+                    </a>
+                </li>
+            @empty
+                <li class="store-invoice-list__empty empty">{{ __('ui.invoice_empty') }}</li>
+            @endforelse
+        </ul>
 
         @if ($recentInvoices->hasPages())
             <div class="pager no-print">{{ $recentInvoices->links() }}</div>
