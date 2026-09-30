@@ -11,6 +11,8 @@
         'file' => 'fi-sr-document',
         'folder' => 'fi-sr-folder',
         'folder-tree' => 'fi-sr-folders',
+        'gift' => 'fi-sr-gift',
+        'discount' => 'fi-sr-badge-percent',
         'home' => 'fi-sr-home',
         'logout' => 'fi-sr-exit',
         'moon' => 'fi-sr-moon',

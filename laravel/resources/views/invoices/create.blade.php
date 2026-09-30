@@ -31,13 +31,13 @@
             <img class="sell-locked__img" data-locked-img alt="" @if (!empty($activeVisit)) src="{{ $activeVisit->store?->imageUrl() }}" @endif>
             <div class="sell-locked__body">
                 <strong data-locked-name>@if (!empty($activeVisit)){{ $activeVisit->store?->name }}@endif</strong>
-                <span class="sell-locked__meta" data-locked-meta dir="ltr">@if (!empty($activeVisit)){{ $activeVisit->store?->phone }}@endif</span>
+                <span class="sell-locked__debt num" data-locked-debt @if (empty($activeVisit) || (float) ($activeVisit->store?->current_debt ?? 0) <= 0) hidden @endif>
+                    @if (!empty($activeVisit) && (float) ($activeVisit->store?->current_debt ?? 0) > 0)
+                        <span class="sell-locked__debt-label">{{ __('ui.current_debt') }}</span>
+                        <strong dir="ltr">{{ number_format((float) $activeVisit->store->current_debt, 0) }}</strong>
+                    @endif
+                </span>
             </div>
-            <span class="sell-locked__debt num" data-locked-debt @if (empty($activeVisit) || (float) ($activeVisit->store?->current_debt ?? 0) <= 0) hidden @endif dir="ltr">
-                @if (!empty($activeVisit) && (float) ($activeVisit->store?->current_debt ?? 0) > 0)
-                    {{ number_format((float) $activeVisit->store->current_debt, 0) }}
-                @endif
-            </span>
             @if (empty($activeVisit))
                 <button type="button" class="btn btn--ghost btn--sm" data-change-store>{{ __('ui.store_change') }}</button>
             @endif
@@ -182,12 +182,18 @@
 
         <div class="line-sheet__extras" data-line-sheet-extras hidden>
             <label class="line-sheet__field">
-                <span>{{ __('ui.invoice_gift') }}</span>
+                <span class="line-sheet__field-label">
+                    @include('partials.icons.gift', ['class' => 'line-sheet__field-ico'])
+                    {{ __('ui.invoice_gift') }}
+                </span>
                 <input class="num" type="number" min="0" step="1" inputmode="numeric" value="0" data-line-sheet-gift dir="ltr">
             </label>
             @if ($maxDiscount > 0)
                 <label class="line-sheet__field">
-                    <span>{{ __('ui.invoice_discount') }} %</span>
+                    <span class="line-sheet__field-label">
+                        @include('partials.icons.discount', ['class' => 'line-sheet__field-ico'])
+                        {{ __('ui.invoice_discount') }} %
+                    </span>
                     <input class="num" type="number" min="0" max="{{ $maxDiscount }}" step="0.01" inputmode="decimal" value="0" data-line-sheet-discount dir="ltr">
                 </label>
             @endif
@@ -235,5 +241,5 @@
         remove: @json(__('ui.delete')),
     };
 </script>
-<script src="{{ asset('js/invoice-sell.js') }}?v=34" defer></script>
+<script src="{{ asset('js/invoice-sell.js') }}?v=36" defer></script>
 @endsection

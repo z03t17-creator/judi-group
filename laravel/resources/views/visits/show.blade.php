@@ -7,32 +7,22 @@
     <header class="visit-hub__header">
         <div class="visit-hub__store">
             <img class="visit-hub__img" src="{{ $store->imageUrl() }}" alt="">
-            <div>
+            <div class="visit-hub__store-text">
                 <p class="visit-hub__eyebrow">{{ __('ui.visit_hub') }} · {{ $visit->status->label() }}</p>
                 <h1 class="visit-hub__title">{{ $store->name }}</h1>
-                <p class="visit-hub__meta" dir="ltr">
-                    {{ $store->phone ?: '—' }}
-                    @if ((float) $store->current_debt > 0)
-                        · {{ __('ui.current_debt') }} {{ number_format((float) $store->current_debt, 0) }}
-                    @endif
-                </p>
+                @if ((float) $store->current_debt > 0)
+                    <p class="visit-hub__debt">
+                        <span>{{ __('ui.current_debt') }}</span>
+                        <strong class="num" dir="ltr">{{ number_format((float) $store->current_debt, 0) }}</strong>
+                    </p>
+                @endif
             </div>
         </div>
         @if ($visit->isOpen())
-            <div class="visit-hub__end">
-                @if ($visit->started_at)
-                    <span
-                        class="visit-timer visit-timer--hub"
-                        data-visit-timer
-                        data-started-at="{{ $visit->started_at->toIso8601String() }}"
-                        dir="ltr"
-                    >00:00:00</span>
-                @endif
-                <form method="POST" action="{{ route('visits.end', $visit) }}" onsubmit="return confirm(@json(__('ui.visit_end_confirm')));">
-                    @csrf
-                    <button type="submit" class="btn btn--ghost btn--sm">{{ __('ui.visit_end') }}</button>
-                </form>
-            </div>
+            <form method="POST" action="{{ route('visits.end', $visit) }}" class="visit-hub__end-form" onsubmit="return confirm(@json(__('ui.visit_end_confirm')));">
+                @csrf
+                <button type="submit" class="btn btn--ghost btn--sm">{{ __('ui.visit_end') }}</button>
+            </form>
         @endif
     </header>
 

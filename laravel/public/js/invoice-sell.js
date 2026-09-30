@@ -47,7 +47,6 @@
   var storeIdInput = root.querySelector("[data-store-id-input]");
   var lockedStore = root.querySelector("[data-locked-store]");
   var lockedName = root.querySelector("[data-locked-name]");
-  var lockedMeta = root.querySelector("[data-locked-meta]");
   var lockedDebt = root.querySelector("[data-locked-debt]");
   var lockedImg = root.querySelector("[data-locked-img]");
   var changeStoreBtn = root.querySelector("[data-change-store]");
@@ -513,6 +512,7 @@
           if (line.giftQuantity > 0) {
             badges.push(
               '<span class="sell-cart__badge">' +
+                '<i class="fi fi-sr-gift" aria-hidden="true"></i> ' +
                 escapeHtml(labels.gift || "Gift") +
                 " " +
                 line.giftQuantity +
@@ -522,6 +522,7 @@
           if (line.discountPercent > 0) {
             badges.push(
               '<span class="sell-cart__badge sell-cart__badge--disc">' +
+                '<i class="fi fi-sr-badge-percent" aria-hidden="true"></i> ' +
                 escapeHtml(labels.discount || "Disc") +
                 " " +
                 line.discountPercent +
@@ -851,7 +852,6 @@
   function lockStore(opt) {
     if (!opt) return;
     var name = opt.getAttribute("data-store-name") || "";
-    var phone = opt.getAttribute("data-store-phone") || "";
     var debt = opt.getAttribute("data-store-debt") || "0";
     var image = opt.getAttribute("data-store-image") || "";
     var id = opt.getAttribute("data-store-id") || "";
@@ -862,13 +862,16 @@
     });
 
     if (lockedName) lockedName.textContent = name;
-    if (lockedMeta) lockedMeta.textContent = phone;
     if (lockedImg) lockedImg.src = image;
     if (lockedDebt) {
       var hasDebt = debt && debt !== "0";
       lockedDebt.hidden = !hasDebt;
-      lockedDebt.textContent = hasDebt
-        ? (labels.currentDebt || "Debt") + ": " + debt
+      lockedDebt.innerHTML = hasDebt
+        ? '<span class="sell-locked__debt-label">' +
+          escapeHtml(labels.currentDebt || "Debt") +
+          "</span><strong dir=\"ltr\">" +
+          escapeHtml(debt) +
+          "</strong>"
         : "";
     }
     if (lockedStore) lockedStore.hidden = false;

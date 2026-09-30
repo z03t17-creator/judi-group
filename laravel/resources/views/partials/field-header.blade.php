@@ -1,32 +1,28 @@
 <header class="field-header">
     <div class="field-header__inner">
-        @if (! empty($activeVisitTimer) && $activeVisitTimer->isOpen())
-            <a href="{{ route('visits.show', $activeVisitTimer) }}" class="brand-mark" aria-label="{{ $brandShort }}">
-                <img src="{{ $judiLogoUrl }}" alt="" class="brand-mark__img">
-                <span class="brand-mark__text">
-                    <span class="brand-mark__name">{{ $brandShort }}</span>
-                </span>
-            </a>
-        @else
-            <a href="{{ route('home') }}" class="brand-mark" aria-label="{{ $brandShort }}">
-                <img src="{{ $judiLogoUrl }}" alt="" class="brand-mark__img">
-                <span class="brand-mark__text">
-                    <span class="brand-mark__name">{{ $brandShort }}</span>
-                </span>
-            </a>
-        @endif
-        <div class="field-header__actions">
-            @if (! empty($activeVisitTimer) && $activeVisitTimer->isOpen() && $activeVisitTimer->started_at)
+        <div class="field-header__brand">
+            @if (! empty($activeVisitTimer) && $activeVisitTimer->isOpen())
+                <a href="{{ route('visits.show', $activeVisitTimer) }}" class="brand-mark" aria-label="{{ $brandShort }}">
+                    <img src="{{ $judiLogoUrl }}" alt="" class="brand-mark__img">
+                </a>
                 <a
                     href="{{ route('visits.show', $activeVisitTimer) }}"
                     class="visit-timer"
                     data-visit-timer
-                    data-started-at="{{ $activeVisitTimer->started_at->toIso8601String() }}"
+                    data-started-at="{{ $activeVisitTimer->started_at?->toIso8601String() }}"
                     title="{{ $activeVisitTimer->store?->name }}"
                     dir="ltr"
                 >00:00:00</a>
+            @else
+                <a href="{{ route('home') }}" class="brand-mark" aria-label="{{ $brandShort }}">
+                    <img src="{{ $judiLogoUrl }}" alt="" class="brand-mark__img">
+                    <span class="brand-mark__text">
+                        <span class="brand-mark__name">{{ $brandShort }}</span>
+                    </span>
+                </a>
             @endif
-            <p class="field-header__name">{{ auth()->user()->name }}</p>
+        </div>
+        <div class="field-header__actions">
             @include('partials.theme-toggle')
             @include('partials.notif-bell')
             @if (! empty($activeVisitTimer) && $activeVisitTimer->isOpen())
