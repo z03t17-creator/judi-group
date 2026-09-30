@@ -1783,9 +1783,18 @@ html.office-menu-lock body {
   color: var(--judi-700);
 }
 
+html[data-theme="dark"] .badge--ok {
+  background: rgb(45 212 191 / 0.22);
+  color: #99f6e4;
+}
+
 .badge--off {
   background: rgb(var(--muted));
   color: rgb(var(--fg-subtle));
+}
+
+html[data-theme="dark"] .badge--off {
+  color: #cbd5e1;
 }
 
 .kpi-grid {
@@ -9510,9 +9519,16 @@ html[data-theme="dark"] .sell-tile {
   text-align: center;
   border: 1px solid rgb(var(--line-strong));
   border-radius: 0.55rem;
-  background: #fff;
+  background: rgb(var(--canvas));
+  color: rgb(var(--fg));
   font: inherit;
   font-variant-numeric: tabular-nums;
+}
+html[data-theme="dark"] .qty-stepper input {
+  background: #0b1615;
+  color: #f8fafc;
+  border-color: rgb(255 255 255 / 0.28);
+  caret-color: #f8fafc;
 }
 .sell-invoice-disc input.num {
   text-align: center;
@@ -10112,29 +10128,34 @@ html[data-theme="dark"] .sell-tile {
     border: 0;
     box-shadow: none;
   }
-  .page--invoice-show .paper-invoice__table .col-piece-price,
+  .page--invoice-show .paper-invoice__table .col-piece-price {
+    display: table-cell !important;
+  }
   .page--invoice-show .paper-invoice__table .col-gift,
   .page--invoice-show .paper-invoice__table .col-disc {
-    display: table-cell !important;
+    display: table-cell;
   }
 }
 
 /* Flaticon Uicons sizing (replaces stroke SVGs) */
 i.fi {
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
+  position: relative;
+  display: inline-block !important;
   line-height: 1 !important;
   vertical-align: middle;
   speak: none;
   box-sizing: border-box;
+  overflow: hidden;
 }
 i.fi::before {
-  display: block !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
   margin: 0 !important;
   line-height: 1 !important;
-  width: 1em;
-  height: 1em;
+  width: auto !important;
+  height: auto !important;
 }
 .icon-badge__svg.fi,
 i.icon-badge__svg {
@@ -10174,19 +10195,44 @@ i.icon-badge__svg {
   height: 1.1rem !important;
   font-size: 1.1rem;
 }
-html[dir="rtl"] .fi-sr-arrow-left,
-html[dir="rtl"] .fi-sr-angle-left {
-  transform: scaleX(-1);
+html[dir="rtl"] .fi-sr-arrow-left::before,
+html[dir="rtl"] .fi-sr-angle-left::before {
+  transform: translate(-50%, -50%) scaleX(-1) !important;
 }
-.flaticon-credit {
-  margin: 0.75rem auto 0;
-  max-width: 48rem;
-  padding: 0 0.85rem 1rem;
-  font-size: 0.68rem;
-  color: rgb(var(--fg-muted));
-  text-align: center;
+
+.visit-timer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4.6rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.55rem;
+  background: rgb(45 212 191 / 0.18);
+  border: 1px solid rgb(45 212 191 / 0.35);
+  color: #99f6e4;
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  flex-shrink: 0;
 }
-.flaticon-credit a {
-  color: inherit;
-  text-decoration: underline;
+html[data-theme="light"] .visit-timer {
+  background: rgb(15 118 110 / 0.1);
+  border-color: rgb(15 118 110 / 0.25);
+  color: #0f766e;
+}
+.visit-timer--hub {
+  font-size: 0.8rem;
+  min-width: 5rem;
+}
+.visit-hub__end {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+.inline-form {
+  display: inline;
+  margin: 0;
 }

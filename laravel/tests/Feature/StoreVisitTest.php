@@ -255,8 +255,10 @@ class StoreVisitTest extends TestCase
 
         $this->assertNotNull($reject->fresh()->reviewed_at);
 
-        $this->actingAs($collector)->post(route('visits.end', $visit))->assertRedirect();
+        $this->actingAs($collector)->post(route('visits.end', $visit))
+            ->assertRedirect(route('login'));
         $this->assertSame(StoreVisitStatus::Closed, $visit->fresh()->status);
+        $this->assertGuest();
     }
 
     public function test_visit_report_shows_sections_and_print_controls(): void

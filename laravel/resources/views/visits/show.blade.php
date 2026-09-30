@@ -19,10 +19,20 @@
             </div>
         </div>
         @if ($visit->isOpen())
-            <form method="POST" action="{{ route('visits.end', $visit) }}" onsubmit="return confirm(@json(__('ui.visit_end_confirm')));">
-                @csrf
-                <button type="submit" class="btn btn--ghost btn--sm">{{ __('ui.visit_end') }}</button>
-            </form>
+            <div class="visit-hub__end">
+                @if ($visit->started_at)
+                    <span
+                        class="visit-timer visit-timer--hub"
+                        data-visit-timer
+                        data-started-at="{{ $visit->started_at->toIso8601String() }}"
+                        dir="ltr"
+                    >00:00:00</span>
+                @endif
+                <form method="POST" action="{{ route('visits.end', $visit) }}" onsubmit="return confirm(@json(__('ui.visit_end_confirm')));">
+                    @csrf
+                    <button type="submit" class="btn btn--ghost btn--sm">{{ __('ui.visit_end') }}</button>
+                </form>
+            </div>
         @endif
     </header>
 

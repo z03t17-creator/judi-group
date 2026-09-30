@@ -33,6 +33,13 @@ class AppServiceProvider extends ServiceProvider
             $view->with('brandName', Brand::name());
             $view->with('brandShort', Brand::short());
             $view->with('judiCompany', Brand::company());
+
+            $activeVisitTimer = null;
+            $user = auth()->user();
+            if ($user && method_exists($user, 'isCollector') && $user->isCollector()) {
+                $activeVisitTimer = \App\Models\StoreVisit::openForCollector($user);
+            }
+            $view->with('activeVisitTimer', $activeVisitTimer);
         });
 
         if ($this->app->environment('production')) {

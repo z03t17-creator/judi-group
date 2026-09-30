@@ -11,6 +11,16 @@
             </span>
         </a>
         <div class="field-header__actions">
+            @if (! empty($activeVisitTimer) && $activeVisitTimer->isOpen() && $activeVisitTimer->started_at)
+                <a
+                    href="{{ route('visits.show', $activeVisitTimer) }}"
+                    class="visit-timer"
+                    data-visit-timer
+                    data-started-at="{{ $activeVisitTimer->started_at->toIso8601String() }}"
+                    title="{{ $activeVisitTimer->store?->name }}"
+                    dir="ltr"
+                >00:00:00</a>
+            @endif
             <p class="field-header__name">{{ auth()->user()->name }}</p>
             @include('partials.theme-toggle')
             @include('partials.notif-bell')

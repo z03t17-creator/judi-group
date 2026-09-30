@@ -16,9 +16,11 @@
                 {{ __('ui.back') }}
             </a>
             @if (auth()->user()?->canAccess('stores') && auth()->user()?->isCollector() && $store->is_active)
-                <a href="{{ route('visits.create', ['store_id' => $store->id]) }}" class="btn btn--primary">
-                    {{ __('ui.visit_start') }}
-                </a>
+                <form method="POST" action="{{ route('visits.store') }}" class="inline-form">
+                    @csrf
+                    <input type="hidden" name="store_id" value="{{ $store->id }}">
+                    <button type="submit" class="btn btn--primary">{{ __('ui.visit_start') }}</button>
+                </form>
             @endif
             @if ($canManage)
                 <a href="{{ route('stores.edit', $store) }}" class="btn btn--primary">

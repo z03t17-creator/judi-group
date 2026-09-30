@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.settings'). ' — '.__('ui.brand_short'))
+@section('title', __('ui.settings').' — '.__('ui.brand_short'))
 
 @section('content')
 <section class="page">
@@ -8,7 +8,6 @@
         @include('partials.icon-badge', ['icon' => 'settings', 'tone' => 'slate', 'size' => 'lg'])
         <div class="page__header-text">
             <h1>{{ __('ui.settings') }}</h1>
-            <p>{{ __('ui.settings_lead') }}</p>
         </div>
     </header>
 
@@ -20,10 +19,8 @@
     @endif
 
     <div class="settings-grid">
-        {{-- Appearance --}}
         <section class="surface-panel settings-card" aria-labelledby="settings-appear">
             <h2 id="settings-appear">{{ __('ui.settings_appearance') }}</h2>
-            <p class="muted">{{ __('ui.settings_appearance_live') }}</p>
             <div class="stack-form" data-prefs-live>
                 <fieldset class="choice-row">
                     <legend>{{ __('ui.settings_theme') }}</legend>
@@ -53,25 +50,19 @@
             </div>
         </section>
 
-        {{-- Language --}}
         <section class="surface-panel settings-card" aria-labelledby="settings-lang">
             <h2 id="settings-lang">{{ __('ui.language') }}</h2>
-            <p class="muted">{{ __('ui.settings_lang_hint') }}</p>
             @include('partials.locale-switcher', ['tone' => 'surface'])
         </section>
 
-        {{-- Link to notifications page --}}
         <section class="surface-panel settings-card" aria-labelledby="settings-notif-link">
             <h2 id="settings-notif-link">{{ __('ui.notifications') }}</h2>
-            <p class="muted">{{ __('ui.settings_notif_link_hint') }}</p>
             <a class="btn btn--primary" href="{{ route('notifications.index') }}">{{ __('ui.open_notifications') }}</a>
         </section>
 
         @if (auth()->user()->canApproveDevices())
-            {{-- Pending devices --}}
             <section class="surface-panel settings-card settings-card--wide" aria-labelledby="settings-devices-pending">
                 <h2 id="settings-devices-pending">{{ __('ui.devices_pending') }}</h2>
-                <p class="muted">{{ __('ui.devices_pending_hint') }}</p>
                 @forelse ($pendingDevices as $req)
                     <article class="device-card">
                         <div>
@@ -79,7 +70,7 @@
                             <p class="muted" dir="ltr">{{ $req->user?->email }}</p>
                             <p class="muted">
                                 {{ \App\Support\DeviceFingerprint::shortLabel($req->user_agent) }}
-                                · {{ __('ui.device_ip') }}: <strong dir="ltr">{{ $req->ip_address }}</strong>
+                                · <strong dir="ltr">{{ $req->ip_address }}</strong>
                             </p>
                         </div>
                         <div class="device-card__actions">
@@ -100,18 +91,14 @@
         @endif
 
         @if (auth()->user()->isAdmin())
-            {{-- Backup --}}
             <section class="surface-panel settings-card" aria-labelledby="settings-backup">
                 <h2 id="settings-backup">{{ __('ui.backup') }}</h2>
-                <p class="muted">{{ __('ui.backup_hint') }}</p>
                 <a class="btn btn--primary" href="{{ route('settings.backup') }}">{{ __('ui.backup_download') }}</a>
             </section>
         @endif
 
-        {{-- My devices --}}
         <section class="surface-panel settings-card settings-card--wide" aria-labelledby="settings-my-devices">
             <h2 id="settings-my-devices">{{ __('ui.my_devices') }}</h2>
-            <p class="muted">{{ __('ui.my_devices_hint') }}</p>
             @if (auth()->user()->isAdmin() && $myDevices->count() > 1)
                 <form method="POST" action="{{ route('settings.devices.revoke_others') }}" class="mb-3" onsubmit="return confirm(@json(__('ui.device_revoke_others_confirm')))">
                     @csrf
@@ -126,8 +113,8 @@
                             <span class="chip">{{ __('ui.device_this') }}</span>
                         @endif
                         <p class="muted" dir="ltr">
-                            {{ __('ui.device_last_seen') }}: {{ $device->last_seen_at?->format('Y-m-d H:i') }}
-                            · {{ __('ui.device_ip') }}: <strong>{{ $device->ip_address ?: '—' }}</strong>
+                            {{ $device->last_seen_at?->format('Y-m-d H:i') }}
+                            · <strong>{{ $device->ip_address ?: '—' }}</strong>
                         </p>
                     </div>
                     @if (auth()->user()->isAdmin())
@@ -150,7 +137,6 @@
         @if (auth()->user()->isAdmin())
             <section class="surface-panel settings-card settings-card--wide" aria-labelledby="settings-all-devices">
                 <h2 id="settings-all-devices">{{ __('ui.all_user_devices') }}</h2>
-                <p class="muted">{{ __('ui.all_user_devices_hint') }}</p>
                 @php
                     $devicesByUser = $allDevices->groupBy('user_id');
                 @endphp
@@ -176,8 +162,8 @@
                                         <span class="chip">{{ __('ui.device_this') }}</span>
                                     @endif
                                     <p class="muted" dir="ltr">
-                                        {{ __('ui.device_last_seen') }}: {{ $device->last_seen_at?->format('Y-m-d H:i') }}
-                                        · {{ __('ui.device_ip') }}: <strong>{{ $device->ip_address ?: '—' }}</strong>
+                                        {{ $device->last_seen_at?->format('Y-m-d H:i') }}
+                                        · <strong>{{ $device->ip_address ?: '—' }}</strong>
                                     </p>
                                 </div>
                                 <form method="POST" action="{{ route('settings.devices.revoke', $device) }}" onsubmit="return confirm(@json(__('ui.device_revoke_confirm')))">

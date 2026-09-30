@@ -15,6 +15,7 @@ use App\Models\Warehouse;
 use App\Support\CollectorReportBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use InvalidArgumentException;
 
@@ -57,6 +58,17 @@ class StoreVisitController extends Controller
     public function store(StartStoreVisitRequest $request): RedirectResponse
     {
         $store = Store::query()->findOrFail($request->integer('store_id'));
+
+        $open = StoreVisit::openForCollector($request->user());
+        if ($open) {
+            if ((int) $open->store_id === (int) $store->id) {
+                return redirect()->route('visits.show', $open);
+            }
+
+            return back()->withInput()->withErrors([
+                'store_id' => __('ui.visit_already_open'),
+            ]);
+        }
 
         try {
             $visit = StoreVisit::start(
@@ -110,6 +122,17 @@ class StoreVisitController extends Controller
             $visit->end($request->user());
         } catch (InvalidArgumentException $e) {
             return back()->withErrors(['visit' => $e->getMessage()]);
+        }
+
+        $user = $request->user();
+        if ($user->isCollector()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()
+                ->route('login')
+                ->with('status', __('ui.visit_ended_logout'));
         }
 
         return redirect()

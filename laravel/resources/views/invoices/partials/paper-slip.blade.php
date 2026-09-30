@@ -4,6 +4,7 @@
     $respect = $invoice->store?->owner_name ?: $invoice->store?->name;
     $fmtQty = static fn (float $n): string => rtrim(rtrim(number_format($n, 2, '.', ','), '0'), '.') ?: '0';
     $hasDiscount = (float) $invoice->discount_percent > 0;
+    $hasGift = $invoice->items->contains(fn ($item) => (float) $item->gift_quantity > 0);
 @endphp
 
 <article class="paper-slip" dir="rtl">
@@ -27,7 +28,9 @@
             <tr>
                 <th>{{ __('ui.invoice_item_name') }}</th>
                 <th>{{ __('ui.invoice_qty') }}</th>
-                <th>{{ __('ui.invoice_gift') }}</th>
+                @if ($hasGift)
+                    <th>{{ __('ui.invoice_gift') }}</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -38,7 +41,9 @@
                         <span dir="ltr">{{ $fmtQty((float) $item->quantity) }}</span>
                         {{ $item->unitLabel() }}
                     </td>
-                    <td dir="ltr">{{ (float) $item->gift_quantity > 0 ? $fmtQty((float) $item->gift_quantity) : '—' }}</td>
+                    @if ($hasGift)
+                        <td dir="ltr">{{ (float) $item->gift_quantity > 0 ? $fmtQty((float) $item->gift_quantity) : '—' }}</td>
+                    @endif
                 </tr>
             @endforeach
         </tbody>

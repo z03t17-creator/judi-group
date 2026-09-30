@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\StoreVisit;
 use App\Support\DeviceFingerprint;
 use App\Support\DeviceGuard;
 use Illuminate\Http\RedirectResponse;
@@ -72,6 +73,18 @@ class LoginController extends Controller
 
     public function destroy(Request $request): RedirectResponse
     {
+        $user = Auth::user();
+        if ($user && method_exists($user, 'isCollector') && $user->isCollector()) {
+            $open = StoreVisit::openForCollector($user);
+            if ($open) {
+                try {
+                    $open->end($user);
+                } catch (\Throwable) {
+                    // Still log out even if visit close fails.
+                }
+            }
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

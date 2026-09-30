@@ -8,7 +8,6 @@
         @include('partials.icon-badge', ['icon' => 'clipboard', 'tone' => 'teal', 'size' => 'lg'])
         <div class="page__header-text">
             <h1 class="page__title">{{ __('ui.approvals') }}</h1>
-            <p class="page__lead">{{ __('ui.approvals_lead') }}</p>
         </div>
         <div class="page__actions">
             <span class="approvals-total ltr-inline">{{ number_format($counts['all']) }}</span>
@@ -54,9 +53,7 @@
 
     @if ($counts['all'] === 0)
         <div class="empty-state surface-panel">
-            @include('partials.icon-badge', ['icon' => 'clipboard', 'tone' => 'slate', 'size' => 'lg'])
             <p class="empty-state__title">{{ __('ui.approvals_empty') }}</p>
-            <p class="empty-state__hint">{{ __('ui.approvals_empty_hint') }}</p>
         </div>
     @endif
 
@@ -65,10 +62,7 @@
             @csrf
             <input type="hidden" name="tab" value="{{ $tab }}">
             <div class="approvals-section__head">
-                <div>
-                    <h2 class="approvals-section__title">{{ __('ui.releases') }}</h2>
-                    <p class="approvals-section__lead">{{ __('ui.releases_lead') }}</p>
-                </div>
+                <h2 class="approvals-section__title">{{ __('ui.releases') }}</h2>
                 <label class="check approvals-section__all">
                     <input type="checkbox" data-select-all>
                     <span>{{ __('ui.approvals_select_all') }}</span>
@@ -119,10 +113,7 @@
             @csrf
             <input type="hidden" name="tab" value="{{ $tab }}">
             <div class="approvals-section__head">
-                <div>
-                    <h2 class="approvals-section__title">{{ __('ui.collections') }}</h2>
-                    <p class="approvals-section__lead">{{ __('ui.approvals_collections_lead') }}</p>
-                </div>
+                <h2 class="approvals-section__title">{{ __('ui.collections') }}</h2>
                 <label class="check approvals-section__all">
                     <input type="checkbox" data-select-all>
                     <span>{{ __('ui.approvals_select_all') }}</span>
@@ -171,10 +162,7 @@
         @if ($openVisits->isNotEmpty())
             <section class="approvals-section">
                 <div class="approvals-section__head">
-                    <div>
-                        <h2 class="approvals-section__title">{{ __('ui.visit_status_open') }}</h2>
-                        <p class="approvals-section__lead">{{ __('ui.approvals_visits_lead') }}</p>
-                    </div>
+                    <h2 class="approvals-section__title">{{ __('ui.visit_status_open') }}</h2>
                 </div>
                 <ul class="approvals-list" role="list">
                     @foreach ($openVisits as $visit)
@@ -197,10 +185,7 @@
                 @csrf
                 <input type="hidden" name="tab" value="{{ $tab }}">
                 <div class="approvals-section__head">
-                    <div>
-                        <h2 class="approvals-section__title">{{ __('ui.reject_pending_review') }}</h2>
-                        <p class="approvals-section__lead">{{ __('ui.approvals_rejects_lead') }}</p>
-                    </div>
+                    <h2 class="approvals-section__title">{{ __('ui.reject_pending_review') }}</h2>
                     <label class="check approvals-section__all">
                         <input type="checkbox" data-select-all>
                         <span>{{ __('ui.approvals_select_all') }}</span>
@@ -246,10 +231,7 @@
             @csrf
             <input type="hidden" name="tab" value="{{ $tab }}">
             <div class="approvals-section__head">
-                <div>
-                    <h2 class="approvals-section__title">{{ __('ui.devices') }}</h2>
-                    <p class="approvals-section__lead">{{ __('ui.approvals_devices_lead') }}</p>
-                </div>
+                <h2 class="approvals-section__title">{{ __('ui.devices') }}</h2>
                 <label class="check approvals-section__all">
                     <input type="checkbox" data-select-all>
                     <span>{{ __('ui.approvals_select_all') }}</span>
