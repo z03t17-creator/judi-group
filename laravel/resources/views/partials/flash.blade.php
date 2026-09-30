@@ -2,22 +2,12 @@
     <div class="alert alert--success" role="status">{{ session('success') }}</div>
 @endif
 
-@if ($errors->has('collector'))
-    <div class="alert alert--danger" role="alert">{{ $errors->first('collector') }}</div>
+@if (session('error'))
+    <div class="alert alert--danger" role="alert">{{ session('error') }}</div>
 @endif
 
-@if ($errors->has('invoice'))
-    <div class="alert alert--danger" role="alert">{{ $errors->first('invoice') }}</div>
-@endif
-
-@if ($errors->has('purchase'))
-    <div class="alert alert--danger" role="alert">{{ $errors->first('purchase') }}</div>
-@endif
-
-@if ($errors->has('release'))
-    <div class="alert alert--danger" role="alert">{{ $errors->first('release') }}</div>
-@endif
-
-@if ($errors->has('release'))
-    <div class="alert alert--danger" role="alert">{{ $errors->first('release') }}</div>
-@endif
+@foreach (['collector', 'invoice', 'purchase', 'release', 'lines', 'discount_percent', 'store_id', 'visit'] as $flashKey)
+    @if ($errors->has($flashKey))
+        <div class="alert alert--danger" role="alert">{{ $errors->first($flashKey) }}</div>
+    @endif
+@endforeach

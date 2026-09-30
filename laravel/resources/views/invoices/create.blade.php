@@ -45,9 +45,6 @@
     </div>
 
     @include('partials.flash')
-    @error('invoice')
-        <p class="field__error">{{ $message }}</p>
-    @enderror
 
     <form method="POST" action="{{ route('invoices.store') }}" class="sell-form sell-form--calm" id="invoice-sell-form">
         @csrf
@@ -211,6 +208,7 @@
     window.JudiInvoiceCategories = @json($categories);
     window.JudiInvoiceOldLines = @json(old('lines', []));
     window.JudiInvoiceMaxDiscount = {{ (float) $maxDiscount }};
+    window.JudiInvoiceMaxGift = {{ (float) $maxGift }};
     window.JudiInvoiceLabels = {
         all: @json(__('ui.all')),
         gift: @json(__('ui.invoice_gift')),
@@ -239,7 +237,10 @@
         chooseUnits: @json(__('ui.sell_choose_units')),
         needQty: @json(__('ui.sell_need_qty')),
         remove: @json(__('ui.delete')),
+        discountOverLimit: @json(__('ui.invoice_discount_over_limit', ['max' => ':max'])),
+        lineDiscountOverLimit: @json(__('ui.invoice_line_discount_over_limit', ['max' => ':max'])),
+        giftOverLimit: @json(__('ui.invoice_gift_over_limit', ['max' => ':max'])),
     };
 </script>
-<script src="{{ asset('js/invoice-sell.js') }}?v=36" defer></script>
+<script src="{{ asset('js/invoice-sell.js') }}?v=37" defer></script>
 @endsection

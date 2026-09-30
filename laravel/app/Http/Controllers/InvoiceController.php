@@ -226,9 +226,10 @@ class InvoiceController extends Controller
         $activeVisit = StoreVisit::openForCollector($user);
 
         if ($activeVisit && (int) $activeVisit->store_id !== (int) $store->id) {
-            return back()->withInput()->withErrors([
-                'store_id' => __('ui.visit_store_mismatch'),
-            ]);
+            return redirect()
+                ->route('invoices.create', ['visit' => $activeVisit->id])
+                ->withInput()
+                ->withErrors(['store_id' => __('ui.visit_store_mismatch')]);
         }
 
         try {
@@ -240,7 +241,13 @@ class InvoiceController extends Controller
                 (float) $request->input('discount_percent', 0),
             );
         } catch (InvalidArgumentException $e) {
-            return back()->withInput()->withErrors(['invoice' => $e->getMessage()]);
+            $createParams = $activeVisit ? ['visit' => $activeVisit->id] : [];
+
+            return redirect()
+                ->route('invoices.create', $createParams)
+                ->withInput()
+                ->withErrors(['invoice' => $e->getMessage()])
+                ->with('error', $e->getMessage());
         }
 
         if ($activeVisit) {

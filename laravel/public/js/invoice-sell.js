@@ -12,6 +12,7 @@
     : [];
   var labels = window.JudiInvoiceLabels || {};
   var maxDiscount = Number(window.JudiInvoiceMaxDiscount) || 0;
+  var maxGift = Number(window.JudiInvoiceMaxGift) || 0;
   var cart = [];
   var oldLines = Array.isArray(window.JudiInvoiceOldLines)
     ? window.JudiInvoiceOldLines
@@ -893,6 +894,63 @@
     lockStore(opt);
   }
 
+  function formatPct(value) {
+    var n = Number(value) || 0;
+    var text = String(Math.round(n * 100) / 100);
+    return text.replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+  }
+
+  function limitErrors() {
+    var errors = [];
+    var sold = 0;
+    var gift = 0;
+    var i;
+
+    for (i = 0; i < cart.length; i += 1) {
+      sold += Math.max(0, Number(cart[i].quantity) || 0);
+      gift += Math.max(0, Number(cart[i].giftQuantity) || 0);
+      var lineDisc = Number(cart[i].discountPercent) || 0;
+      if (lineDisc > maxDiscount + 0.0001) {
+        errors.push(
+          (labels.lineDiscountOverLimit || "Line discount over limit (:max%).").replace(
+            ":max",
+            formatPct(maxDiscount)
+          )
+        );
+        break;
+      }
+    }
+
+    var invoiceDisc = discountInput ? Number(discountInput.value) || 0 : 0;
+    if (invoiceDisc > maxDiscount + 0.0001) {
+      errors.push(
+        (labels.discountOverLimit || "Discount over limit (:max%).").replace(
+          ":max",
+          formatPct(maxDiscount)
+        )
+      );
+    }
+
+    if (gift > 0) {
+      var allowed =
+        sold > 0
+          ? Math.round(sold * (maxGift / 100) * 100) / 100
+          : maxGift >= 100
+            ? gift
+            : 0;
+      if (gift > allowed + 0.0001) {
+        errors.push(
+          (labels.giftOverLimit || "Gift over limit (:max% of sold).").replace(
+            ":max",
+            formatPct(maxGift)
+          )
+        );
+      }
+    }
+
+    return errors;
+  }
+
   function trySubmitSale() {
     if (cart.length === 0) return;
     if (!hasStore()) {
@@ -900,6 +958,13 @@
       return;
     }
     hideNeedStore();
+
+    var errs = limitErrors();
+    if (errs.length) {
+      window.alert(errs.join("\n"));
+      return;
+    }
+
     var ok = window.confirm(
       labels.confirmSavePrint || "Save and print this order?"
     );

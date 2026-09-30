@@ -1,18 +1,10 @@
-<header class="field-header">
+<header class="field-header {{ ! empty($activeVisitTimer) && $activeVisitTimer->isOpen() ? 'field-header--visit' : '' }}">
     <div class="field-header__inner">
         <div class="field-header__brand">
             @if (! empty($activeVisitTimer) && $activeVisitTimer->isOpen())
                 <a href="{{ route('visits.show', $activeVisitTimer) }}" class="brand-mark" aria-label="{{ $brandShort }}">
-                    <img src="{{ $judiLogoUrl }}" alt="" class="brand-mark__img">
+                    <img src="{{ $judiLogoUrl }}" alt="" class="brand-mark__img brand-mark__img--compact">
                 </a>
-                <a
-                    href="{{ route('visits.show', $activeVisitTimer) }}"
-                    class="visit-timer"
-                    data-visit-timer
-                    data-started-at="{{ $activeVisitTimer->started_at?->toIso8601String() }}"
-                    title="{{ $activeVisitTimer->store?->name }}"
-                    dir="ltr"
-                >00:00:00</a>
             @else
                 <a href="{{ route('home') }}" class="brand-mark" aria-label="{{ $brandShort }}">
                     <img src="{{ $judiLogoUrl }}" alt="" class="brand-mark__img">
@@ -22,6 +14,16 @@
                 </a>
             @endif
         </div>
+        @if (! empty($activeVisitTimer) && $activeVisitTimer->isOpen())
+            <a
+                href="{{ route('visits.show', $activeVisitTimer) }}"
+                class="visit-timer"
+                data-visit-timer
+                data-started-at="{{ $activeVisitTimer->started_at?->toIso8601String() }}"
+                title="{{ $activeVisitTimer->store?->name }}"
+                dir="ltr"
+            >00:00:00</a>
+        @endif
         <div class="field-header__actions">
             @include('partials.theme-toggle')
             @include('partials.notif-bell')

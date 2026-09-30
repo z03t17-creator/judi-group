@@ -283,7 +283,9 @@ class Invoice extends Model
         $discountPercent = round(max(0, min(100, $discountPercent)), 2);
         if ($discountPercent > $maxDiscount + 0.0001) {
             throw new InvalidArgumentException(
-                'داشکاندن نابێت لە '.rtrim(rtrim(number_format($maxDiscount, 2, '.', ''), '0'), '.').'% زیاتر بێت.',
+                __('ui.invoice_discount_over_limit', [
+                    'max' => rtrim(rtrim(number_format($maxDiscount, 2, '.', ''), '0'), '.') ?: '0',
+                ]),
             );
         }
 
@@ -297,7 +299,9 @@ class Invoice extends Model
             $lineDisc = round(max(0, min(100, (float) ($line['discount_percent'] ?? 0))), 2);
             if ($lineDisc > $maxDiscount + 0.0001) {
                 throw new InvalidArgumentException(
-                    'داشکاندنی هێڵ نابێت لە '.rtrim(rtrim(number_format($maxDiscount, 2, '.', ''), '0'), '.').'% زیاتر بێت.',
+                    __('ui.invoice_line_discount_over_limit', [
+                        'max' => rtrim(rtrim(number_format($maxDiscount, 2, '.', ''), '0'), '.') ?: '0',
+                    ]),
                 );
             }
             if ($unitId < 1 || ($qty <= 0 && $giftQty <= 0)) {
@@ -325,7 +329,9 @@ class Invoice extends Model
                 : ($maxGift >= 100 ? $giftUnits : 0.0);
             if ($giftUnits > $allowedGift + 0.0001) {
                 throw new InvalidArgumentException(
-                    'دیاری نابێت لە '.rtrim(rtrim(number_format($maxGift, 2, '.', ''), '0'), '.').'%ی فرۆشتن زیاتر بێت.',
+                    __('ui.invoice_gift_over_limit', [
+                        'max' => rtrim(rtrim(number_format($maxGift, 2, '.', ''), '0'), '.') ?: '0',
+                    ]),
                 );
             }
         }

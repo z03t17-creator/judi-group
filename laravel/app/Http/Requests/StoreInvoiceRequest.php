@@ -56,7 +56,7 @@ class StoreInvoiceRequest extends FormRequest
             if ($giftUnits > $allowedGift + 0.0001) {
                 $validator->errors()->add(
                     'lines',
-                    'دیاری لە سنووری مەندوب زیاترە (زۆرترین '.$this->formatPercent($maxGift).'%ی فرۆشتن).',
+                    __('ui.invoice_gift_over_limit', ['max' => $this->formatPercent($maxGift)]),
                 );
             }
         });
@@ -64,14 +64,26 @@ class StoreInvoiceRequest extends FormRequest
 
     public function messages(): array
     {
+        $maxDiscount = $this->formatPercent((float) ($this->user()?->max_discount_percent ?? 0));
+
         return [
-            'store_id.required' => 'فرۆشگا هەڵبژێرە.',
-            'store_id.exists' => 'فرۆشگا نەدۆزرایەوە.',
-            'discount_percent.max' => 'داشکاندن لە سنووری مەندوب زیاترە.',
-            'lines.*.discount_percent.max' => 'داشکاندنی هێڵ لە سنووری مەندوب زیاترە.',
-            'lines.required' => 'لانیکەم یەک کاڵا زیاد بکە.',
-            'lines.min' => 'لانیکەم یەک کاڵا زیاد بکە.',
+            'store_id.required' => __('ui.invoice_pick_store'),
+            'store_id.exists' => __('ui.invoice_pick_store'),
+            'discount_percent.max' => __('ui.invoice_discount_over_limit', ['max' => $maxDiscount]),
+            'lines.*.discount_percent.max' => __('ui.invoice_line_discount_over_limit', ['max' => $maxDiscount]),
+            'lines.required' => __('ui.invoice_cart_empty'),
+            'lines.min' => __('ui.invoice_cart_empty'),
         ];
+    }
+
+    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator): void
+    {
+        $visit = \App\Models\StoreVisit::openForCollector($this->user());
+        $params = $visit ? ['visit' => $visit->id] : [];
+
+        throw (new \Illuminate\Validation\ValidationException($validator))
+            ->errorBag('default')
+            ->redirectTo(route('invoices.create', $params));
     }
 
     private function formatPercent(float $value): string

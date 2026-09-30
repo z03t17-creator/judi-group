@@ -192,7 +192,9 @@ class CollectorController extends Controller
             'created_by_id' => $request->user()->id,
         ]);
 
-        return back()->with('success', __('ui.salary_saved'));
+        return redirect()
+            ->route('collectors.show', ['collector' => $collector, 'ledger' => 'salary'])
+            ->with('success', __('ui.salary_saved'));
     }
 
     public function destroySalary(Request $request, User $collector, CollectorSalaryEntry $salary): RedirectResponse
@@ -206,7 +208,9 @@ class CollectorController extends Controller
 
         $salary->delete();
 
-        return back()->with('success', __('ui.salary_deleted'));
+        return redirect()
+            ->route('collectors.show', ['collector' => $collector, 'ledger' => 'salary'])
+            ->with('success', __('ui.salary_deleted'));
     }
 
     public function storePenalty(StoreCollectorPenaltyRequest $request, User $collector): RedirectResponse
@@ -222,7 +226,9 @@ class CollectorController extends Controller
             'created_by_id' => $request->user()->id,
         ]);
 
-        return back()->with('success', __('ui.penalty_saved'));
+        return redirect()
+            ->route('collectors.show', ['collector' => $collector, 'ledger' => 'penalty'])
+            ->with('success', __('ui.penalty_saved'));
     }
 
     public function destroyPenalty(Request $request, User $collector, CollectorPenalty $penalty): RedirectResponse
@@ -236,7 +242,9 @@ class CollectorController extends Controller
 
         $penalty->delete();
 
-        return back()->with('success', __('ui.penalty_deleted'));
+        return redirect()
+            ->route('collectors.show', ['collector' => $collector, 'ledger' => 'penalty'])
+            ->with('success', __('ui.penalty_deleted'));
     }
 
     private function authorizeManage(Request $request): void
