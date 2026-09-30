@@ -8949,7 +8949,46 @@ html[data-theme="dark"] .sell-filter-deck__eyebrow {
 }
 
 html[data-theme="dark"] .sell-pill {
-  background: rgb(var(--surface));
+  background: rgb(255 255 255 / 0.07);
+  border-color: rgb(255 255 255 / 0.2);
+  color: #f1f5f9;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .sell-pill:hover {
+  border-color: #5eead4;
+  background: rgb(255 255 255 / 0.11);
+}
+
+html[data-theme="dark"] .sell-pill.is-active {
+  background: color-mix(in srgb, var(--pill) 28%, #2dd4bf);
+  border-color: #99f6e4;
+  color: #022c22;
+  box-shadow:
+    0 0 0 2px rgb(94 234 212 / 0.55),
+    0 10px 22px -8px color-mix(in srgb, var(--pill) 70%, #0f766e);
+}
+
+html[data-theme="dark"] .sell-pill.is-active .sell-pill__dot {
+  background: #022c22;
+}
+
+html[data-theme="dark"] .sell-pill.is-active .sell-pill__count {
+  background: rgb(2 44 34 / 0.2);
+  color: #022c22;
+}
+
+html[data-theme="dark"] .sell-pill__dot {
+  background: #5eead4;
+}
+
+html[data-theme="dark"] .sell-pill__count {
+  background: rgb(255 255 255 / 0.14);
+  color: #e2e8f0;
+}
+
+html[data-theme="dark"] .sell-filter-sub {
+  border-top-color: rgb(94 234 212 / 0.35);
 }
 
 .sell-wizard .sell-catalog--page {
