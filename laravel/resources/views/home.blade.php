@@ -61,12 +61,13 @@
             </a>
         @endif
 
-        @if ($user->canAccess('products'))
-            <a href="{{ route('products.index') }}" class="kpi-card kpi-card--iconed">
+        @if ($user->canAccess('products') || $user->canAccess('categories'))
+            <a href="{{ route($user->canAccess('products') ? 'products.index' : 'categories.index') }}" class="kpi-card kpi-card--iconed">
                 @include('partials.icon-badge', ['icon' => 'package', 'tone' => 'emerald', 'size' => 'md'])
                 <div>
-                    <h2>{{ __('ui.products') }}</h2>
+                    <h2>{{ __('ui.catalog') }}</h2>
                     <p class="kpi-card__value">{{ $productCount }}</p>
+                    <p class="kpi-card__hint">{{ __('ui.catalog_home_hint') }}</p>
                 </div>
             </a>
         @endif
@@ -77,16 +78,6 @@
                 <div>
                     <h2>{{ __('ui.stores') }}</h2>
                     <p class="kpi-card__value">{{ $storeCount }}</p>
-                </div>
-            </a>
-        @endif
-
-        @if ($user->canAccess('categories'))
-            <a href="{{ route('categories.index') }}" class="kpi-card kpi-card--iconed">
-                @include('partials.icon-badge', ['icon' => 'tags', 'tone' => 'sky', 'size' => 'md'])
-                <div>
-                    <h2>{{ __('ui.categories') }}</h2>
-                    <p class="kpi-card__value">{{ __('ui.category') }}</p>
                 </div>
             </a>
         @endif

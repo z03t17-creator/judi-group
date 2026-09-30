@@ -1,24 +1,27 @@
 @extends('layouts.app')
 
-@section('title', __('ui.products'). ' — '.__('ui.brand_short'))
+@section('title', __('ui.catalog'). ' — '.__('ui.brand_short'))
 
 @section('content')
 @php
     $tones = ['sky', 'teal', 'amber', 'violet', 'orange', 'emerald', 'cyan', 'indigo'];
+    $canManageCategories = $canManageCategories ?? false;
 @endphp
 <section class="page">
     <header class="page__header page__header--iconed">
         @include('partials.icon-badge', ['icon' => 'package', 'tone' => 'emerald', 'size' => 'lg'])
         <div class="page__header-text">
-            <h1 class="page__title">{{ __('ui.products') }}</h1>
-            <p class="page__lead">{{ __('ui.products_browse_lead') }}</p>
+            <h1 class="page__title">{{ __('ui.catalog') }}</h1>
+            <p class="page__lead">{{ __('ui.catalog_lead') }}</p>
         </div>
         <div class="page__actions">
-            @if ($canManage)
-                <a href="{{ route('categories.index') }}" class="btn btn--regular">
+            @if ($canManageCategories)
+                <a href="{{ route('categories.create') }}" class="btn btn--regular">
                     @include('partials.icons.tags', ['class' => 'btn__icon'])
-                    {{ __('ui.categories') }}
+                    {{ __('ui.category_new') }}
                 </a>
+            @endif
+            @if ($canManage)
                 <a href="{{ route('products.create') }}" class="btn btn--primary">
                     @include('partials.icons.plus', ['class' => 'btn__icon'])
                     {{ __('ui.product_new') }}
@@ -47,6 +50,12 @@
         <div class="empty-state surface-panel">
             @include('partials.icon-badge', ['icon' => 'folder', 'tone' => 'slate', 'size' => 'lg'])
             <p class="empty-state__title">{{ __('ui.categories_empty') }}</p>
+            @if ($canManageCategories)
+                <a href="{{ route('categories.create') }}" class="btn btn--primary">
+                    @include('partials.icons.plus', ['class' => 'btn__icon'])
+                    {{ __('ui.category_new') }}
+                </a>
+            @endif
         </div>
     @else
         <ul class="icon-grid" role="list">
@@ -67,6 +76,50 @@
                             </span>
                         </span>
                     </a>
+
+                    @if ($canManageCategories)
+                        <a
+                            href="{{ route('categories.edit', $category) }}"
+                            class="icon-tile__action"
+                            title="{{ __('ui.category_edit') }}"
+                            aria-label="{{ __('ui.category_edit') }}"
+                        >
+                            @include('partials.icons.pencil', ['class' => 'icon-tile__action-icon'])
+                        </a>
+                        <a
+                            href="{{ route('categories.subcategories.create', $category) }}"
+                            class="icon-tile__action icon-tile__action--second"
+                            title="{{ __('ui.subcategory_new') }}"
+                            aria-label="{{ __('ui.subcategory_new') }}"
+                        >
+                            @include('partials.icons.folder-tree', ['class' => 'icon-tile__action-icon'])
+                        </a>
+                    @endif
+
+                    @if ($category->subcategories->isNotEmpty())
+                        <ul class="icon-tile__subs" role="list">
+                            @foreach ($category->subcategories as $sub)
+                                <li>
+                                    <a
+                                        href="{{ route('products.index', ['category_id' => $category->id, 'subcategory_id' => $sub->id]) }}"
+                                        class="icon-sub"
+                                    >
+                                        @include('partials.icon-badge', ['icon' => 'tags', 'tone' => $tone, 'size' => 'sm'])
+                                        <span class="icon-sub__text">
+                                            <span class="icon-sub__name">{{ $sub->name }}</span>
+                                            <span class="icon-sub__count">{{ $sub->products_count }} {{ __('ui.products') }}</span>
+                                        </span>
+                                        @include('partials.icons.chevron', ['class' => 'icon-sub__chevron'])
+                                    </a>
+                                    @if ($canManageCategories)
+                                        <a href="{{ route('subcategories.edit', $sub) }}" class="icon-tile__sub-edit" title="{{ __('ui.edit') }}">
+                                            @include('partials.icons.pencil', ['class' => 'icon-tile__action-icon'])
+                                        </a>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
                 </li>
             @endforeach
         </ul>

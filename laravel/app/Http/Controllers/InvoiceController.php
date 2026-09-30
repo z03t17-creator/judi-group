@@ -375,8 +375,13 @@ class InvoiceController extends Controller
         if (! $user?->canAccess(PagePermission::Invoices) && ! $user?->canAccess(PagePermission::InvoicesSell)) {
             abort(403);
         }
+
+        // Own invoices always OK. Field collectors with Stores may also open
+        // invoices listed on a store profile (any collector's sale for that store).
         if ($user->isCollector() && (int) $invoice->collector_id !== (int) $user->id) {
-            abort(403);
+            if (! $user->canAccess(PagePermission::Stores)) {
+                abort(403);
+            }
         }
     }
 }

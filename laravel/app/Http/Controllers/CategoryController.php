@@ -10,8 +10,13 @@ use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        // Catalog is merged into products browse (categories + products one page).
+        if ($request->user()?->canAccess(\App\Enums\PagePermission::Products)) {
+            return redirect()->route('products.index', $request->query());
+        }
+
         $categories = Category::query()
             ->with([
                 'subcategories' => fn ($q) => $q

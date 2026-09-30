@@ -18,6 +18,7 @@ class ProductController extends Controller
         $categoryId = $request->integer('category_id') ?: null;
         $subcategoryId = $request->integer('subcategory_id') ?: null;
         $canManage = $this->canManage($request);
+        $canManageCategories = (bool) $request->user()?->canAccess(\App\Enums\PagePermission::CategoriesManage);
 
         $categories = Category::query()
             ->where('is_active', true)
@@ -44,6 +45,7 @@ class ProductController extends Controller
             return view('products.browse', [
                 'categories' => $categories,
                 'canManage' => $canManage,
+                'canManageCategories' => $canManageCategories,
             ]);
         }
 
@@ -67,6 +69,7 @@ class ProductController extends Controller
         return view('products.index', [
             'products' => $products,
             'canManage' => $canManage,
+            'canManageCategories' => $canManageCategories,
             'unitKinds' => ProductUnitKind::ordered(),
             'categories' => $categories,
             'selectedCategory' => $selectedCategory,

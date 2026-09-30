@@ -5392,6 +5392,10 @@ html[data-theme="dark"] .purchase-sub.is-active {
   color: var(--judi-800);
 }
 
+.icon-tile > .icon-tile__action--second {
+  inset-inline-end: 3.15rem;
+}
+
 .icon-tile > .icon-tile__action:hover {
   background: rgb(var(--muted));
 }
@@ -5402,7 +5406,17 @@ html[data-theme="dark"] .purchase-sub.is-active {
 }
 
 .icon-tile__main {
-  padding-inline-end: 3rem;
+  padding-inline-end: 5.5rem;
+}
+
+.icon-tile__sub-edit {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  color: var(--judi-800);
+  flex-shrink: 0;
 }
 
 .icon-tile__subs {

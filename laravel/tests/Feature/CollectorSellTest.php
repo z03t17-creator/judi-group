@@ -122,7 +122,7 @@ class CollectorSellTest extends TestCase
         $print->assertDontSee('is-remain', false);
     }
 
-    public function test_collector_cannot_view_another_collectors_invoice(): void
+    public function test_collector_can_view_another_collectors_invoice_when_browsing_stores(): void
     {
         $this->seed();
 
@@ -140,9 +140,12 @@ class CollectorSellTest extends TestCase
             [['product_unit_id' => $unit->id, 'quantity' => 1]],
         );
 
+        $this->assertTrue($retail->canAccess(\App\Enums\PagePermission::Stores));
+
         $this->actingAs($retail)
             ->get(route('invoices.show', $invoice))
-            ->assertForbidden();
+            ->assertOk()
+            ->assertSee($invoice->invoice_number, false);
     }
 
     public function test_collector_discount_invoice_and_line_and_gifts(): void

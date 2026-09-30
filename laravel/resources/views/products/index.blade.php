@@ -23,7 +23,7 @@
             @include('partials.print-button', ['label' => __('ui.print_list')])
             <a href="{{ route('products.index') }}" class="btn btn--regular">
                 @include('partials.icons.arrow-back', ['class' => 'btn__icon'])
-                {{ __('ui.products_all_categories') }}
+                {{ __('ui.catalog') }}
             </a>
             @if ($canManage)
                 <a href="{{ route('products.create') }}" class="btn btn--primary">
