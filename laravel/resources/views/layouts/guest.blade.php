@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Libre+Baskerville:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=97">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=98">
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {

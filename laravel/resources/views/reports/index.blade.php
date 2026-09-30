@@ -299,7 +299,25 @@
                 <h2 class="report-section__title">{{ __('ui.report_stores_list') }}</h2>
                 @include('partials.print-section-button', ['target' => '#report-section-stores'])
             </div>
-            <div class="table-wrap report-table-wrap">
+            <ul class="report-feed">
+                @forelse ($report['stores'] as $row)
+                    <li class="report-feed__card">
+                        <div class="report-feed__top">
+                            <strong>{{ $row['store']?->name ?? '—' }}</strong>
+                            <span class="report-feed__amount report-num" dir="ltr">{{ number_format($row['sales_total'], 0) }}</span>
+                        </div>
+                        <div class="report-feed__meta">
+                            <span>{{ __('ui.report_invoices') }}: <b dir="ltr">{{ $row['invoice_count'] }}</b></span>
+                            <span>{{ __('ui.invoice_cash') }}: <b class="report-num--cash" dir="ltr">{{ number_format($row['cash_total'], 0) }}</b></span>
+                            <span>{{ __('ui.invoice_debt') }}: <b class="report-num--debt" dir="ltr">{{ number_format($row['debt_total'], 0) }}</b></span>
+                            <span>{{ __('ui.report_collections') }}: <b class="report-num--collect" dir="ltr">{{ number_format($row['collected_total'] ?? 0, 0) }}</b></span>
+                        </div>
+                    </li>
+                @empty
+                    <li class="report-feed__empty">{{ __('ui.reports_no_sales') }}</li>
+                @endforelse
+            </ul>
+            <div class="table-wrap report-table-wrap report-table-wrap--wide">
                 <table class="data-table report-table">
                     <thead>
                         <tr>
@@ -334,7 +352,34 @@
                 <h2 class="report-section__title">{{ __('ui.collections') }}</h2>
                 @include('partials.print-section-button', ['target' => '#report-section-collections'])
             </div>
-            <div class="table-wrap report-table-wrap">
+            <ul class="report-feed">
+                @forelse ($report['collections'] as $collection)
+                    <li class="report-feed__card">
+                        <a href="{{ route('collections.show', $collection) }}" class="report-feed__link">
+                            <div class="report-feed__top">
+                                <strong dir="ltr">{{ $collection->receipt_number }}</strong>
+                                <span class="report-feed__amount report-num report-num--collect" dir="ltr">{{ number_format((float) $collection->amount, 0) }}</span>
+                            </div>
+                            <div class="report-feed__meta">
+                                <span>{{ $collection->store?->name }}</span>
+                                <span class="report-chip report-chip--{{ $collection->isPending() ? 'debt' : 'cash' }}">
+                                    {{ $collection->status?->label() ?? __('ui.collection_status_pending') }}
+                                </span>
+                                <span dir="ltr">{{ $collection->collected_at?->format('Y-m-d') }}</span>
+                                @if ($canReviewAll && ! $report['collector'])
+                                    <span>{{ $collection->collector?->name }}</span>
+                                @endif
+                            </div>
+                            @if ($collection->note)
+                                <p class="report-feed__note">{{ $collection->note }}</p>
+                            @endif
+                        </a>
+                    </li>
+                @empty
+                    <li class="report-feed__empty">{{ __('ui.collections_empty') }}</li>
+                @endforelse
+            </ul>
+            <div class="table-wrap report-table-wrap report-table-wrap--wide">
                 <table class="data-table report-table">
                     <thead>
                         <tr>
@@ -383,7 +428,28 @@
                 <h2 class="report-section__title">{{ __('ui.expenses') }}</h2>
                 @include('partials.print-section-button', ['target' => '#report-section-expenses'])
             </div>
-            <div class="table-wrap report-table-wrap">
+            <ul class="report-feed">
+                @forelse ($report['expenses'] as $expense)
+                    <li class="report-feed__card">
+                        <div class="report-feed__top">
+                            <span class="report-chip">{{ $expense->category->label() }}</span>
+                            <span class="report-feed__amount report-num report-num--expense" dir="ltr">{{ number_format((float) $expense->amount, 0) }}</span>
+                        </div>
+                        <div class="report-feed__meta">
+                            <span dir="ltr">{{ $expense->spent_at?->format('Y-m-d') }}</span>
+                            @if ($canReviewAll && ! $report['collector'])
+                                <span>{{ $expense->collector?->name }}</span>
+                            @endif
+                        </div>
+                        @if ($expense->note)
+                            <p class="report-feed__note">{{ $expense->note }}</p>
+                        @endif
+                    </li>
+                @empty
+                    <li class="report-feed__empty">{{ __('ui.expenses_empty') }}</li>
+                @endforelse
+            </ul>
+            <div class="table-wrap report-table-wrap report-table-wrap--wide">
                 <table class="data-table report-table">
                     <thead>
                         <tr>
@@ -420,9 +486,46 @@
                 <h2 class="report-section__title">{{ __('ui.invoices') }}</h2>
                 @include('partials.print-section-button', ['target' => '#report-section-invoices'])
             </div>
-            <div class="table-wrap report-table-wrap">
+            @php $showCollectorCol = $canReviewAll && ! $report['collector']; @endphp
+            <ul class="report-feed">
+                @forelse ($report['invoices'] as $invoice)
+                    @php
+                        $giftQty = (float) $invoice->items->sum(fn ($line) => (float) $line->gift_quantity);
+                        $typeKey = $invoice->invoice_type->value ?? '';
+                        $discPct = rtrim(rtrim(number_format((float) $invoice->discount_percent, 2, '.', ''), '0'), '.') ?: '0';
+                    @endphp
+                    <li class="report-feed__card">
+                        <a href="{{ route('invoices.show', $invoice) }}" class="report-feed__link">
+                            <div class="report-feed__top">
+                                <strong dir="ltr">{{ $invoice->invoice_number }}</strong>
+                                <span class="report-feed__amount report-num" dir="ltr">{{ number_format((float) $invoice->total_amount, 0) }}</span>
+                            </div>
+                            <div class="report-feed__meta">
+                                <span>{{ $invoice->store?->name }}</span>
+                                <span class="report-chip report-chip--{{ $typeKey === 'debt' ? 'debt' : 'cash' }}">
+                                    {{ $invoice->invoice_type->label() }}
+                                </span>
+                                <span dir="ltr">{{ $invoice->created_at?->timezone(config('app.timezone'))->format('Y-m-d') }}</span>
+                            </div>
+                            <div class="report-feed__meta">
+                                @if ((float) $invoice->discount_percent > 0)
+                                    <span>{{ __('ui.invoice_discount') }}: <b dir="ltr">{{ $discPct }}%</b></span>
+                                @endif
+                                @if ($giftQty > 0)
+                                    <span>{{ __('ui.invoice_gift') }}: <b dir="ltr">{{ number_format($giftQty, 0) }}</b></span>
+                                @endif
+                                @if ($showCollectorCol)
+                                    <span>{{ $invoice->collector?->name }}</span>
+                                @endif
+                            </div>
+                        </a>
+                    </li>
+                @empty
+                    <li class="report-feed__empty">{{ __('ui.invoice_empty') }}</li>
+                @endforelse
+            </ul>
+            <div class="table-wrap report-table-wrap report-table-wrap--wide">
                 <table class="data-table report-table">
-                    @php $showCollectorCol = $canReviewAll && ! $report['collector']; @endphp
                     <thead>
                         <tr>
                             <th>{{ __('ui.invoice_no') }}</th>
@@ -480,7 +583,28 @@
                 <h2 class="report-section__title">{{ __('ui.visit') }}</h2>
                 @include('partials.print-section-button', ['target' => '#report-section-visits'])
             </div>
-            <div class="table-wrap report-table-wrap">
+            <ul class="report-feed">
+                @forelse (($report['visits'] ?? collect()) as $visit)
+                    <li class="report-feed__card">
+                        <a href="{{ route('visits.show', $visit) }}" class="report-feed__link">
+                            <div class="report-feed__top">
+                                <strong>{{ $visit->store?->name ?? '—' }}</strong>
+                                <span class="report-chip">{{ $visit->status?->label() ?? '—' }}</span>
+                            </div>
+                            <div class="report-feed__meta">
+                                <span dir="ltr">{{ $visit->started_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') }}</span>
+                                <span dir="ltr">{{ $visit->ended_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') ?: '—' }}</span>
+                                @if ($canReviewAll && ! $report['collector'])
+                                    <span>{{ $visit->collector?->name }}</span>
+                                @endif
+                            </div>
+                        </a>
+                    </li>
+                @empty
+                    <li class="report-feed__empty">{{ __('ui.visits_empty') }}</li>
+                @endforelse
+            </ul>
+            <div class="table-wrap report-table-wrap report-table-wrap--wide">
                 <table class="data-table report-table">
                     <thead>
                         <tr>
@@ -523,7 +647,29 @@
                 <h2 class="report-section__title">{{ __('ui.reject_history') }}</h2>
                 @include('partials.print-section-button', ['target' => '#report-section-rejects'])
             </div>
-            <div class="table-wrap report-table-wrap">
+            <ul class="report-feed">
+                @forelse (($report['rejects'] ?? collect()) as $reject)
+                    <li class="report-feed__card">
+                        <div class="report-feed__top">
+                            <strong>{{ $reject->store?->name }}</strong>
+                            <span class="report-feed__amount report-num" dir="ltr">{{ number_format((float) $reject->credit_amount, 0) }}</span>
+                        </div>
+                        <div class="report-feed__meta">
+                            <span class="report-chip">{{ $reject->status?->label() ?? '—' }}</span>
+                            <span dir="ltr">{{ $reject->created_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') }}</span>
+                            @if ($canReviewAll && ! $report['collector'])
+                                <span>{{ $reject->collector?->name }}</span>
+                            @endif
+                        </div>
+                        @if ($reject->note)
+                            <p class="report-feed__note">{{ $reject->note }}</p>
+                        @endif
+                    </li>
+                @empty
+                    <li class="report-feed__empty">{{ __('ui.rejects_empty') }}</li>
+                @endforelse
+            </ul>
+            <div class="table-wrap report-table-wrap report-table-wrap--wide">
                 <table class="data-table report-table">
                     <thead>
                         <tr>
