@@ -50,7 +50,7 @@
     </p>
     @if ($hasDiscount)
         <p class="paper-slip__total">
-            {{ __('ui.invoice_discount') }}:
+            {{ __('ui.invoice_total_discount') }}:
             <strong dir="ltr">
                 {{ rtrim(rtrim(number_format((float) $invoice->discount_percent, 2, '.', ''), '0'), '.') }}%
             </strong>

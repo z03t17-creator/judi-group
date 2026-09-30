@@ -243,6 +243,7 @@ return [
     'max_gift' => 'Max gift',
     'all' => 'All',
     'invoice_discount' => 'Discount',
+    'invoice_total_discount' => 'Total discount',
     'invoice_discount_max' => 'limit',
     'invoice_discount_none' => 'This collector has no discount authority — admin sets it on the collector profile.',
     'invoice_gift' => 'Gift',

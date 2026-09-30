@@ -243,6 +243,7 @@ return [
     'max_gift' => 'زۆرترین دیاری',
     'all' => 'هەموو',
     'invoice_discount' => 'داشکاندن',
+    'invoice_total_discount' => 'کۆی داشکاندن',
     'invoice_discount_max' => 'سنوور',
     'invoice_discount_none' => 'ئەم مەندوبە داشکاندنی نییە — بەڕێوەبەر لە پڕۆفایلی مەندوب دیاری دەکات.',
     'invoice_gift' => 'دیاری',

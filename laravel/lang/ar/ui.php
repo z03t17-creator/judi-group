@@ -243,6 +243,7 @@ return [
     'max_gift' => 'أقصى هدية',
     'all' => 'الكل',
     'invoice_discount' => 'الخصم',
+    'invoice_total_discount' => 'الخصم الإجمالي',
     'invoice_discount_max' => 'الحد',
     'invoice_discount_none' => 'هذا المندوب بلا صلاحية خصم — يضبطها المدير من ملف المندوب.',
     'invoice_gift' => 'هدية',

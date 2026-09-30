@@ -9546,14 +9546,28 @@ html[data-theme="dark"] .sell-tile {
   background: color-mix(in srgb, var(--judi-200) 70%, white); color: var(--judi-900);
 }
 .sticky-cta--debt { display: grid; grid-template-columns: 1fr; gap: 0.45rem; }
-.sticky-cta__discount { display: flex; align-items: center; gap: 0.5rem; }
-.sell-invoice-disc { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; }
-.sell-invoice-disc input {
-  width: 4.5rem; min-height: 2.4rem; padding: 0.25rem 0.4rem;
-  border: 1px solid rgb(var(--line)); border-radius: 0.55rem;
-  background: rgb(var(--surface)); font: inherit; color: inherit;
+.sticky-cta__discount { display: flex; align-items: center; gap: 0.35rem; }
+.sell-invoice-disc {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: rgb(var(--fg-muted));
 }
-.sell-invoice-disc__hint { font-size: 0.8rem; color: rgb(var(--fg-muted)); }
+.sell-invoice-disc input {
+  width: 3.4rem;
+  min-height: 1.9rem;
+  padding: 0.12rem 0.28rem;
+  border: 1px solid rgb(var(--line));
+  border-radius: 0.45rem;
+  background: rgb(var(--surface));
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: inherit;
+}
+.sell-invoice-disc__hint { font-size: 0.72rem; color: rgb(var(--fg-muted)); }
 .line-sheet {
   width: min(22rem, calc(100vw - 2rem)); border: 1px solid rgb(var(--line));
   border-radius: 1rem; padding: 1rem 1.1rem; background: rgb(var(--surface)); color: inherit;

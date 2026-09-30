@@ -156,7 +156,7 @@
             </p>
             @if ($hasDiscount)
                 <p class="is-discount">
-                    <span>{{ __('ui.invoice_discount') }}</span>
+                    <span>{{ __('ui.invoice_total_discount') }}</span>
                     <strong dir="ltr">{{ $discountPct }}% (−{{ number_format((float) $invoice->discount_amount, 0) }})</strong>
                 </p>
                 <p class="is-total">

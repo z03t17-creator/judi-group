@@ -140,7 +140,7 @@
             <div class="sticky-cta__discount">
                 @if ($maxDiscount > 0)
                     <label class="sell-invoice-disc">
-                        <span>{{ __('ui.invoice_discount') }} %</span>
+                        <span>{{ __('ui.invoice_total_discount') }} %</span>
                         <input
                             class="num"
                             type="number"
@@ -152,7 +152,7 @@
                             value="{{ old('discount_percent', 0) }}"
                             data-discount
                             dir="ltr"
-                            aria-label="{{ __('ui.invoice_discount') }}"
+                            aria-label="{{ __('ui.invoice_total_discount') }}"
                         >
                     </label>
                 @else
@@ -180,19 +180,6 @@
 
         <div class="line-sheet__units" data-line-sheet-units></div>
 
-        <div class="line-sheet__extras" data-line-sheet-extras>
-            <label class="line-sheet__field">
-                <span>{{ __('ui.invoice_gift') }}</span>
-                <input class="num" type="number" min="0" step="1" inputmode="numeric" value="0" data-line-sheet-gift dir="ltr">
-            </label>
-            @if ($maxDiscount > 0)
-                <label class="line-sheet__field">
-                    <span>{{ __('ui.invoice_discount') }} %</span>
-                    <input class="num" type="number" min="0" max="{{ $maxDiscount }}" step="0.01" inputmode="decimal" value="0" data-line-sheet-discount dir="ltr">
-                </label>
-            @endif
-        </div>
-
         <div class="line-sheet__actions">
             <button type="button" class="btn btn--ghost" data-line-sheet-cancel>{{ __('ui.back') }}</button>
             <button type="button" class="btn btn--primary" data-line-sheet-save>{{ __('ui.sell_add_to_order') }}</button>
@@ -207,8 +194,6 @@
     window.JudiInvoiceMaxDiscount = {{ (float) $maxDiscount }};
     window.JudiInvoiceLabels = {
         all: @json(__('ui.all')),
-        gift: @json(__('ui.invoice_gift')),
-        discount: @json(__('ui.invoice_discount')),
         editLine: @json(__('ui.edit')),
         pickCategory: @json(__('ui.invoice_pick_category')),
         noProducts: @json(__('ui.invoice_no_products_in_filter')),
@@ -226,7 +211,6 @@
         subcategory: @json(__('ui.subcategory')),
         debtOnly: @json(__('ui.invoice_debt')),
         addToOrder: @json(__('ui.sell_add_to_order')),
-        editLineTitle: @json(__('ui.sell_edit_line')),
         confirmSavePrint: @json(__('ui.sell_confirm_save_print')),
         piecePrice: @json(__('ui.invoice_piece_price')),
         cartonPrice: @json(__('ui.sell_carton_price')),
@@ -235,5 +219,5 @@
         remove: @json(__('ui.delete')),
     };
 </script>
-<script src="{{ asset('js/invoice-sell.js') }}?v=32" defer></script>
+<script src="{{ asset('js/invoice-sell.js') }}?v=33" defer></script>
 @endsection

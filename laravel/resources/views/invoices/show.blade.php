@@ -15,7 +15,7 @@
                 · {{ __('ui.invoice_grand_total') }}
                 <span class="ltr-inline">{{ number_format((float) $invoice->total_amount, 0) }}</span>
                 @if ((float) $invoice->discount_percent > 0)
-                    · {{ __('ui.invoice_discount') }}
+                    · {{ __('ui.invoice_total_discount') }}
                     {{ rtrim(rtrim(number_format((float) $invoice->discount_percent, 2, '.', ''), '0'), '.') }}%
                 @endif
                 · {{ $invoice->status->label() }}
