@@ -24,6 +24,16 @@
     });
   }
 
+  document.addEventListener("click", function (event) {
+    var lock = event.target.closest("[data-visit-lock]");
+    if (!lock) return;
+    event.preventDefault();
+    var msg =
+      lock.getAttribute("data-visit-lock-msg") ||
+      "End the visit first.";
+    window.alert(msg);
+  });
+
   tick();
   setInterval(tick, 1000);
 })();

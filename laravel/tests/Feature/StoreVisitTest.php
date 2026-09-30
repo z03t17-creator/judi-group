@@ -256,9 +256,8 @@ class StoreVisitTest extends TestCase
         $this->assertNotNull($reject->fresh()->reviewed_at);
 
         $this->actingAs($collector)->post(route('visits.end', $visit))
-            ->assertRedirect(route('login'));
+            ->assertRedirect(route('stores.show', $store));
         $this->assertSame(StoreVisitStatus::Closed, $visit->fresh()->status);
-        $this->assertGuest();
     }
 
     public function test_visit_report_shows_sections_and_print_controls(): void
@@ -294,9 +293,30 @@ class StoreVisitTest extends TestCase
             ->assertOk()
             ->getContent();
 
-        $this->assertNotFalse(preg_match('/class="field-bottom-nav".*?<\/nav>/s', $html, $match));
+        $this->assertNotFalse(preg_match('/class="field-bottom-nav[^"]*".*?<\/nav>/s', $html, $match));
         $nav = $match[0];
         $this->assertStringContainsString(__('ui.visit'), $nav);
         $this->assertStringContainsString('visits', $nav);
+    }
+
+    public function test_open_visit_blocks_home_until_ended(): void
+    {
+        $this->seed();
+
+        $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
+        $store = Store::query()->firstOrFail();
+        $visit = StoreVisit::start($collector, $store);
+
+        $this->actingAs($collector)
+            ->get(route('home'))
+            ->assertRedirect(route('visits.show', $visit));
+
+        $this->actingAs($collector)
+            ->post(route('visits.end', $visit))
+            ->assertRedirect(route('stores.show', $store));
+
+        $this->actingAs($collector)
+            ->get(route('home'))
+            ->assertOk();
     }
 }

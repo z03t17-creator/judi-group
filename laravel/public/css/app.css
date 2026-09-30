@@ -10200,8 +10200,15 @@ html[dir="rtl"] .fi-sr-angle-left::before {
   transform: translate(-50%, -50%) scaleX(-1) !important;
 }
 
-.visit-timer {
-  display: inline-flex;
+.field-tab.is-locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+  color: rgb(var(--fg-subtle));
+}
+.field-bottom-nav.is-visit-locked {
+  box-shadow: 0 -6px 18px rgb(15 118 110 / 0.12);
+}
+
   align-items: center;
   justify-content: center;
   min-width: 4.6rem;

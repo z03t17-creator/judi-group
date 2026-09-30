@@ -271,15 +271,14 @@ class CollectorSellTest extends TestCase
             ->assertOk()
             ->getContent();
 
-        $this->assertNotFalse(preg_match('/class="field-bottom-nav".*?<\/nav>/s', $html, $match));
+        $this->assertNotFalse(preg_match('/class="field-bottom-nav[^"]*".*?<\/nav>/s', $html, $match));
         $nav = $match[0];
 
         $this->assertStringContainsString(__('ui.stores'), $nav);
-        $this->assertStringContainsString(__('ui.invoices'), $nav);
+        $this->assertStringContainsString(__('ui.my_report'), $nav);
         $this->assertStringContainsString('stores', $nav);
-        $this->assertStringContainsString('invoices', $nav);
+        $this->assertStringContainsString('reports', $nav);
         $this->assertStringContainsString(__('ui.visit'), $nav);
-        $this->assertStringNotContainsString(__('ui.reports'), $nav);
         $this->assertStringNotContainsString(__('ui.expenses'), $nav);
     }
 

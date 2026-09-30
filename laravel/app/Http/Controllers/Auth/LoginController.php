@@ -77,11 +77,9 @@ class LoginController extends Controller
         if ($user && method_exists($user, 'isCollector') && $user->isCollector()) {
             $open = StoreVisit::openForCollector($user);
             if ($open) {
-                try {
-                    $open->end($user);
-                } catch (\Throwable) {
-                    // Still log out even if visit close fails.
-                }
+                return redirect()
+                    ->route('visits.show', $open)
+                    ->with('error', __('ui.visit_end_first'));
             }
         }
 

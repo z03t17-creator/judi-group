@@ -15,7 +15,6 @@ use App\Models\Warehouse;
 use App\Support\CollectorReportBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use InvalidArgumentException;
 
@@ -122,17 +121,6 @@ class StoreVisitController extends Controller
             $visit->end($request->user());
         } catch (InvalidArgumentException $e) {
             return back()->withErrors(['visit' => $e->getMessage()]);
-        }
-
-        $user = $request->user();
-        if ($user->isCollector()) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return redirect()
-                ->route('login')
-                ->with('status', __('ui.visit_ended_logout'));
         }
 
         return redirect()

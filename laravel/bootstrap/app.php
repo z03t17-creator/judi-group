@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'perm' => \App\Http\Middleware\EnsurePagePermission::class,
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
             'device' => \App\Http\Middleware\EnsureDeviceApproved::class,
+            'visit.lock' => \App\Http\Middleware\LockOutsideActiveVisit::class,
         ]);
 
         // cPanel / LiteSpeed terminate TLS in front of PHP.
@@ -24,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\LockOutsideActiveVisit::class,
         ]);
 
         $middleware->redirectGuestsTo('/login');

@@ -1,5 +1,7 @@
 @php
     $user = auth()->user();
+    $openVisit = $activeVisitTimer ?? null;
+    $visitLocked = $openVisit && method_exists($openVisit, 'isOpen') && $openVisit->isOpen();
     $tabs = [
         [
             'route' => 'home',
@@ -7,13 +9,15 @@
             'label' => __('ui.home'),
             'icon' => 'home',
             'enabled' => true,
+            'visit_ok' => false,
         ],
         [
             'route' => 'visits.entry',
-            'match' => ['visits.*', 'invoices.create'],
+            'match' => ['visits.*', 'invoices.create', 'collections.create'],
             'label' => __('ui.visit'),
             'icon' => 'store',
             'enabled' => $user->canAccess('stores'),
+            'visit_ok' => true,
         ],
         [
             'route' => 'collections.index',
@@ -21,6 +25,7 @@
             'label' => __('ui.collections'),
             'icon' => 'cash',
             'enabled' => $user->canAccess('collections') || $user->canAccess('reports.review'),
+            'visit_ok' => false,
         ],
         [
             'route' => 'stores.index',
@@ -28,9 +33,9 @@
             'label' => __('ui.stores'),
             'icon' => 'store',
             'enabled' => $user->canAccess('stores'),
+            'visit_ok' => false,
         ],
         [
-            // Collectors: personal report (invoices / collections / rejects). Office: invoice list.
             'route' => $user->isCollector() ? 'reports.index' : 'invoices.index',
             'match' => $user->isCollector()
                 ? ['reports.*']
@@ -40,24 +45,42 @@
             'enabled' => $user->isCollector()
                 ? $user->canAccess('reports')
                 : $user->canAccess('invoices'),
+            'visit_ok' => false,
         ],
     ];
 @endphp
 
-<nav class="field-bottom-nav" aria-label="{{ __('ui.home') }}">
+<nav class="field-bottom-nav {{ $visitLocked ? 'is-visit-locked' : '' }}" aria-label="{{ __('ui.home') }}">
     <ul class="field-bottom-nav__list">
         @foreach ($tabs as $tab)
             @if (empty($tab['enabled']))
                 @continue
             @endif
+            @php
+                $isActive = request()->routeIs(...$tab['match']);
+                $locked = $visitLocked && empty($tab['visit_ok']);
+            @endphp
             <li>
-                <a
-                    href="{{ route($tab['route']) }}"
-                    class="field-tab {{ request()->routeIs(...$tab['match']) ? 'is-active' : '' }}"
-                >
-                    @include('partials.icons.'.$tab['icon'], ['class' => 'field-tab__icon'])
-                    <span>{{ $tab['label'] }}</span>
-                </a>
+                @if ($locked)
+                    <button
+                        type="button"
+                        class="field-tab is-locked"
+                        data-visit-lock
+                        data-visit-lock-msg="{{ __('ui.visit_end_first') }}"
+                        aria-disabled="true"
+                    >
+                        @include('partials.icons.'.$tab['icon'], ['class' => 'field-tab__icon'])
+                        <span>{{ $tab['label'] }}</span>
+                    </button>
+                @else
+                    <a
+                        href="{{ $visitLocked && ! empty($tab['visit_ok']) ? route('visits.show', $openVisit) : route($tab['route']) }}"
+                        class="field-tab {{ $isActive ? 'is-active' : '' }}"
+                    >
+                        @include('partials.icons.'.$tab['icon'], ['class' => 'field-tab__icon'])
+                        <span>{{ $tab['label'] }}</span>
+                    </a>
+                @endif
             </li>
         @endforeach
     </ul>

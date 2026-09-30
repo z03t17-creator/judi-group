@@ -180,6 +180,19 @@
 
         <div class="line-sheet__units" data-line-sheet-units></div>
 
+        <div class="line-sheet__extras" data-line-sheet-extras hidden>
+            <label class="line-sheet__field">
+                <span>{{ __('ui.invoice_gift') }}</span>
+                <input class="num" type="number" min="0" step="1" inputmode="numeric" value="0" data-line-sheet-gift dir="ltr">
+            </label>
+            @if ($maxDiscount > 0)
+                <label class="line-sheet__field">
+                    <span>{{ __('ui.invoice_discount') }} %</span>
+                    <input class="num" type="number" min="0" max="{{ $maxDiscount }}" step="0.01" inputmode="decimal" value="0" data-line-sheet-discount dir="ltr">
+                </label>
+            @endif
+        </div>
+
         <div class="line-sheet__actions">
             <button type="button" class="btn btn--ghost" data-line-sheet-cancel>{{ __('ui.back') }}</button>
             <button type="button" class="btn btn--primary" data-line-sheet-save>{{ __('ui.sell_add_to_order') }}</button>
@@ -194,7 +207,10 @@
     window.JudiInvoiceMaxDiscount = {{ (float) $maxDiscount }};
     window.JudiInvoiceLabels = {
         all: @json(__('ui.all')),
+        gift: @json(__('ui.invoice_gift')),
+        discount: @json(__('ui.invoice_discount')),
         editLine: @json(__('ui.edit')),
+        editLineTitle: @json(__('ui.sell_edit_line')),
         pickCategory: @json(__('ui.invoice_pick_category')),
         noProducts: @json(__('ui.invoice_no_products_in_filter')),
         lines: @json(__('ui.invoice_lines')),
@@ -219,5 +235,5 @@
         remove: @json(__('ui.delete')),
     };
 </script>
-<script src="{{ asset('js/invoice-sell.js') }}?v=33" defer></script>
+<script src="{{ asset('js/invoice-sell.js') }}?v=34" defer></script>
 @endsection
