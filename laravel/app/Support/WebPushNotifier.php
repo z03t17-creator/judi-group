@@ -76,7 +76,7 @@ final class WebPushNotifier
         $payload = json_encode(array_filter([
             'title' => $title,
             'body' => $body,
-            'url' => $url ?: ($extra['url'] ?? '/settings#settings-devices-pending'),
+            'url' => $url ?: ($extra['url'] ?? '/devices'),
             'icon' => $extra['icon'] ?? '/icon-192.png',
             'badge' => $extra['badge'] ?? '/icon-192.png',
             'image' => $extra['image'] ?? '/icon-512.png',

@@ -40,7 +40,7 @@ class NotificationFeedController extends Controller
                 'created_at' => $n->created_at?->toIso8601String(),
                 'unread' => ! in_array($n->id, $readIds, true),
                 'href' => $n->type === 'device_login'
-                    ? route('settings.index', absolute: false).'#settings-devices-pending'
+                    ? route('devices.index', absolute: false)
                     : route('notifications.index', absolute: false),
             ];
         });

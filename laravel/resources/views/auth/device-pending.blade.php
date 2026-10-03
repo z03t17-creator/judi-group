@@ -16,6 +16,10 @@
         <h1>{{ __('ui.device_pending_title') }}</h1>
         <p>{{ __('ui.device_pending_lead') }}</p>
         <p class="muted">{{ $deviceLabel }} · {{ __('ui.device_ip') }}: <strong dir="ltr">{{ $pending->ip_address }}</strong></p>
+        <p class="device-card__code" dir="ltr">
+            {{ __('ui.device_code') }}:
+            <strong class="device-code">{{ \App\Support\DeviceFingerprint::shortCode($pending->device_token) }}</strong>
+        </p>
         <p class="muted" id="pending-wait">{{ __('ui.device_pending_wait') }}</p>
         <form method="POST" action="{{ route('logout') }}" style="margin-top:1rem">
             @csrf

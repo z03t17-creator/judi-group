@@ -1279,6 +1279,85 @@ html.office-menu-lock body {
   }
 }
 
+.settings-toggle-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.85rem;
+}
+
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  flex: 1 1 16rem;
+}
+
+.settings-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.settings-toggle__ui {
+  width: 2.75rem;
+  height: 1.55rem;
+  border-radius: 999px;
+  background: rgb(var(--line));
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.settings-toggle__ui::after {
+  content: "";
+  position: absolute;
+  inset-block: 0.2rem;
+  inset-inline-start: 0.2rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: inset-inline-start 0.2s ease;
+}
+
+.settings-toggle input:checked + .settings-toggle__ui {
+  background: #0f766e;
+}
+
+.settings-toggle input:checked + .settings-toggle__ui::after {
+  inset-inline-start: 1.4rem;
+}
+
+.settings-toggle__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.dir-card__meta--stock {
+  margin-top: 0.25rem;
+  color: rgb(var(--fg));
+}
+
+.dir-card__meta--stock.is-empty {
+  color: rgb(var(--fg-subtle));
+}
+
+.icon-tile__meta--stock {
+  margin-top: 0.15rem;
+}
+
+.sell-store__credit {
+  display: block;
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
+}
+
 .page__header {
   display: flex;
   align-items: flex-start;
@@ -5894,6 +5973,33 @@ html[dir="rtl"] .notif-list__item.is-unread {
   font-size: 1.15rem;
   letter-spacing: 0.08em;
   margin: 0.35rem 0;
+}
+
+.device-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: rgb(var(--fg));
+}
+
+.device-desk__section {
+  margin-top: 1rem;
+}
+
+.device-desk__head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.35rem;
+}
+
+.device-desk__head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.device-desk__hint {
+  margin: 0 0 0.85rem;
 }
 
 .device-card__actions {

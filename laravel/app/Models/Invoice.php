@@ -386,6 +386,17 @@ class Invoice extends Model
             $discountAmount = round($subtotal * ($discountPercent / 100), 2);
             $total = round(max(0, $subtotal - $discountAmount), 2);
 
+            if ($store->wouldExceedCreditLimit($total)) {
+                $remaining = max(0, (float) $store->credit_limit - (float) $store->current_debt);
+                throw new InvalidArgumentException(
+                    __('ui.debt_limit_exceeded', [
+                        'limit' => number_format((float) $store->credit_limit, 0),
+                        'debt' => number_format((float) $store->current_debt, 0),
+                        'remaining' => number_format($remaining, 0),
+                    ]),
+                );
+            }
+
             // Debt-only sales: full total is store receivable. Collections repay later.
             $store->current_debt = number_format(
                 (float) $store->current_debt + $total,

@@ -36,13 +36,8 @@ class SettingsController extends Controller
                 ->get()
             : collect();
 
-        if ($user->isAdmin()) {
-            User::query()->pluck('id')->each(
-                fn ($id) => DeviceFingerprint::pruneDuplicateDevices((int) $id)
-            );
-        } else {
-            DeviceFingerprint::pruneDuplicateDevices($user->id);
-        }
+        // Do not mass-prune here — wiping by label/IP used to revoke other phones on shared Wi‑Fi.
+        DeviceFingerprint::pruneDuplicateDevices($user->id);
 
         $myDevices = UserDevice::query()
             ->where('user_id', $user->id)
@@ -67,6 +62,37 @@ class SettingsController extends Controller
             'myDevices' => $myDevices,
             'allDevices' => $allDevices,
             'currentDevice' => $currentDevice,
+            'enforceDebtLimits' => \App\Models\AppSetting::debtLimitsEnabled(),
+        ]);
+    }
+
+    /**
+     * Rosery-style device desk: pending requests + approved devices + revoke.
+     */
+    public function devices(Request $request): View
+    {
+        $user = $request->user();
+        abort_unless($user?->canApproveDevices() || $user?->isAdmin(), 403);
+
+        $pendingDevices = DeviceLoginRequest::query()
+            ->with('user')
+            ->where('status', 'pending')
+            ->where('expires_at', '>', now())
+            ->latest()
+            ->get();
+
+        $approvedDevices = UserDevice::query()
+            ->with('user')
+            ->whereNotNull('approved_at')
+            ->when(! $user->isAdmin(), fn ($q) => $q->where('user_id', $user->id))
+            ->latest('last_seen_at')
+            ->get();
+
+        return view('devices.index', [
+            'pendingDevices' => $pendingDevices,
+            'approvedDevices' => $approvedDevices,
+            'currentDevice' => DeviceFingerprint::token($request, $user),
+            'canManageAll' => $user->isAdmin(),
         ]);
     }
 
@@ -117,6 +143,19 @@ class SettingsController extends Controller
             ->withCookie($densityCookie);
     }
 
+    public function updateDebtLimits(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()?->isAdmin(), 403);
+
+        $enabled = $request->boolean('enforce_debt_limits');
+        \App\Models\AppSetting::set(\App\Models\AppSetting::ENFORCE_DEBT_LIMITS, $enabled);
+
+        return redirect()
+            ->route('settings.index')
+            ->with('status', $enabled ? __('ui.debt_limit_enabled') : __('ui.debt_limit_disabled'))
+            ->withFragment('settings-debt');
+    }
+
     public function backup(): StreamedResponse|Response
     {
         abort_unless(auth()->user()?->isAdmin(), 403);
@@ -137,10 +176,7 @@ class SettingsController extends Controller
 
         $ok = DeviceGuard::approve($deviceLoginRequest, $request->user());
 
-        return back()->with(
-            $ok ? 'status' : 'error',
-            $ok ? __('ui.device_approved') : __('ui.device_approve_failed'),
-        );
+        return $this->deviceDeskRedirect($request, $ok ? 'status' : 'error', $ok ? __('ui.device_approved') : __('ui.device_approve_failed'));
     }
 
     public function rejectDevice(Request $request, DeviceLoginRequest $deviceLoginRequest): RedirectResponse
@@ -155,7 +191,7 @@ class SettingsController extends Controller
             ])->save();
         }
 
-        return back()->with('status', __('ui.device_rejected'));
+        return $this->deviceDeskRedirect($request, 'status', __('ui.device_rejected'));
     }
 
     /** Signed push action: Approve from notification button. */
@@ -175,9 +211,8 @@ class SettingsController extends Controller
         }
 
         return redirect()
-            ->route('settings.index')
-            ->with($ok ? 'status' : 'error', $message)
-            ->withFragment('settings-devices-pending');
+            ->route('devices.index')
+            ->with($ok ? 'status' : 'error', $message);
     }
 
     /** Signed push action: Reject from notification button. */
@@ -204,9 +239,8 @@ class SettingsController extends Controller
         }
 
         return redirect()
-            ->route('settings.index')
-            ->with('status', $message)
-            ->withFragment('settings-devices-pending');
+            ->route('devices.index')
+            ->with('status', $message);
     }
 
     private function wantsPushJson(Request $request): bool
@@ -214,6 +248,15 @@ class SettingsController extends Controller
         return $request->expectsJson()
             || $request->header('X-Judi-Push') === '1'
             || $request->ajax();
+    }
+
+    private function deviceDeskRedirect(Request $request, string $flashKey, string $message): RedirectResponse
+    {
+        if ($request->input('return_to') === 'devices' || $request->headers->get('Referer') && str_contains((string) $request->headers->get('Referer'), '/devices')) {
+            return redirect()->route('devices.index')->with($flashKey, $message);
+        }
+
+        return back()->with($flashKey, $message);
     }
 
     public function revokeDevice(Request $request, UserDevice $userDevice): RedirectResponse
@@ -239,7 +282,7 @@ class SettingsController extends Controller
                 ->withCookie(DeviceFingerprint::forgetCookie($ownerId));
         }
 
-        return back()->with('status', __('ui.device_revoked'));
+        return $this->deviceDeskRedirect($request, 'status', __('ui.device_revoked'));
     }
 
     /**

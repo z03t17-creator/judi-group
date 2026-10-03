@@ -71,6 +71,8 @@
                         data-store-name="{{ $store->name }}"
                         data-store-phone="{{ $store->phone }}"
                         data-store-debt="{{ number_format((float) $store->current_debt, 0) }}"
+                        data-store-credit-limit="{{ \App\Models\AppSetting::debtLimitsEnabled() ? number_format((float) $store->credit_limit, 0, '.', '') : '' }}"
+                        data-store-credit-remaining="{{ \App\Models\AppSetting::debtLimitsEnabled() ? number_format((float) $store->creditRemaining(), 0, '.', '') : '' }}"
                         data-store-image="{{ $store->imageUrl() }}"
                         data-search="{{ mb_strtolower($store->name.' '.$store->owner_name.' '.$store->phone.' '.$store->address) }}"
                     >
@@ -78,6 +80,12 @@
                         <span class="sell-store__body">
                             <strong>{{ $store->name }}</strong>
                             <span class="sell-store__phone" dir="ltr">{{ $store->phone }}</span>
+                            @if (\App\Models\AppSetting::debtLimitsEnabled())
+                                <span class="sell-store__credit muted">
+                                    {{ __('ui.credit_remaining') }}:
+                                    <span class="ltr-inline num">{{ number_format((float) $store->creditRemaining(), 0) }}</span>
+                                </span>
+                            @endif
                         </span>
                         @if ((float) $store->current_debt > 0)
                             <span class="sell-store__debt num" dir="ltr">{{ number_format((float) $store->current_debt, 0) }}</span>

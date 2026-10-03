@@ -142,7 +142,8 @@ final class DeviceFingerprint
     }
 
     /**
-     * Collapse duplicate rows that share the same label + IP for one user.
+     * Remove exact duplicate token rows only — never delete by label/IP
+     * (office Wi‑Fi + Android would wipe other approved phones).
      */
     public static function pruneDuplicateDevices(int $userId): void
     {
@@ -152,16 +153,32 @@ final class DeviceFingerprint
             ->orderByDesc('id')
             ->get();
 
-        $seen = [];
+        $seenTokens = [];
         foreach ($devices as $device) {
-            $key = mb_strtolower(trim((string) $device->label).'|'.trim((string) $device->ip_address));
-            if (isset($seen[$key])) {
+            $token = strtolower(trim((string) $device->device_token));
+            if ($token === '') {
+                continue;
+            }
+            if (isset($seenTokens[$token])) {
                 $device->delete();
 
                 continue;
             }
-            $seen[$key] = true;
+            $seenTokens[$token] = true;
         }
+    }
+
+    /**
+     * Short human code for matching phones in the admin desk (Rosery-style).
+     */
+    public static function shortCode(?string $token): string
+    {
+        $token = strtoupper(preg_replace('/[^a-f0-9]/i', '', (string) $token) ?? '');
+        if ($token === '') {
+            return '—';
+        }
+
+        return substr($token, 0, 4).substr($token, -4);
     }
 
     public static function shortLabel(?string $userAgent): string

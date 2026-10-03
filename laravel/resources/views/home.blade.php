@@ -27,6 +27,17 @@
             </a>
         @endif
 
+        @if ($user->canApproveDevices())
+            <a href="{{ route('devices.index') }}" class="kpi-card kpi-card--iconed">
+                @include('partials.icon-badge', ['icon' => 'settings', 'tone' => 'slate', 'size' => 'md'])
+                <div>
+                    <h2>{{ __('ui.device_requests') }}</h2>
+                    <p class="kpi-card__value">{{ number_format($pendingDeviceCount) }}</p>
+                    <p class="kpi-card__hint">{{ __('ui.device_requests_home_hint') }}</p>
+                </div>
+            </a>
+        @endif
+
         @if ($user->canAccess('stock'))
             <a href="{{ route('stock.index') }}" class="kpi-card kpi-card--iconed">
                 @include('partials.icon-badge', ['icon' => 'warehouse', 'tone' => 'slate', 'size' => 'md'])

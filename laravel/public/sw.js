@@ -40,7 +40,7 @@ self.addEventListener('push', (event) => {
   let data = {
     title: "Judy's Shelter",
     body: '',
-    url: '/settings#settings-devices-pending',
+    url: '/devices',
     icon: '/icon-192.png',
     badge: '/icon-192.png',
     image: '/icon-512.png',
@@ -61,7 +61,7 @@ self.addEventListener('push', (event) => {
     badge: data.badge || '/icon-192.png',
     image: data.image || '/icon-512.png',
     data: {
-      url: data.url || '/settings#settings-devices-pending',
+      url: data.url || '/devices',
       approveUrl: data.approveUrl || null,
       rejectUrl: data.rejectUrl || null,
       requestId: data.requestId || null,
@@ -89,7 +89,7 @@ self.addEventListener('notificationclick', (event) => {
   if (action === 'approve' || action === 'reject') {
     const target = action === 'approve' ? data.approveUrl : data.rejectUrl;
     if (!target) {
-      event.waitUntil(openOrFocus(data.url || '/settings#settings-devices-pending'));
+      event.waitUntil(openOrFocus(data.url || '/devices'));
       return;
     }
 
@@ -120,7 +120,7 @@ self.addEventListener('notificationclick', (event) => {
             payload.title || "Judy's Shelter",
             payload.message || ('HTTP ' + res.status)
           );
-          return openOrFocus(data.url || '/settings#settings-devices-pending');
+          return openOrFocus(data.url || '/devices');
         })
         .catch(() => openOrFocus(target))
     );

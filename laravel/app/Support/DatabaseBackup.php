@@ -12,7 +12,7 @@ final class DatabaseBackup
         $driver = DB::getDriverName();
         $database = DB::getDatabaseName();
         $lines = [
-            '-- Judy''s Shelter backup',
+            "-- Judy's Shelter backup",
             '-- Generated: '.now()->toDateTimeString(),
             '-- Database: '.$database,
             '-- Driver: '.$driver,

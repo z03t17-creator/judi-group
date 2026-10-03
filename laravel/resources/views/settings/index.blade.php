@@ -55,6 +55,31 @@
             @include('partials.locale-switcher', ['tone' => 'surface'])
         </section>
 
+        @if (auth()->user()?->isAdmin())
+            <section class="surface-panel settings-card settings-card--wide" aria-labelledby="settings-debt" id="settings-debt">
+                <h2 id="settings-debt-title">{{ __('ui.debt_limit_settings') }}</h2>
+                <p class="muted">{{ __('ui.debt_limit_settings_hint') }}</p>
+                <form method="POST" action="{{ route('settings.debt_limits') }}" class="settings-toggle-form">
+                    @csrf
+                    <label class="settings-toggle">
+                        <input type="hidden" name="enforce_debt_limits" value="0">
+                        <input
+                            type="checkbox"
+                            name="enforce_debt_limits"
+                            value="1"
+                            @checked($enforceDebtLimits ?? false)
+                        >
+                        <span class="settings-toggle__ui" aria-hidden="true"></span>
+                        <span class="settings-toggle__text">
+                            <strong>{{ __('ui.debt_limit_toggle') }}</strong>
+                            <span class="muted">{{ ($enforceDebtLimits ?? false) ? __('ui.debt_limit_on') : __('ui.debt_limit_off') }}</span>
+                        </span>
+                    </label>
+                    <button type="submit" class="btn btn--primary">{{ __('ui.save') }}</button>
+                </form>
+            </section>
+        @endif
+
         <section class="surface-panel settings-card" aria-labelledby="settings-notif-link">
             <h2 id="settings-notif-link">{{ __('ui.notifications') }}</h2>
             <a class="btn btn--primary" href="{{ route('notifications.index') }}">{{ __('ui.open_notifications') }}</a>
@@ -63,6 +88,10 @@
         @if (auth()->user()->canApproveDevices())
             <section class="surface-panel settings-card settings-card--wide" aria-labelledby="settings-devices-pending">
                 <h2 id="settings-devices-pending">{{ __('ui.devices_pending') }}</h2>
+                <p class="muted">{{ __('ui.devices_pending_hint') }}</p>
+                <p style="margin:0.75rem 0 1rem">
+                    <a href="{{ route('devices.index') }}" class="btn btn--primary">{{ __('ui.device_requests_open') }}</a>
+                </p>
                 @forelse ($pendingDevices as $req)
                     <article class="device-card">
                         <div>
@@ -70,7 +99,9 @@
                             <p class="muted" dir="ltr">{{ $req->user?->email }}</p>
                             <p class="muted">
                                 {{ \App\Support\DeviceFingerprint::shortLabel($req->user_agent) }}
-                                · <strong dir="ltr">{{ $req->ip_address }}</strong>
+                                · {{ __('ui.device_code') }}:
+                                <strong class="device-code" dir="ltr">{{ \App\Support\DeviceFingerprint::shortCode($req->device_token) }}</strong>
+                                · <span dir="ltr">{{ $req->ip_address }}</span>
                             </p>
                         </div>
                         <div class="device-card__actions">

@@ -137,7 +137,7 @@ final class DeviceGuard
             $title,
             $body,
             $type === 'device_login'
-                ? '/settings#settings-devices-pending'
+                ? '/devices'
                 : '/notifications',
             $type === 'device_login' && isset($meta['device_login_request_id'])
                 ? self::devicePushExtras((int) $meta['device_login_request_id'])

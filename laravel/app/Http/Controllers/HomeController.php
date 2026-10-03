@@ -72,6 +72,7 @@ class HomeController extends Controller
             'stockSkuCount' => $stockSkuCount,
             'stockPieceTotal' => $stockPieceTotal,
             'pendingReleaseCount' => $pendingReleaseCount,
+            'pendingDeviceCount' => $pendingDeviceCount,
             'pendingApprovalCount' => $pendingReleaseCount + $pendingCollectionCount + $pendingDeviceCount,
         ]);
     }

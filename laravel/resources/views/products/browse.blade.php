@@ -6,6 +6,7 @@
 @php
     $tones = ['sky', 'teal', 'amber', 'violet', 'orange', 'emerald', 'cyan', 'indigo'];
     $canManageCategories = $canManageCategories ?? false;
+    $categoryStock = $categoryStock ?? [];
 @endphp
 <section class="page">
     <header class="page__header page__header--iconed">
@@ -73,6 +74,12 @@
                             <span class="icon-tile__meta">
                                 @include('partials.icons.folder-tree', ['class' => 'icon-tile__meta-icon'])
                                 {{ $category->subcategories->count() }} {{ __('ui.subcategories') }}
+                            </span>
+                            <span class="icon-tile__meta icon-tile__meta--stock">
+                                @include('partials.icons.warehouse', ['class' => 'icon-tile__meta-icon'])
+                                {{ __('ui.stock_remain') }}:
+                                <strong class="ltr-inline">{{ number_format((int) ($categoryStock[$category->id] ?? 0)) }}</strong>
+                                {{ __('ui.stock_pieces') }}
                             </span>
                         </span>
                     </a>

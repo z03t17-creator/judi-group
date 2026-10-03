@@ -3,7 +3,7 @@
   if (!feedUrl) return;
 
   const inboxUrl = document.body?.dataset?.notifInbox || '/notifications';
-  const devicesUrl = (document.body?.dataset?.notifInbox || '/settings').replace(/#.*$/, '') + '#settings-devices-pending';
+  const devicesUrl = '/devices';
   const SEEN_KEY = 'judi_notif_seen_v2';
   const LAST_KEY = 'judi_notif_last_id_v2';
   const PERM_KEY = 'judi_notif_perm_asked';

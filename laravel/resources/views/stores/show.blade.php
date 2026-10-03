@@ -65,7 +65,16 @@
         </div>
         <div class="kpi-card kpi-card--accent report-kpi--amber" style="--kpi-accent: #d97706">
             <h2>{{ __('ui.credit_limit') }}</h2>
-            <p class="kpi-card__value ltr-inline report-num">{{ number_format((float) $store->credit_limit, 0) }}</p>
+            @if (\App\Models\AppSetting::debtLimitsEnabled())
+                <p class="kpi-card__value ltr-inline report-num">{{ number_format((float) $store->credit_limit, 0) }}</p>
+                <p class="kpi-card__hint">
+                    {{ __('ui.credit_remaining') }}:
+                    <span class="ltr-inline report-num">{{ number_format((float) $store->creditRemaining(), 0) }}</span>
+                </p>
+            @else
+                <p class="kpi-card__value">{{ __('ui.debt_unlimited') }}</p>
+                <p class="kpi-card__hint muted">{{ __('ui.debt_limit_off_hint') }}</p>
+            @endif
         </div>
     </div>
 

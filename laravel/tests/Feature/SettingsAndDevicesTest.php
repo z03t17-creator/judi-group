@@ -75,14 +75,15 @@ class SettingsAndDevicesTest extends TestCase
         $this->assertNotNull($pending);
 
         $this->actingAs($admin)
-            ->get(route('settings.index'))
+            ->get(route('devices.index'))
             ->assertOk()
             ->assertSee($collector->name, false)
-            ->assertDontSee(__('ui.device_code').':', false);
+            ->assertSee(__('ui.device_code'), false)
+            ->assertSee(DeviceFingerprint::shortCode($token), false);
 
         $this->actingAs($admin)
-            ->post(route('settings.devices.approve', $pending))
-            ->assertRedirect();
+            ->post(route('settings.devices.approve', $pending), ['return_to' => 'devices'])
+            ->assertRedirect(route('devices.index'));
 
         $this->assertTrue(
             UserDevice::query()
@@ -91,6 +92,33 @@ class SettingsAndDevicesTest extends TestCase
                 ->whereNotNull('approved_at')
                 ->exists()
         );
+    }
+
+    public function test_prune_keeps_distinct_tokens_with_same_label_and_ip(): void
+    {
+        $this->seed();
+        $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
+
+        UserDevice::query()->create([
+            'user_id' => $collector->id,
+            'device_token' => str_repeat('1', 64),
+            'label' => 'Android',
+            'approved_at' => now(),
+            'ip_address' => '10.0.0.1',
+            'last_seen_at' => now()->subMinute(),
+        ]);
+        UserDevice::query()->create([
+            'user_id' => $collector->id,
+            'device_token' => str_repeat('2', 64),
+            'label' => 'Android',
+            'approved_at' => now(),
+            'ip_address' => '10.0.0.1',
+            'last_seen_at' => now(),
+        ]);
+
+        DeviceFingerprint::pruneDuplicateDevices($collector->id);
+
+        $this->assertSame(2, UserDevice::query()->where('user_id', $collector->id)->count());
     }
 
     public function test_approved_device_login_is_silent(): void
@@ -365,5 +393,54 @@ class SettingsAndDevicesTest extends TestCase
             ->assertSee(__('ui.notifications'), false)
             ->assertSee(__('ui.notif_inbox'), false)
             ->assertDontSee(__('ui.settings_appearance'), false);
+    }
+
+    public function test_admin_can_toggle_debt_limits(): void
+    {
+        $this->seed();
+        $admin = User::query()->where('email', 'admin@judi.local')->firstOrFail();
+
+        $this->assertFalse(\App\Models\AppSetting::debtLimitsEnabled());
+
+        $this->actingAs($admin)
+            ->post(route('settings.debt_limits'), ['enforce_debt_limits' => '1'])
+            ->assertRedirect(route('settings.index').'#settings-debt');
+
+        $this->assertTrue(\App\Models\AppSetting::debtLimitsEnabled());
+
+        $this->actingAs($admin)
+            ->get(route('settings.index'))
+            ->assertOk()
+            ->assertSee(__('ui.debt_limit_settings'), false);
+
+        $this->actingAs($admin)
+            ->post(route('settings.debt_limits'), ['enforce_debt_limits' => '0'])
+            ->assertRedirect(route('settings.index').'#settings-debt');
+
+        $this->assertFalse(\App\Models\AppSetting::debtLimitsEnabled());
+    }
+
+    public function test_collector_sees_stock_on_products(): void
+    {
+        $this->seed();
+        $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
+        $product = \App\Models\Product::query()->where('is_active', true)->firstOrFail();
+        $warehouse = \App\Models\Warehouse::primary();
+
+        \App\Models\StockInventory::query()->updateOrCreate(
+            ['warehouse_id' => $warehouse->id, 'product_id' => $product->id],
+            ['qty_pieces' => 48],
+        );
+
+        $this->actingAs($collector)
+            ->get(route('products.index', ['category_id' => $product->category_id]))
+            ->assertOk()
+            ->assertSee(__('ui.stock_remain'), false)
+            ->assertSee('48', false);
+
+        $this->actingAs($collector)
+            ->get(route('products.index'))
+            ->assertOk()
+            ->assertSee(__('ui.stock_remain'), false);
     }
 }

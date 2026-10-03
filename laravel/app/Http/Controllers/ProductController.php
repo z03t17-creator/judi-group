@@ -6,9 +6,12 @@ use App\Enums\ProductUnitKind;
 use App\Http\Requests\ProductRequest;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\StockInventory;
+use App\Models\Warehouse;
 use App\Support\ProfileImage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -20,6 +23,8 @@ class ProductController extends Controller
         $canManage = $this->canManage($request);
         $canManageCategories = (bool) $request->user()?->canAccess(\App\Enums\PagePermission::CategoriesManage);
 
+        $stockByProduct = $this->stockPiecesByProduct();
+
         $categories = Category::query()
             ->where('is_active', true)
             ->withCount('products')
@@ -27,6 +32,8 @@ class ProductController extends Controller
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
+
+        $categoryStock = $this->categoryStockTotals($categories, $stockByProduct);
 
         $selectedCategory = $categoryId
             ? $categories->firstWhere('id', $categoryId)
@@ -46,6 +53,7 @@ class ProductController extends Controller
                 'categories' => $categories,
                 'canManage' => $canManage,
                 'canManageCategories' => $canManageCategories,
+                'categoryStock' => $categoryStock,
             ]);
         }
 
@@ -74,7 +82,51 @@ class ProductController extends Controller
             'categories' => $categories,
             'selectedCategory' => $selectedCategory,
             'selectedSubcategory' => $selectedSubcategory,
+            'stockByProduct' => $stockByProduct,
         ]);
+    }
+
+    /**
+     * @return Collection<int, int> product_id => qty_pieces
+     */
+    private function stockPiecesByProduct(): Collection
+    {
+        $warehouse = Warehouse::primary();
+        if (! $warehouse) {
+            return collect();
+        }
+
+        return StockInventory::query()
+            ->where('warehouse_id', $warehouse->id)
+            ->pluck('qty_pieces', 'product_id')
+            ->map(fn ($qty) => (int) $qty);
+    }
+
+    /**
+     * @param  Collection<int, Category>  $categories
+     * @param  Collection<int, int>  $stockByProduct
+     * @return array<int, int> category_id => total pieces
+     */
+    private function categoryStockTotals(Collection $categories, Collection $stockByProduct): array
+    {
+        if ($categories->isEmpty() || $stockByProduct->isEmpty()) {
+            return [];
+        }
+
+        $productCategories = Product::query()
+            ->whereIn('category_id', $categories->pluck('id'))
+            ->pluck('category_id', 'id');
+
+        $totals = [];
+        foreach ($productCategories as $productId => $categoryId) {
+            $pieces = (int) $stockByProduct->get($productId, 0);
+            if ($pieces < 1) {
+                continue;
+            }
+            $totals[(int) $categoryId] = ($totals[(int) $categoryId] ?? 0) + $pieces;
+        }
+
+        return $totals;
     }
 
     public function create(Request $request): View

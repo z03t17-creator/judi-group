@@ -69,6 +69,27 @@ class Store extends Model
         return $this->name;
     }
 
+    /** Remaining headroom before credit_limit (null = unlimited / enforcement off). */
+    public function creditRemaining(): ?float
+    {
+        if (! AppSetting::debtLimitsEnabled()) {
+            return null;
+        }
+
+        return max(0, (float) $this->credit_limit - (float) $this->current_debt);
+    }
+
+    public function wouldExceedCreditLimit(float $addAmount): bool
+    {
+        if (! AppSetting::debtLimitsEnabled()) {
+            return false;
+        }
+
+        $next = (float) $this->current_debt + max(0, $addAmount);
+
+        return $next > (float) $this->credit_limit + 0.0001;
+    }
+
     public function imageUrl(): string
     {
         return ProfileImage::url($this->image_path, 'images/placeholders/store.svg');

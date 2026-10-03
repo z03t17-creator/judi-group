@@ -317,4 +317,58 @@ class CollectorSellTest extends TestCase
             \App\Models\Collection::query()->where('invoice_id', $invoice->id)->first(),
         );
     }
+
+    public function test_debt_limit_is_off_by_default_and_allows_over_credit(): void
+    {
+        $this->seed();
+        $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
+        $store = Store::query()->firstOrFail();
+        $warehouse = Warehouse::primary();
+        $product = Product::query()->where('is_active', true)->firstOrFail();
+        $unit = $product->unit(\App\Enums\ProductUnitKind::Piece);
+
+        $store->update([
+            'credit_limit' => 1000,
+            'current_debt' => 900,
+        ]);
+
+        $invoice = Invoice::createSale(
+            $collector,
+            $store->fresh(),
+            $warehouse,
+            [['product_unit_id' => $unit->id, 'quantity' => 1]],
+            0,
+        );
+
+        $this->assertNotNull($invoice->id);
+        $this->assertFalse(\App\Models\AppSetting::debtLimitsEnabled());
+    }
+
+    public function test_debt_limit_blocks_sale_when_enabled(): void
+    {
+        $this->seed();
+        \App\Models\AppSetting::set(\App\Models\AppSetting::ENFORCE_DEBT_LIMITS, true);
+
+        $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
+        $store = Store::query()->firstOrFail();
+        $warehouse = Warehouse::primary();
+        $product = Product::query()->where('is_active', true)->firstOrFail();
+        $unit = $product->unit(\App\Enums\ProductUnitKind::Piece);
+        $price = (float) $unit->priceFor(CollectorChannel::Wholesale);
+
+        $store->update([
+            'credit_limit' => max(1000, $price),
+            'current_debt' => max(1000, $price),
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        Invoice::createSale(
+            $collector,
+            $store->fresh(),
+            $warehouse,
+            [['product_unit_id' => $unit->id, 'quantity' => 1]],
+            0,
+        );
+    }
 }

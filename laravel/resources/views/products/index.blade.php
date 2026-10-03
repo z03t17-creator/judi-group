@@ -89,7 +89,11 @@
 
     <div class="directory-cards">
         @forelse ($products as $product)
-            @php $piece = $product->unit(\App\Enums\ProductUnitKind::Piece); @endphp
+            @php
+                $piece = $product->unit(\App\Enums\ProductUnitKind::Piece);
+                $stockQty = (int) ($stockByProduct[$product->id] ?? 0);
+                $stockLabel = $product->breakdownPieces($stockQty)['label'];
+            @endphp
             <a
                 href="{{ $canManage ? route('products.edit', $product) : '#' }}"
                 class="dir-card"
@@ -106,6 +110,12 @@
                                 <span class="ltr-inline">{{ number_format((float) ($piece?->price_wholesale ?? 0), 0) }}</span>
                                 · {{ __('ui.price_retail') }}
                                 <span class="ltr-inline">{{ number_format((float) ($piece?->price_retail ?? 0), 0) }}</span>
+                            </p>
+                            <p class="dir-card__meta dir-card__meta--stock {{ $stockQty < 1 ? 'is-empty' : '' }}">
+                                {{ __('ui.stock_remain') }}:
+                                <strong class="ltr-inline">{{ number_format($stockQty) }}</strong>
+                                {{ __('ui.stock_pieces') }}
+                                <span class="muted">({{ $stockLabel }})</span>
                             </p>
                         </div>
                     </div>
@@ -130,6 +140,7 @@
                         <th>{{ __('ui.product_name') }}</th>
                         <th>{{ __('ui.sku') }}</th>
                         <th>{{ __('ui.pack_title') }}</th>
+                        <th>{{ __('ui.stock_remain') }}</th>
                         <th>{{ __('ui.price_wholesale') }}</th>
                         <th>{{ __('ui.price_retail') }}</th>
                         <th>{{ __('ui.active') }}</th>
@@ -140,7 +151,11 @@
                 </thead>
                 <tbody>
                     @forelse ($products as $product)
-                        @php $piece = $product->unit(\App\Enums\ProductUnitKind::Piece); @endphp
+                        @php
+                            $piece = $product->unit(\App\Enums\ProductUnitKind::Piece);
+                            $stockQty = (int) ($stockByProduct[$product->id] ?? 0);
+                            $stockLabel = $product->breakdownPieces($stockQty)['label'];
+                        @endphp
                         <tr>
                             <td>
                                 <div class="table-entity">
@@ -163,6 +178,10 @@
                                 {{ $product->pieces_per_packet }} {{ __('ui.piece') }}/{{ __('ui.packet') }}
                                 · {{ $product->pieces_per_carton }} {{ __('ui.piece') }}/{{ __('ui.carton') }}
                             </td>
+                            <td>
+                                <strong class="ltr-inline report-num">{{ number_format($stockQty) }}</strong>
+                                <span class="muted block">{{ $stockLabel }}</span>
+                            </td>
                             <td><span class="ltr-inline report-num">{{ number_format((float) ($piece?->price_wholesale ?? 0), 0) }}</span></td>
                             <td><span class="ltr-inline report-num">{{ number_format((float) ($piece?->price_retail ?? 0), 0) }}</span></td>
                             <td>
@@ -181,7 +200,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $canManage ? 7 : 6 }}" class="empty">{{ __('ui.products_empty') }}</td>
+                            <td colspan="{{ $canManage ? 8 : 7 }}" class="empty">{{ __('ui.products_empty') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
