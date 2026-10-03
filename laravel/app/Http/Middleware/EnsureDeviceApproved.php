@@ -30,20 +30,33 @@ class EnsureDeviceApproved
         $request->session()->put(DeviceFingerprint::sessionKey($user->id), $token);
 
         if (DeviceGuard::isApproved($user, $token)) {
-            return $next($request)
-                ->withCookie(DeviceFingerprint::queueCookie($token, $user->id))
-                ->withCookie(DeviceFingerprint::queueBrowserCookie($request));
+            $response = $next($request);
+            $this->attachDeviceCookies($response, $request, $token, $user->id);
+
+            return $response;
         }
 
-        if ($request->session()->get('device_pending_id')) {
-            return redirect()->route('device.pending')
-                ->withCookie(DeviceFingerprint::queueCookie($token, $user->id))
-                ->withCookie(DeviceFingerprint::queueBrowserCookie($request));
-        }
-
-        // Unknown device after session existed — force pending check page.
         return redirect()->route('device.pending')
             ->withCookie(DeviceFingerprint::queueCookie($token, $user->id))
             ->withCookie(DeviceFingerprint::queueBrowserCookie($request));
+    }
+
+    /**
+     * Streamed downloads (backup) are Symfony StreamedResponse — no withCookie().
+     * Queue cookies so AddQueuedCookiesToResponse still attaches them.
+     */
+    private function attachDeviceCookies(Response $response, Request $request, string $token, int $userId): void
+    {
+        $deviceCookie = DeviceFingerprint::queueCookie($token, $userId);
+        $browserCookie = DeviceFingerprint::queueBrowserCookie($request);
+
+        if (method_exists($response, 'withCookie')) {
+            $response->withCookie($deviceCookie)->withCookie($browserCookie);
+
+            return;
+        }
+
+        cookie()->queue($deviceCookie);
+        cookie()->queue($browserCookie);
     }
 }

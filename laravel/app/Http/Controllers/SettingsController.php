@@ -160,11 +160,21 @@ class SettingsController extends Controller
     {
         abort_unless(auth()->user()?->isAdmin(), 403);
 
-        $sql = DatabaseBackup::toSql();
         $name = 'judi-backup-'.now()->format('Ymd-His').'.sql';
 
-        return response()->streamDownload(function () use ($sql) {
-            echo $sql;
+        try {
+            // Probe once so we fail with a clear flash instead of a blank 500 mid-stream.
+            DatabaseBackup::assertReady();
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->route('settings.index')
+                ->with('error', __('ui.backup_failed'));
+        }
+
+        return response()->streamDownload(function () {
+            DatabaseBackup::stream();
         }, $name, [
             'Content-Type' => 'application/sql; charset=UTF-8',
         ]);

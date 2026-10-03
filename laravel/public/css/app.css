@@ -11564,3 +11564,49 @@ html[dir="ltr"] .settings-action__chev {
   font-size: 0.72rem;
   color: rgb(var(--fg-subtle));
 }
+
+/* Device desk — no edge clipping */
+.device-desk {
+  width: 100%;
+  max-width: 56rem;
+  margin-inline: auto;
+  min-width: 0;
+  overflow-x: clip;
+  box-sizing: border-box;
+}
+
+.device-desk__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  width: 100%;
+  min-width: 0;
+}
+
+.device-desk__lead {
+  margin: 0 0 0.85rem;
+  font-size: 0.85rem;
+  color: rgb(var(--fg-subtle));
+}
+
+.device-desk .settings-device-row {
+  align-items: flex-start;
+}
+
+.device-desk .settings-device-row__info {
+  flex: 1 1 12rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.device-desk .settings-device-row__actions {
+  flex: 0 0 auto;
+  margin-inline-start: 0;
+}
+
+.device-desk .settings-panel {
+  overflow: hidden;
+  max-width: 100%;
+}

@@ -542,6 +542,7 @@ return [
     'backup' => 'Backup',
     'backup_hint' => 'Download a SQL dump of the database (Admin only).',
     'backup_download' => 'Download backup',
+    'backup_failed' => 'Backup failed. Try again in a moment.',
     'devices_pending' => 'Pending devices',
     'devices_pending_hint' => 'Match the device code on the employee phone, then Approve. After approval they sign in instantly until you revoke.',
     'devices_pending_empty' => 'No devices waiting.',
