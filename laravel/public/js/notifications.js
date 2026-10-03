@@ -4,18 +4,18 @@
 
   const inboxUrl = document.body?.dataset?.notifInbox || '/notifications';
   const devicesUrl = '/devices';
-  const SEEN_KEY = 'judi_notif_seen_v2';
-  const LAST_KEY = 'judi_notif_last_id_v2';
+  const SEEN_KEY = 'judi_notif_seen_v3';
+  const LAST_KEY = 'judi_notif_last_id_v3';
   const PERM_KEY = 'judi_notif_perm_asked';
 
   let lastId = Number(localStorage.getItem(LAST_KEY) || 0) || 0;
   let lastPendingDevices = null;
   let primed = false;
+  let toastBusy = false;
   const seenIds = new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'));
   const countEl = document.querySelector('[data-notif-count]');
   const host = () => document.querySelector('[data-notif-toast-host]');
   const queue = [];
-  let showing = false;
 
   const copy = {
     deviceTitle: document.documentElement.getAttribute('data-label-notif-device') || 'New device waiting',
@@ -28,7 +28,13 @@
     } catch (e) {}
   }
 
+  function pageVisible() {
+    return document.visibilityState === 'visible';
+  }
+
   function showBrowser(title, body, tag) {
+    // Avoid double noise: system notification only when the tab is hidden.
+    if (pageVisible()) return;
     if (!('Notification' in window)) return;
     if (Notification.permission !== 'granted') return;
     try {
@@ -38,12 +44,12 @@
         badge: '/icon-192.png',
         tag: tag || ('judi-' + String(title || '').slice(0, 40)),
         renotify: false,
+        silent: true,
       });
-      setTimeout(() => { try { n.close(); } catch (e) {} }, 8000);
+      setTimeout(() => { try { n.close(); } catch (e) {} }, 5000);
     } catch (e) {}
   }
 
-  /** Ask once per browser install — never on every login/page load. */
   async function ensurePermissionOnce() {
     if (!('Notification' in window)) return;
     if (Notification.permission !== 'default') return;
@@ -61,17 +67,21 @@
       seenIds.add(key);
       persistSeen();
     }
+    // Keep only the latest toast waiting — no flapping queue.
+    queue.length = 0;
     queue.push(item);
-    if (!showing) drainQueue();
+    if (!toastBusy) drainQueue();
   }
 
   function drainQueue() {
     const root = host();
     if (!root || queue.length === 0) {
-      showing = false;
+      toastBusy = false;
       return;
     }
-    showing = true;
+    toastBusy = true;
+    root.querySelectorAll('[data-notif-toast]').forEach((node) => node.remove());
+
     const item = queue.shift();
     const isDevice = item.type === 'device_login' || item.kind === 'pending_device';
     const el = document.createElement('button');
@@ -79,8 +89,7 @@
     el.className = 'notif-toast' + (isDevice ? ' notif-toast--device' : '');
     el.setAttribute('data-notif-toast', '');
     el.innerHTML =
-      '<span class="notif-toast__bar" aria-hidden="true"></span>'
-      + '<span class="notif-toast__icon" aria-hidden="true">'
+      '<span class="notif-toast__icon" aria-hidden="true">'
       + (isDevice
         ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg>'
         : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>')
@@ -88,8 +97,7 @@
       + '<span class="notif-toast__body">'
       + '<strong class="notif-toast__title"></strong>'
       + '<span class="notif-toast__text"></span>'
-      + '</span>'
-      + '<span class="notif-toast__close" aria-hidden="true">×</span>';
+      + '</span>';
 
     el.querySelector('.notif-toast__title').textContent = item.title || '';
     el.querySelector('.notif-toast__text').textContent = item.body || '';
@@ -102,34 +110,32 @@
       el.classList.add('is-out');
       setTimeout(() => {
         el.remove();
-        showing = false;
+        toastBusy = false;
         drainQueue();
-      }, 280);
+      }, 180);
     };
 
-    el.addEventListener('click', (event) => {
-      if (event.target.closest('.notif-toast__close')) {
-        dismiss();
-        return;
-      }
+    el.addEventListener('click', () => {
       dismiss();
       window.location.href = item.href || (isDevice ? devicesUrl : inboxUrl);
     });
 
     root.appendChild(el);
     requestAnimationFrame(() => el.classList.add('is-in'));
-    setTimeout(dismiss, isDevice ? 12000 : 6000);
+    setTimeout(dismiss, isDevice ? 7000 : 4000);
   }
 
   function toastNew(list) {
-    list
+    const fresh = list
       .filter((n) => n.unread)
       .filter((n) => n.type !== 'user_signed_in')
-      .reverse()
-      .forEach((n) => {
-        enqueueToast(n);
-        showBrowser(n.title, n.body, 'judi-n-' + String(n.id));
-      });
+      .filter((n) => n.id == null || !seenIds.has(String(n.id)));
+
+    if (fresh.length === 0) return;
+
+    const newest = fresh[fresh.length - 1];
+    enqueueToast(newest);
+    showBrowser(newest.title, newest.body, 'judi-n-' + String(newest.id));
   }
 
   async function poll() {
@@ -152,29 +158,17 @@
 
       if (!primed) {
         primed = true;
-        // First load: mark current feed as seen — do not replay old toasts on login.
         list.forEach((n) => {
           if (n.id != null) seenIds.add(String(n.id));
         });
-        persistSeen();
         if (pending > 0) {
-          const pendingKey = 'pending-devices-' + pending;
-          if (!seenIds.has(pendingKey)) {
-            enqueueToast({
-              id: pendingKey,
-              kind: 'pending_device',
-              type: 'device_login',
-              title: copy.deviceTitle,
-              body: copy.deviceBody,
-              href: devicesUrl,
-            });
-            showBrowser(copy.deviceTitle, copy.deviceBody, pendingKey);
-          }
+          seenIds.add('pending-devices-' + pending);
         }
+        persistSeen();
       } else {
         toastNew(list);
         if (lastPendingDevices !== null && pending > lastPendingDevices) {
-          const pendingKey = 'pending-devices-' + pending + '-' + Date.now();
+          const pendingKey = 'pending-devices-' + pending;
           enqueueToast({
             id: pendingKey,
             kind: 'pending_device',
@@ -199,7 +193,7 @@
   function start() {
     ensurePermissionOnce();
     poll();
-    setInterval(poll, 8000);
+    setInterval(poll, 12000);
   }
 
   if (document.readyState === 'loading') {
