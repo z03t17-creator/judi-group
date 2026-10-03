@@ -137,10 +137,12 @@ final class DatabaseBackup
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
         } elseif ($driver === 'pgsql') {
             DB::statement('SET session_replication_role = replica');
+        } elseif ($driver === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = OFF');
         }
 
         try {
-            DB::transaction(function () use ($statements, $allowedTables, &$touched, &$ran) {
+            DB::transaction(function () use ($statements, $allowedTables, &$touched, &$ran, $driver) {
                 foreach ($statements as $statement) {
                     $table = self::allowedImportStatement($statement, $allowedTables);
                     if ($table === false) {
@@ -158,6 +160,8 @@ final class DatabaseBackup
                 DB::statement('SET FOREIGN_KEY_CHECKS=1');
             } elseif ($driver === 'pgsql') {
                 DB::statement('SET session_replication_role = DEFAULT');
+            } elseif ($driver === 'sqlite') {
+                DB::statement('PRAGMA foreign_keys = ON');
             }
         }
 
