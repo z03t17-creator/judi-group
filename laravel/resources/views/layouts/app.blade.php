@@ -38,7 +38,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
     {{-- Flaticon Uicons (Solid Rounded) — https://www.flaticon.com/uicons --}}
     <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=98">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=99">
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
@@ -49,7 +49,7 @@
     <script src="{{ asset('js/money-input.js') }}?v=2" defer></script>
     <script src="{{ asset('js/image-upload.js') }}?v=1" defer></script>
     <script src="{{ asset('js/visit-timer.js') }}?v=2" defer></script>
-    <script src="{{ asset('js/notifications.js') }}?v=10" defer></script>
+    <script src="{{ asset('js/notifications.js') }}?v=11" defer></script>
     <script src="{{ asset('js/push.js') }}?v=5" defer></script>
     <script src="{{ asset('js/share.js') }}?v=4" defer></script>
     <script src="{{ asset('js/preferences.js') }}?v=2" defer></script>

@@ -56,6 +56,7 @@ return [
     'collections' => 'التحصيل',
     'reports' => 'التقارير',
     'settings' => 'الإعدادات',
+    'quick_actions' => 'اختصارات',
     'sign_out' => 'تسجيل الخروج',
     'back' => 'رجوع',
     'save' => 'حفظ',

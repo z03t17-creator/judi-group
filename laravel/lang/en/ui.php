@@ -56,6 +56,7 @@ return [
     'collections' => 'Collections',
     'reports' => 'Reports',
     'settings' => 'Settings',
+    'quick_actions' => 'Shortcuts',
     'sign_out' => 'Sign out',
     'back' => 'Back',
     'save' => 'Save',

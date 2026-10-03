@@ -56,6 +56,7 @@ return [
     'collections' => 'کۆکردنەوە',
     'reports' => 'ڕاپۆرتەکان',
     'settings' => 'ڕێکخستن',
+    'quick_actions' => 'میانبڕ',
     'sign_out' => 'دەرچوون',
     'back' => 'گەڕانەوە',
     'save' => 'پاشەکەوت',
