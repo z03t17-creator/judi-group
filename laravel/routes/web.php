@@ -59,6 +59,7 @@ Route::middleware(['auth', 'active', 'device'])->group(function () {
     Route::post('/settings/preferences', [SettingsController::class, 'updatePreferences'])->name('settings.preferences');
     Route::post('/settings/debt-limits', [SettingsController::class, 'updateDebtLimits'])->name('settings.debt_limits');
     Route::get('/settings/backup', [SettingsController::class, 'backup'])->name('settings.backup');
+    Route::post('/settings/backup/import', [SettingsController::class, 'importBackup'])->name('settings.backup.import');
     Route::post('/settings/devices/{deviceLoginRequest}/approve', [SettingsController::class, 'approveDevice'])->name('settings.devices.approve');
     Route::post('/settings/devices/{deviceLoginRequest}/reject', [SettingsController::class, 'rejectDevice'])->name('settings.devices.reject');
     Route::get('/push/devices/{deviceLoginRequest}/approve', [SettingsController::class, 'approveDeviceFromPush'])

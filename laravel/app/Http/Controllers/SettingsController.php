@@ -180,6 +180,57 @@ class SettingsController extends Controller
         ]);
     }
 
+    public function importBackup(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()?->isAdmin(), 403);
+
+        $request->validate([
+            'backup_file' => ['required', 'file', 'max:51200'],
+        ], [], [
+            'backup_file' => __('ui.backup_file'),
+        ]);
+
+        $file = $request->file('backup_file');
+        $ext = strtolower((string) $file->getClientOriginalExtension());
+        if (! in_array($ext, ['sql', 'txt'], true)) {
+            return redirect()
+                ->route('settings.index')
+                ->with('error', __('ui.backup_import_invalid'))
+                ->withFragment('settings-backup');
+        }
+        $sql = @file_get_contents($file->getRealPath());
+        if (! is_string($sql) || trim($sql) === '') {
+            return redirect()
+                ->route('settings.index')
+                ->with('error', __('ui.backup_import_empty'))
+                ->withFragment('settings-backup');
+        }
+
+        try {
+            $result = DatabaseBackup::import($sql);
+        } catch (\InvalidArgumentException $e) {
+            return redirect()
+                ->route('settings.index')
+                ->with('error', $e->getMessage())
+                ->withFragment('settings-backup');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->route('settings.index')
+                ->with('error', __('ui.backup_import_failed'))
+                ->withFragment('settings-backup');
+        }
+
+        return redirect()
+            ->route('settings.index')
+            ->with('status', __('ui.backup_imported', [
+                'statements' => number_format($result['statements']),
+                'tables' => number_format(count($result['tables'])),
+            ]))
+            ->withFragment('settings-backup');
+    }
+
     public function approveDevice(Request $request, DeviceLoginRequest $deviceLoginRequest): RedirectResponse
     {
         abort_unless($request->user()->canApproveDevices(), 403);

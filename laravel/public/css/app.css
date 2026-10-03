@@ -11610,3 +11610,39 @@ html[dir="ltr"] .settings-action__chev {
   overflow: hidden;
   max-width: 100%;
 }
+
+.settings-backup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+  margin-top: 0.65rem;
+}
+
+.settings-backup__import {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex: 1 1 16rem;
+}
+
+.settings-backup__file {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1 1 12rem;
+}
+
+.settings-backup__file-label {
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: rgb(var(--fg-muted));
+}
+
+.settings-backup__file input[type="file"] {
+  width: 100%;
+  max-width: 100%;
+  font-size: 0.8rem;
+}

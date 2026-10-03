@@ -112,6 +112,201 @@ final class DatabaseBackup
         return $tables;
     }
 
+    /**
+     * Import a Judy's Shelter SQL dump. Only DELETE/INSERT (and safe SET) for known tables.
+     *
+     * @return array{statements: int, tables: list<string>}
+     */
+    public static function import(string $sql): array
+    {
+        @set_time_limit(0);
+
+        $driver = DB::getDriverName();
+        $allowedTables = array_fill_keys(self::tableNames(), true);
+        $touched = [];
+        $ran = 0;
+
+        $statements = self::splitStatements($sql);
+        if ($statements === []) {
+            throw new \InvalidArgumentException(__('ui.backup_import_empty'));
+        }
+
+        DB::connection()->disableQueryLog();
+
+        if ($driver === 'mysql') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        } elseif ($driver === 'pgsql') {
+            DB::statement('SET session_replication_role = replica');
+        }
+
+        try {
+            DB::transaction(function () use ($statements, $allowedTables, &$touched, &$ran) {
+                foreach ($statements as $statement) {
+                    $table = self::allowedImportStatement($statement, $allowedTables);
+                    if ($table === false) {
+                        continue;
+                    }
+                    if ($table !== null) {
+                        $touched[$table] = true;
+                    }
+                    DB::unprepared(self::normalizeStatementForDriver($statement, $driver));
+                    $ran++;
+                }
+            });
+        } finally {
+            if ($driver === 'mysql') {
+                DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            } elseif ($driver === 'pgsql') {
+                DB::statement('SET session_replication_role = DEFAULT');
+            }
+        }
+
+        if ($ran < 1) {
+            throw new \InvalidArgumentException(__('ui.backup_import_invalid'));
+        }
+
+        return [
+            'statements' => $ran,
+            'tables' => array_keys($touched),
+        ];
+    }
+
+    /**
+     * @param  array<string, bool>  $allowedTables
+     * @return string|null|false  table name, null for SET, false to skip/reject unsafe
+     */
+    private static function allowedImportStatement(string $statement, array $allowedTables): string|null|false
+    {
+        $normalized = ltrim($statement);
+        if ($normalized === '') {
+            return false;
+        }
+
+        if (preg_match('/^SET\s+FOREIGN_KEY_CHECKS\s*=\s*[01]\s*$/i', $normalized)) {
+            return null;
+        }
+        if (preg_match('/^SET\s+session_replication_role\s*=\s*(replica|DEFAULT)\s*$/i', $normalized)) {
+            return null;
+        }
+
+        if (preg_match('/^DELETE\s+FROM\s+[`"\[]?([a-zA-Z0-9_]+)[`"\]]?\s*$/i', $normalized, $m)) {
+            $table = $m[1];
+            if (! isset($allowedTables[$table])) {
+                return false;
+            }
+
+            return $table;
+        }
+
+        if (preg_match('/^INSERT\s+INTO\s+[`"\[]?([a-zA-Z0-9_]+)[`"\]]?\s*\(/i', $normalized, $m)) {
+            $table = $m[1];
+            if (! isset($allowedTables[$table])) {
+                return false;
+            }
+
+            return $table;
+        }
+
+        return false;
+    }
+
+    private static function normalizeStatementForDriver(string $statement, string $driver): string
+    {
+        if ($driver === 'sqlite') {
+            // Our dumps use MySQL backticks; SQLite prefers double quotes.
+            return str_replace('`', '"', $statement);
+        }
+
+        return $statement;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function splitStatements(string $sql): array
+    {
+        $sql = str_replace(["\r\n", "\r"], "\n", $sql);
+        $statements = [];
+        $buffer = '';
+        $inSingle = false;
+        $inDouble = false;
+        $inBacktick = false;
+        $len = strlen($sql);
+
+        for ($i = 0; $i < $len; $i++) {
+            $ch = $sql[$i];
+            $next = $i + 1 < $len ? $sql[$i + 1] : '';
+
+            // Skip full-line comments when not inside a string.
+            if (! $inSingle && ! $inDouble && ! $inBacktick && $ch === '-' && $next === '-') {
+                while ($i < $len && $sql[$i] !== "\n") {
+                    $i++;
+                }
+                continue;
+            }
+
+            if (! $inDouble && ! $inBacktick && $ch === "'" && ! $inSingle) {
+                $inSingle = true;
+                $buffer .= $ch;
+                continue;
+            }
+            if ($inSingle) {
+                $buffer .= $ch;
+                if ($ch === "'" && $next === "'") {
+                    $buffer .= $next;
+                    $i++;
+                } elseif ($ch === "'") {
+                    $inSingle = false;
+                }
+                continue;
+            }
+
+            if (! $inSingle && ! $inBacktick && $ch === '"' && ! $inDouble) {
+                $inDouble = true;
+                $buffer .= $ch;
+                continue;
+            }
+            if ($inDouble) {
+                $buffer .= $ch;
+                if ($ch === '"') {
+                    $inDouble = false;
+                }
+                continue;
+            }
+
+            if (! $inSingle && ! $inDouble && $ch === '`' && ! $inBacktick) {
+                $inBacktick = true;
+                $buffer .= $ch;
+                continue;
+            }
+            if ($inBacktick) {
+                $buffer .= $ch;
+                if ($ch === '`') {
+                    $inBacktick = false;
+                }
+                continue;
+            }
+
+            if ($ch === ';') {
+                $statement = trim($buffer);
+                if ($statement !== '') {
+                    $statements[] = $statement;
+                }
+                $buffer = '';
+                continue;
+            }
+
+            $buffer .= $ch;
+        }
+
+        $tail = trim($buffer);
+        if ($tail !== '') {
+            $statements[] = $tail;
+        }
+
+        return $statements;
+    }
+
     private static function quoteIdent(string $name, string $driver): string
     {
         if ($driver === 'pgsql') {

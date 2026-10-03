@@ -80,14 +80,35 @@
                         <span class="settings-action__chev" aria-hidden="true"></span>
                     </a>
                 @endif
-                @if (auth()->user()->isAdmin())
-                    <a class="settings-action" href="{{ route('settings.backup') }}">
-                        <span class="settings-action__text">{{ __('ui.backup_download') }}</span>
-                        <span class="settings-action__chev" aria-hidden="true"></span>
-                    </a>
-                @endif
             </div>
         </section>
+
+        @if (auth()->user()?->isAdmin())
+            <section class="surface-panel settings-panel settings-panel--wide" id="settings-backup" aria-labelledby="settings-backup-title">
+                <h2 id="settings-backup-title" class="settings-panel__title">{{ __('ui.backup') }}</h2>
+                <p class="settings-line__hint">{{ __('ui.backup_hint') }}</p>
+                <div class="settings-backup">
+                    <a class="btn btn--primary btn--sm" href="{{ route('settings.backup') }}">{{ __('ui.backup_download') }}</a>
+                    <form
+                        method="POST"
+                        action="{{ route('settings.backup.import') }}"
+                        enctype="multipart/form-data"
+                        class="settings-backup__import"
+                        onsubmit="return confirm(@json(__('ui.backup_import_confirm')))"
+                    >
+                        @csrf
+                        <label class="settings-backup__file">
+                            <span class="settings-backup__file-label">{{ __('ui.backup_import') }}</span>
+                            <input type="file" name="backup_file" accept=".sql,text/plain,.txt" required>
+                        </label>
+                        <button type="submit" class="btn btn--ghost btn--sm">{{ __('ui.backup_import_run') }}</button>
+                    </form>
+                </div>
+                @error('backup_file')
+                    <p class="flash flash--err">{{ $message }}</p>
+                @enderror
+            </section>
+        @endif
 
         @if (auth()->user()?->isAdmin())
             <section class="surface-panel settings-panel settings-panel--wide" id="settings-debt" aria-labelledby="settings-debt-title">

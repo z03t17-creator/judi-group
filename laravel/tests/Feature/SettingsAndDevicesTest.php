@@ -51,6 +51,54 @@ class SettingsAndDevicesTest extends TestCase
             ->assertHeader('content-disposition');
     }
 
+    public function test_admin_can_import_backup_sql(): void
+    {
+        $this->seed();
+        $admin = User::query()->where('email', 'admin@judi.local')->firstOrFail();
+        $store = \App\Models\Store::query()->firstOrFail();
+        $originalName = $store->name;
+
+        $sql = "-- Judy's Shelter backup\n"
+            ."DELETE FROM `stores`;\n"
+            .'INSERT INTO `stores` (`id`, `name`, `owner_name`, `phone`, `address`, `credit_limit`, `current_debt`, `is_active`, `created_at`, `updated_at`) VALUES ('
+            .(int) $store->id.', '
+            ."'Imported Store', "
+            ."'Owner', "
+            ."'0700000000', "
+            ."'Addr', "
+            ."'1000.00', "
+            ."'0.00', "
+            .'1, '
+            ."'2026-01-01 00:00:00', "
+            ."'2026-01-01 00:00:00');\n";
+
+        $path = sys_get_temp_dir().DIRECTORY_SEPARATOR.'judi-import-test.sql';
+        file_put_contents($path, $sql);
+
+        $this->actingAs($admin)
+            ->post(route('settings.backup.import'), [
+                'backup_file' => new \Illuminate\Http\UploadedFile($path, 'judi-import-test.sql', 'application/sql', null, true),
+            ])
+            ->assertRedirect(route('settings.index').'#settings-backup');
+
+        $this->assertSame('Imported Store', \App\Models\Store::query()->find($store->id)?->name);
+        $this->assertNotSame($originalName, 'Imported Store');
+    }
+
+    public function test_non_admin_cannot_import_backup(): void
+    {
+        $this->seed();
+        $collector = User::query()->where('email', 'wholesale@judi.local')->firstOrFail();
+        $path = sys_get_temp_dir().DIRECTORY_SEPARATOR.'judi-import-forbidden.sql';
+        file_put_contents($path, "DELETE FROM stores;\n");
+
+        $this->actingAs($collector)
+            ->post(route('settings.backup.import'), [
+                'backup_file' => new \Illuminate\Http\UploadedFile($path, 'judi-import-forbidden.sql', 'application/sql', null, true),
+            ])
+            ->assertForbidden();
+    }
+
     public function test_first_collector_login_requires_admin_approval_without_code(): void
     {
         $this->seed();
