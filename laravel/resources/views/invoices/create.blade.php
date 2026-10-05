@@ -102,18 +102,32 @@
         </section>
 
         <section class="sell-panel sell-panel--order" data-panel="catalog" @if (!empty($activeVisit)) @else hidden @endif>
-            <label class="sell-search">
-                <span class="visually-hidden">{{ __('ui.search') }}</span>
-                <input
-                    class="sell-search__input"
-                    type="search"
-                    data-product-filter
-                    placeholder="{{ __('ui.invoice_product_search') }}"
-                    enterkeyhint="search"
-                    autocomplete="off"
-                    data-scan-focus
+            <div class="sell-search sell-search--with-scan">
+                <label class="sell-search__field">
+                    <span class="visually-hidden">{{ __('ui.search') }}</span>
+                    <input
+                        class="sell-search__input"
+                        type="search"
+                        data-product-filter
+                        placeholder="{{ __('ui.invoice_product_search') }}"
+                        enterkeyhint="search"
+                        autocomplete="off"
+                        data-scan-focus
+                    >
+                </label>
+                <button
+                    type="button"
+                    class="btn btn--regular sell-search__scan"
+                    data-open-barcode-scan
+                    aria-label="{{ __('ui.barcode_scan') }}"
+                    title="{{ __('ui.barcode_scan') }}"
                 >
-            </label>
+                    <svg class="sell-search__scan-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M4 7V5a1 1 0 0 1 1-1h2M4 17v2a1 1 0 0 0 1 1h2M20 7V5a1 1 0 0 0-1-1h-2M20 17v2a1 1 0 0 1-1 1h-2"/>
+                        <path d="M7 9v6M10 9v6M13 9v4M16 9v6"/>
+                    </svg>
+                </button>
+            </div>
 
             <div class="sell-filter-deck sell-filter-deck--slim" data-filter-deck>
                 <div class="sell-pill-rail" data-category-rail role="listbox" aria-label="{{ __('ui.category') }}"></div>
@@ -248,7 +262,15 @@
         discountOverLimit: @json(__('ui.invoice_discount_over_limit', ['max' => ':max'])),
         lineDiscountOverLimit: @json(__('ui.invoice_line_discount_over_limit', ['max' => ':max'])),
         giftOverLimit: @json(__('ui.invoice_gift_over_limit', ['max' => ':max'])),
+        barcodeNotFound: @json(__('ui.barcode_not_found')),
+        barcodeScan: @json(__('ui.barcode_scan')),
+        barcodeScanHint: @json(__('ui.barcode_scan_hint')),
+        barcodeScanError: @json(__('ui.barcode_scan_error')),
+        brandShort: @json(__('ui.brand_short')),
+        close: @json(__('ui.back')),
     };
+    window.JudiBarcodeScannerFallbackSrc = @json(asset('js/vendor/html5-qrcode.min.js'));
 </script>
-<script src="{{ asset('js/invoice-sell.js') }}?v=37" defer></script>
+<script src="{{ asset('js/barcode-scanner.js') }}?v=2" defer></script>
+<script src="{{ asset('js/invoice-sell.js') }}?v=39" defer></script>
 @endsection

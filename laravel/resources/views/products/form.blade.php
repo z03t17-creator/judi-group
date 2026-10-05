@@ -35,32 +35,6 @@
     @endif
 
     <div class="product-workspace">
-        {{-- Preview first in DOM so it shows above the form on phone; CSS pins it right on desktop --}}
-        <aside class="barcode-preview surface-panel" data-barcode-preview aria-labelledby="barcode-preview-title">
-            <div class="barcode-preview__head">
-                <h2 id="barcode-preview-title" class="barcode-preview__title">{{ __('ui.barcode_preview') }}</h2>
-                <button type="button" class="btn btn--regular btn--sm" data-print-label disabled>{{ __('ui.print') }}</button>
-            </div>
-
-            <div class="barcode-preview__chips" role="tablist" data-preview-chips>
-                <button type="button" class="chip is-active" role="tab" data-preview-select="product" aria-selected="true">{{ __('ui.preview_product') }}</button>
-                <button type="button" class="chip" role="tab" data-preview-select="piece" aria-selected="false">{{ __('ui.preview_piece') }}</button>
-                <button type="button" class="chip" role="tab" data-preview-select="packet" aria-selected="false">{{ __('ui.preview_packet') }}</button>
-                <button type="button" class="chip" role="tab" data-preview-select="carton" aria-selected="false">{{ __('ui.preview_carton') }}</button>
-            </div>
-
-            <div class="barcode-preview__card">
-                <p class="barcode-preview__name" data-preview-name>—</p>
-                <p class="barcode-preview__sku" data-preview-sku>—</p>
-                <p class="barcode-preview__unit" data-preview-unit></p>
-                <svg class="barcode-preview__svg" data-preview-svg role="img" aria-label="barcode" hidden></svg>
-                <p class="barcode-preview__empty" data-preview-empty>{{ __('ui.preview_empty') }}</p>
-                <p class="barcode-preview__code" data-preview-code dir="ltr"></p>
-            </div>
-
-            <button type="button" class="btn btn--primary btn--block" data-preview-generate>{{ __('ui.preview_regen') }}</button>
-        </aside>
-
         <form
             id="product-form"
             method="POST"
@@ -86,7 +60,7 @@
                 <label class="field">
                     <span class="field__label">{{ __('ui.product_name') }}</span>
                     <input class="field__input" type="text" name="name" id="product-name"
-                        value="{{ old('name', $product->name) }}" required autocomplete="off" data-sync-preview>
+                        value="{{ old('name', $product->name) }}" required autocomplete="off">
                 </label>
 
                 <div class="form-grid">
@@ -113,21 +87,17 @@
                     <span class="field__label">{{ __('ui.sku') }}</span>
                     <div class="field-row">
                         <input class="field__input field__input--mono" type="text" name="sku" id="product-sku"
-                            value="{{ old('sku', $product->sku) }}" required autocomplete="off" spellcheck="false" data-sync-preview>
+                            value="{{ old('sku', $product->sku) }}" required autocomplete="off" spellcheck="false">
                         <button type="button" class="btn btn--gen" data-generate-sku>{{ __('ui.generate_sku') }}</button>
                     </div>
                 </div>
 
-                <div class="field">
-                    <span class="field__label">{{ __('ui.barcode_main') }}</span>
-                    <div class="field-row">
-                        <input class="field__input field__input--mono" type="text" name="barcode" id="product-barcode"
-                            value="{{ old('barcode', $product->barcode) }}" inputmode="numeric" autocomplete="off"
-                            spellcheck="false" data-sync-preview data-preview-key="product">
-                        <button type="button" class="btn btn--gen" data-generate-barcode
-                            data-target="#product-barcode" data-sku-source="#product-sku">{{ __('ui.generate_barcode') }}</button>
-                    </div>
-                </div>
+                <label class="field">
+                    <span class="field__label">{{ __('ui.barcode_company') }}</span>
+                    <input class="field__input field__input--mono" type="text" name="barcode" id="product-barcode"
+                        value="{{ old('barcode', $product->barcode) }}" required inputmode="numeric" autocomplete="off"
+                        spellcheck="false" placeholder="{{ __('ui.barcode_company_hint') }}">
+                </label>
             </section>
 
             <section class="form-section">
@@ -175,7 +145,6 @@
                         <thead>
                             <tr>
                                 <th scope="col">{{ __('ui.unit') }}</th>
-                                <th scope="col">{{ __('ui.barcode') }}</th>
                                 <th scope="col">{{ __('ui.price_wholesale') }}</th>
                                 <th scope="col">{{ __('ui.price_retail') }}</th>
                             </tr>
@@ -186,21 +155,6 @@
                                     <th scope="row" class="price-matrix__unit">
                                         <strong>{{ __('ui.'.$kind->value) }}</strong>
                                     </th>
-                                    <td>
-                                        <div class="field-row field-row--tight">
-                                            <input class="field__input field__input--mono" type="text"
-                                                name="prices[{{ $kind->value }}][barcode]"
-                                                id="unit-barcode-{{ $kind->value }}"
-                                                value="{{ old("prices.{$kind->value}.barcode", $prices[$kind->value]['barcode'] ?? '') }}"
-                                                inputmode="numeric" autocomplete="off" spellcheck="false"
-                                                data-sync-preview data-preview-key="{{ $kind->value }}">
-                                            <button type="button" class="btn btn--gen btn--sm"
-                                                data-generate-barcode
-                                                data-target="#unit-barcode-{{ $kind->value }}"
-                                                data-sku-source="#product-sku"
-                                                data-unit-suffix="{{ $kind->value }}">{{ __('ui.generate') }}</button>
-                                        </div>
-                                    </td>
                                     <td>
                                         <input
                                             class="field__input"
@@ -257,8 +211,7 @@
     @endif
 </section>
 
-<script src="{{ asset('js/vendor/JsBarcode.all.min.js') }}"></script>
-<script src="{{ asset('js/product-form.js') }}?v=6" defer></script>
+<script src="{{ asset('js/product-form.js') }}?v=7" defer></script>
 @php
     $categoryTree = $categories->map(function ($c) {
         return [

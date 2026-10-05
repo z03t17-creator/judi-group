@@ -79,6 +79,118 @@
     });
   }
 
+  function normalizeBarcode(value) {
+    return String(value || "").trim();
+  }
+
+  function findProductByBarcode(code) {
+    var needle = normalizeBarcode(code);
+    if (!needle) return null;
+    return (
+      catalog.find(function (p) {
+        return normalizeBarcode(p.barcode) === needle;
+      }) || null
+    );
+  }
+
+  function scanUnit(product) {
+    var piece = pieceUnit(product);
+    if (piece && maxAvailable(piece) - cartQtyForUnit(piece.id) > 0) {
+      return piece;
+    }
+    return preferredUnit(product);
+  }
+
+  function flashScanMessage(message) {
+    if (!message) return;
+    var host = document.querySelector("[data-notif-toast-host]");
+    if (!host) {
+      window.alert(message);
+      return;
+    }
+    host.querySelectorAll("[data-scan-toast]").forEach(function (node) {
+      node.remove();
+    });
+    var el = document.createElement("div");
+    el.className = "notif-toast";
+    el.setAttribute("data-notif-toast", "");
+    el.setAttribute("data-scan-toast", "");
+    el.innerHTML =
+      '<span class="notif-toast__body"><strong class="notif-toast__title"></strong>' +
+      '<span class="notif-toast__text"></span></span>';
+    el.querySelector(".notif-toast__title").textContent =
+      labels.brandShort || "Judy's Shelter";
+    el.querySelector(".notif-toast__text").textContent = message;
+    host.appendChild(el);
+    window.setTimeout(function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 2800);
+  }
+
+  function focusProductSearch() {
+    if (!filterEl) return;
+    try {
+      filterEl.focus({ preventScroll: true });
+    } catch (e) {
+      filterEl.focus();
+    }
+    if (typeof filterEl.select === "function") {
+      try {
+        filterEl.select();
+      } catch (err) {}
+    }
+  }
+
+  function tryScanBarcode(raw) {
+    var code = normalizeBarcode(raw);
+    if (!code) return false;
+
+    var product = findProductByBarcode(code);
+    if (!product) {
+      flashScanMessage(
+        labels.barcodeNotFound || "No product with this barcode."
+      );
+      return false;
+    }
+
+    var unit = scanUnit(product);
+    if (!unit || maxAvailable(unit) - cartQtyForUnit(unit.id) < 1) {
+      flashScanMessage(
+        labels.barcodeNoStock || "No returnable stock for this product."
+      );
+      return false;
+    }
+
+    addLine(product.id, unit.id, 1);
+    if (filterEl) {
+      filterEl.value = "";
+      renderCatalog("");
+    }
+    focusProductSearch();
+    return true;
+  }
+
+  function openCameraScanner() {
+    if (!window.JudiBarcodeScanner || typeof window.JudiBarcodeScanner.open !== "function") {
+      flashScanMessage(labels.barcodeScanError || "Camera could not start.");
+      return;
+    }
+    window.JudiBarcodeScanner.open({
+      labels: {
+        scanTitle: labels.barcodeScan || "Scan barcode",
+        scanHint: labels.barcodeScanHint || "Place the code inside the frame",
+        scanCameraError: labels.barcodeScanError || "Camera could not start.",
+        close: labels.close || "Close",
+      },
+      onDetected: function (code) {
+        tryScanBarcode(code);
+      },
+      onUnsupported: function () {
+        flashScanMessage(labels.barcodeScanError || "Camera could not start.");
+      },
+    });
+  }
+
   function findUnit(product, unitId) {
     return ((product && product.units) || []).find(function (u) {
       return String(u.id) === String(unitId);
@@ -294,11 +406,6 @@
       if (!hasAvail) return false;
       if (!q) return true;
       var hay = [product.name, product.sku, product.barcode || ""]
-        .concat(
-          (product.units || []).map(function (u) {
-            return u.barcode || "";
-          })
-        )
         .join(" ")
         .toLowerCase();
       return hay.indexOf(q) !== -1;
@@ -518,8 +625,30 @@
     filterEl.addEventListener("input", function () {
       renderCatalog(filterEl.value);
     });
+    filterEl.addEventListener("keydown", function (event) {
+      var code = normalizeBarcode(filterEl.value);
+      if (!code) return;
+      if (event.key === "Enter") {
+        event.preventDefault();
+        tryScanBarcode(code);
+        return;
+      }
+      if (event.key === "Tab" && findProductByBarcode(code)) {
+        event.preventDefault();
+        tryScanBarcode(code);
+      }
+    });
+  }
+
+  var scanBtn = root.querySelector("[data-open-barcode-scan]");
+  if (scanBtn) {
+    scanBtn.addEventListener("click", function (event) {
+      event.preventDefault();
+      openCameraScanner();
+    });
   }
 
   renderCatalog("");
   render();
+  window.setTimeout(focusProductSearch, 50);
 })();

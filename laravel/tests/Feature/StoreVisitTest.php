@@ -136,6 +136,8 @@ class StoreVisitTest extends TestCase
         $page->assertSee(__('ui.reject_sold_only_hint'), false);
         $page->assertSee('confirmSubmit', false);
         $page->assertSee('data-reject-sheet', false);
+        $page->assertSee('data-open-barcode-scan', false);
+        $page->assertSee('barcode-scanner.js', false);
         $page->assertSee((string) $soldUnit->id, false);
         $page->assertSee('"available":2', false);
         $page->assertDontSee('"id":'.$otherUnit->id.',', false);

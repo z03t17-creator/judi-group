@@ -209,18 +209,18 @@ class ProductController extends Controller
         }
     }
 
-    /** @return array<string, array{wholesale: string, retail: string, barcode: string}> */
+    /** @return array<string, array{wholesale: string, retail: string}> */
     private function emptyPrices(): array
     {
         $prices = [];
         foreach (ProductUnitKind::ordered() as $kind) {
-            $prices[$kind->value] = ['wholesale' => '0', 'retail' => '0', 'barcode' => ''];
+            $prices[$kind->value] = ['wholesale' => '0', 'retail' => '0'];
         }
 
         return $prices;
     }
 
-    /** @return array<string, array{wholesale: string, retail: string, barcode: string}> */
+    /** @return array<string, array{wholesale: string, retail: string}> */
     private function pricesFromProduct(Product $product): array
     {
         $prices = $this->emptyPrices();
@@ -230,7 +230,6 @@ class ProductController extends Controller
             $prices[$key] = [
                 'wholesale' => (string) $unit->price_wholesale,
                 'retail' => (string) $unit->price_retail,
-                'barcode' => (string) ($unit->barcode ?? ''),
             ];
         }
 

@@ -263,6 +263,22 @@ class CollectorSellTest extends TestCase
             ->assertOk();
     }
 
+    public function test_sell_page_includes_camera_barcode_scanner(): void
+    {
+        $admin = User::factory()->create([
+            'role' => Role::Admin,
+            'collector_channel' => null,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('invoices.create'))
+            ->assertOk()
+            ->assertSee('data-open-barcode-scan', false)
+            ->assertSee('barcode-scanner.js', false)
+            ->assertSee('barcodeNotFound', false)
+            ->assertSee(__('ui.barcode_scan'), false);
+    }
+
     public function test_collector_bottom_nav_uses_stores_and_invoices(): void
     {
         $this->seed();

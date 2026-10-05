@@ -42,9 +42,9 @@ class MasterDataTest extends TestCase
             'subcategory_id' => $sub->id,
             'is_active' => '1',
             'prices' => [
-                'piece' => ['wholesale' => 100, 'retail' => 120, 'barcode' => '6281111111116'],
-                'packet' => ['wholesale' => 550, 'retail' => 650, 'barcode' => null],
-                'carton' => ['wholesale' => 6000, 'retail' => 7200, 'barcode' => null],
+                'piece' => ['wholesale' => 100, 'retail' => 120],
+                'packet' => ['wholesale' => 550, 'retail' => 650],
+                'carton' => ['wholesale' => 6000, 'retail' => 7200],
             ],
         ]);
 
@@ -59,7 +59,90 @@ class MasterDataTest extends TestCase
         $this->assertSame(6, $product->unit(\App\Enums\ProductUnitKind::Packet)?->conversion_to_piece);
         $this->assertSame('100.00', (string) $product->unit(\App\Enums\ProductUnitKind::Piece)?->price_wholesale);
         $this->assertSame('120.00', (string) $product->unit(\App\Enums\ProductUnitKind::Piece)?->price_retail);
-        $this->assertSame('6281111111116', $product->unit(\App\Enums\ProductUnitKind::Piece)?->barcode);
+        $this->assertNull($product->unit(\App\Enums\ProductUnitKind::Piece)?->barcode);
+    }
+
+    public function test_product_requires_company_barcode(): void
+    {
+        $admin = User::factory()->create([
+            'role' => Role::Admin,
+            'collector_channel' => null,
+        ]);
+
+        $category = Category::query()->create(['name' => 'تاقیکردنەوە', 'sort_order' => 1, 'is_active' => true]);
+
+        $response = $this->actingAs($admin)->post(route('products.store'), [
+            'sku' => 'TEST-NO-BAR',
+            'name' => 'بێ بارکۆد',
+            'pieces_per_packet' => 1,
+            'pieces_per_carton' => 1,
+            'category_id' => $category->id,
+            'is_active' => '1',
+            'prices' => [
+                'piece' => ['wholesale' => 100, 'retail' => 120],
+                'packet' => ['wholesale' => 100, 'retail' => 120],
+                'carton' => ['wholesale' => 100, 'retail' => 120],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors('barcode');
+        $this->assertDatabaseMissing('products', ['sku' => 'TEST-NO-BAR']);
+    }
+
+    public function test_company_barcode_must_be_unique(): void
+    {
+        $admin = User::factory()->create([
+            'role' => Role::Admin,
+            'collector_channel' => null,
+        ]);
+
+        $category = Category::query()->create(['name' => 'تاقیکردنەوە', 'sort_order' => 1, 'is_active' => true]);
+
+        Product::query()->create([
+            'sku' => 'EXISTING-001',
+            'barcode' => '6289999888777',
+            'name' => 'کاڵای هەبوو',
+            'pieces_per_packet' => 1,
+            'pieces_per_carton' => 1,
+            'category_id' => $category->id,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('products.store'), [
+            'sku' => 'DUP-BAR',
+            'barcode' => '6289999888777',
+            'name' => 'دووبارە',
+            'pieces_per_packet' => 1,
+            'pieces_per_carton' => 1,
+            'category_id' => $category->id,
+            'is_active' => '1',
+            'prices' => [
+                'piece' => ['wholesale' => 100, 'retail' => 120],
+                'packet' => ['wholesale' => 100, 'retail' => 120],
+                'carton' => ['wholesale' => 100, 'retail' => 120],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors('barcode');
+        $this->assertDatabaseMissing('products', ['sku' => 'DUP-BAR']);
+    }
+
+    public function test_product_form_requires_company_barcode_and_hides_generator(): void
+    {
+        $admin = User::factory()->create([
+            'role' => Role::Admin,
+            'collector_channel' => null,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('products.create'))
+            ->assertOk()
+            ->assertSee(__('ui.barcode_company'), false)
+            ->assertSee('name="barcode"', false)
+            ->assertSee('required', false)
+            ->assertDontSee('data-generate-barcode', false)
+            ->assertDontSee('data-barcode-preview', false)
+            ->assertDontSee('JsBarcode', false);
     }
 
     public function test_accountant_can_create_store(): void
