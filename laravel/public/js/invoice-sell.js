@@ -886,11 +886,17 @@
           '">' +
           '<img class="sell-product__img" src="' +
           escapeAttr(product.image || "") +
-          '" alt="">' +
+          '" alt="" loading="lazy">' +
           '<span class="sell-product__body">' +
-          "<strong>" +
+          '<strong class="sell-product__name">' +
           escapeHtml(product.name) +
           "</strong>" +
+          (product.sku
+            ? '<span class="sell-product__sku num" dir="ltr">' +
+              escapeHtml(product.sku) +
+              "</span>"
+            : "") +
+          '<span class="sell-product__meta">' +
           '<span class="sell-product__price num" dir="ltr">' +
           escapeHtml(priceLine) +
           "</span>" +
@@ -900,7 +906,8 @@
               "</span>"
             : "") +
           "</span>" +
-          '<span class="sell-product__chevron" aria-hidden="true">‹</span>' +
+          "</span>" +
+          '<span class="sell-product__chevron" aria-hidden="true"></span>' +
           "</button>"
         );
       })

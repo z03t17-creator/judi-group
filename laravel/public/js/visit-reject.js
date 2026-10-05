@@ -455,11 +455,19 @@
           (product.image
             ? '<img class="sell-product__img" src="' +
               escapeHtml(product.image) +
-              '" alt="">'
+              '" alt="" loading="lazy">'
             : '<span class="sell-product__img"></span>') +
-          '<span class="sell-product__body"><strong>' +
+          '<span class="sell-product__body">' +
+          '<strong class="sell-product__name">' +
           escapeHtml(product.name) +
-          '</strong><span class="sell-product__price num" dir="ltr">' +
+          "</strong>" +
+          (product.sku
+            ? '<span class="sell-product__sku num" dir="ltr">' +
+              escapeHtml(product.sku) +
+              "</span>"
+            : "") +
+          '<span class="sell-product__meta">' +
+          '<span class="sell-product__price num" dir="ltr">' +
           priceLine +
           "</span>" +
           (pieceLine
@@ -467,7 +475,8 @@
               escapeHtml(pieceLine) +
               "</span>"
             : "") +
-          '</span><span class="sell-product__chevron" aria-hidden="true">‹</span></button>'
+          "</span></span>" +
+          '<span class="sell-product__chevron" aria-hidden="true"></span></button>'
         );
       })
       .join("");
