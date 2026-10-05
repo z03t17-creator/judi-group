@@ -59,7 +59,10 @@ class ProductRequest extends FormRequest
             }
         }
 
-        $cartonBarcode = $this->filled('barcode') ? trim((string) $this->input('barcode')) : null;
+        $cartonBarcode = $this->filled('barcode')
+            ? trim((string) $this->input('barcode'))
+            : trim((string) $this->input('prices.'.ProductUnitKind::Carton->value.'.barcode', ''));
+        $cartonBarcode = $cartonBarcode !== '' ? $cartonBarcode : null;
 
         foreach (ProductUnitKind::ordered() as $kind) {
             $unitId = $unitIds[$kind->value] ?? null;
@@ -67,7 +70,6 @@ class ProductRequest extends FormRequest
             $rules["prices.{$kind->value}.wholesale"] = ['required', 'numeric', 'min:0', 'max:999999999'];
             $rules["prices.{$kind->value}.retail"] = ['required', 'numeric', 'min:0', 'max:999999999'];
 
-            // Carton identity lives on products.barcode; packet/piece may have their own codes.
             if ($kind === ProductUnitKind::Carton) {
                 $rules["prices.{$kind->value}.barcode"] = ['nullable', 'string', 'max:32'];
                 continue;
@@ -104,8 +106,18 @@ class ProductRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $cartonBarcode = $this->filled('barcode') ? trim((string) $this->input('barcode')) : null;
         $prices = $this->input('prices', []);
+        $cartonFromMain = $this->filled('barcode') ? trim((string) $this->input('barcode')) : null;
+        $cartonFromUnit = null;
+
+        if (is_array($prices)) {
+            $cartonRow = $prices[ProductUnitKind::Carton->value] ?? null;
+            if (is_array($cartonRow) && isset($cartonRow['barcode']) && trim((string) $cartonRow['barcode']) !== '') {
+                $cartonFromUnit = trim((string) $cartonRow['barcode']);
+            }
+        }
+
+        $cartonBarcode = $cartonFromMain ?: $cartonFromUnit;
 
         if (is_array($prices)) {
             foreach ($prices as $key => $row) {

@@ -142,8 +142,10 @@ class MasterDataTest extends TestCase
             ->assertSee(__('ui.barcode_carton'), false)
             ->assertSee('name="barcode"', false)
             ->assertSee('data-scan-into="#product-barcode"', false)
+            ->assertSee('data-scan-into="#unit-barcode-carton"', false)
             ->assertSee('data-scan-into="#unit-barcode-piece"', false)
             ->assertSee('data-scan-into="#unit-barcode-packet"', false)
+            ->assertSee(__('ui.barcode_hardware_hint'), false)
             ->assertDontSee('data-generate-barcode', false)
             ->assertDontSee('data-barcode-preview', false);
     }

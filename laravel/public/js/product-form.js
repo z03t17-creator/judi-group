@@ -237,6 +237,8 @@
     var skuInput = qs("#product-sku", form);
 
     initPackSpec(form);
+    initCartonBarcodeSync(form);
+    initHardwareScannerInputs(form);
 
     form.addEventListener("click", function (event) {
       var skuBtn = event.target.closest("[data-generate-sku]");
@@ -277,6 +279,42 @@
           },
         });
       }
+    });
+  }
+
+  function initCartonBarcodeSync(form) {
+    var fields = Array.prototype.slice.call(
+      form.querySelectorAll("[data-carton-barcode-sync]")
+    );
+    if (fields.length < 2) return;
+
+    var syncing = false;
+    fields.forEach(function (field) {
+      field.addEventListener("input", function () {
+        if (syncing) return;
+        syncing = true;
+        var value = field.value;
+        fields.forEach(function (other) {
+          if (other !== field && other.value !== value) {
+            other.value = value;
+          }
+        });
+        syncing = false;
+      });
+    });
+  }
+
+  function initHardwareScannerInputs(form) {
+    // USB/Bluetooth wedge scanners type into the focused field then send Enter.
+    form.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter") return;
+      var target = event.target;
+      if (!target || !target.matches || !target.matches("[data-barcode-input]")) {
+        return;
+      }
+      event.preventDefault();
+      target.blur();
+      target.focus();
     });
   }
 

@@ -75,6 +75,7 @@ return [
     'barcode_carton' => 'باركود الكرتون',
     'barcode_carton_hint' => 'امسح أو اكتب باركود الكرتون',
     'barcode_carton_nav_hint' => 'مسح الشريط السفلي يستخدم هذا الباركود لإيجاد المنتج أو إنشائه.',
+    'barcode_hardware_hint' => 'ملاحظة: ماسحات USB/Bluetooth تعمل أيضًا — المس حقل الباركود ثم امسح. زر الكاميرا اختياري.',
     'barcode_uses_carton' => 'نفس باركود الكرتون أعلاه',
     'barcode_not_found' => 'لا يوجد منتج بهذا الباركود.',
     'barcode_no_stock' => 'لا توجد كمية قابلة للإرجاع لهذا المنتج.',

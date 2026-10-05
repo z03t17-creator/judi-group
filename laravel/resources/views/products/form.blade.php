@@ -97,12 +97,13 @@
                     <div class="field-row">
                         <input class="field__input field__input--mono" type="text" name="barcode" id="product-barcode"
                             value="{{ old('barcode', $product->barcode) }}" required inputmode="numeric" autocomplete="off"
-                            spellcheck="false" placeholder="{{ __('ui.barcode_carton_hint') }}" data-barcode-input>
+                            spellcheck="false" placeholder="{{ __('ui.barcode_carton_hint') }}" data-barcode-input data-carton-barcode-sync>
                         <button type="button" class="btn btn--gen" data-scan-into="#product-barcode" aria-label="{{ __('ui.barcode_scan') }}">
                             {{ __('ui.barcode_scan') }}
                         </button>
                     </div>
                     <p class="field__hint">{{ __('ui.barcode_carton_nav_hint') }}</p>
+                    <p class="field__hint">{{ __('ui.barcode_hardware_hint') }}</p>
                 </div>
             </section>
 
@@ -163,22 +164,24 @@
                                         <strong>{{ __('ui.'.$kind->value) }}</strong>
                                     </th>
                                     <td>
-                                        @if ($kind->value === 'carton')
-                                            <span class="muted">{{ __('ui.barcode_uses_carton') }}</span>
-                                            <input type="hidden" name="prices[{{ $kind->value }}][barcode]" value="{{ old('barcode', $product->barcode) }}">
-                                        @else
-                                            <div class="field-row field-row--tight">
-                                                <input class="field__input field__input--mono" type="text"
-                                                    name="prices[{{ $kind->value }}][barcode]"
-                                                    id="unit-barcode-{{ $kind->value }}"
-                                                    value="{{ old("prices.{$kind->value}.barcode", $prices[$kind->value]['barcode'] ?? '') }}"
-                                                    inputmode="numeric" autocomplete="off" spellcheck="false"
-                                                    data-barcode-input>
-                                                <button type="button" class="btn btn--gen btn--sm"
-                                                    data-scan-into="#unit-barcode-{{ $kind->value }}"
-                                                    aria-label="{{ __('ui.barcode_scan') }}">{{ __('ui.barcode_scan_short') }}</button>
-                                            </div>
-                                        @endif
+                                        <div class="field-row field-row--tight">
+                                            <input class="field__input field__input--mono" type="text"
+                                                name="prices[{{ $kind->value }}][barcode]"
+                                                id="unit-barcode-{{ $kind->value }}"
+                                                value="{{ old(
+                                                    $kind->value === 'carton' ? 'barcode' : "prices.{$kind->value}.barcode",
+                                                    $kind->value === 'carton'
+                                                        ? ($product->barcode ?? '')
+                                                        : ($prices[$kind->value]['barcode'] ?? '')
+                                                ) }}"
+                                                @if ($kind->value === 'carton') required @endif
+                                                inputmode="numeric" autocomplete="off" spellcheck="false"
+                                                data-barcode-input
+                                                @if ($kind->value === 'carton') data-carton-barcode-sync @endif>
+                                            <button type="button" class="btn btn--gen btn--sm"
+                                                data-scan-into="#unit-barcode-{{ $kind->value }}"
+                                                aria-label="{{ __('ui.barcode_scan') }}">{{ __('ui.barcode_scan_short') }}</button>
+                                        </div>
                                     </td>
                                     <td>
                                         <input
@@ -246,7 +249,7 @@
     };
 </script>
 <script src="{{ asset('js/barcode-scanner.js') }}?v=3" defer></script>
-<script src="{{ asset('js/product-form.js') }}?v=8" defer></script>
+<script src="{{ asset('js/product-form.js') }}?v=9" defer></script>
 @php
     $categoryTree = $categories->map(function ($c) {
         return [

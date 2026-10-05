@@ -75,6 +75,7 @@ return [
     'barcode_carton' => 'Carton barcode',
     'barcode_carton_hint' => 'Scan or type the carton barcode',
     'barcode_carton_nav_hint' => 'Nav scan uses this barcode to find or create the product.',
+    'barcode_hardware_hint' => 'Tip: USB/Bluetooth scanners work too — tap a barcode field, then scan. Camera Scan is optional.',
     'barcode_uses_carton' => 'Same as carton barcode above',
     'barcode_not_found' => 'No product with this barcode.',
     'barcode_no_stock' => 'No returnable stock for this product.',
