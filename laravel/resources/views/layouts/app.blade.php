@@ -38,7 +38,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
     {{-- Flaticon Uicons (Solid Rounded) — https://www.flaticon.com/uicons --}}
     <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=102">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v=103">
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
@@ -55,6 +55,15 @@
     <script src="{{ asset('js/preferences.js') }}?v=2" defer></script>
     <script src="{{ asset('js/print-doc.js') }}?v=13" defer></script>
     <script src="{{ asset('js/office-nav.js') }}?v=2" defer></script>
+    @auth
+        @if (auth()->user()->canAccess('products'))
+            <script>
+                window.JudiBarcodeScannerFallbackSrc = @json(asset('js/vendor/html5-qrcode.min.js'));
+            </script>
+            <script src="{{ asset('js/barcode-scanner.js') }}?v=3" defer></script>
+            <script src="{{ asset('js/product-barcode-scan.js') }}?v=1" defer></script>
+        @endif
+    @endauth
 </head>
 <body
     data-brand-name="{{ __('ui.brand_name') }}"

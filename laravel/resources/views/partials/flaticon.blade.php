@@ -30,6 +30,7 @@
         'users' => 'fi-sr-users',
         'wallet' => 'fi-sr-wallet',
         'warehouse' => 'fi-sr-warehouse-alt',
+        'barcode' => 'fi-sr-barcode-read',
         default => 'fi-sr-circle',
     };
 @endphp

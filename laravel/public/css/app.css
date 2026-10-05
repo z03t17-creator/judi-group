@@ -11817,3 +11817,53 @@ html.is-barcode-scanning,
 html.is-barcode-scanning body {
   overflow: hidden;
 }
+
+/* —— Product barcode result dialog —— */
+.barcode-result-dialog {
+  border: none;
+  border-radius: 1rem;
+  padding: 0;
+  max-width: min(92vw, 22rem);
+  width: 100%;
+  background: transparent;
+  color: rgb(var(--fg));
+}
+
+.barcode-result-dialog::backdrop {
+  background: rgba(8, 16, 18, 0.55);
+}
+
+.barcode-result-dialog__card {
+  background: rgb(var(--surface));
+  border-radius: 1rem;
+  padding: 1.1rem 1rem 1rem;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+}
+
+.barcode-result-dialog__card h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.barcode-result-dialog__name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.barcode-result-dialog__meta {
+  margin: 0.35rem 0 0.9rem;
+  color: rgb(var(--fg-muted));
+  font-size: 0.86rem;
+}
+
+.barcode-result-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.barcode-result-dialog__actions .btn {
+  flex: 1 1 auto;
+  justify-content: center;
+}

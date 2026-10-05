@@ -54,7 +54,6 @@
       if (existing) {
         existing.addEventListener("load", finish);
         existing.addEventListener("error", reject);
-        // Already loaded before listeners
         if (resolveHtml5Qrcode()) finish();
         return;
       }
@@ -82,6 +81,12 @@
     return typeof global.BarcodeDetector === "function";
   }
 
+  function isLikelyMobile() {
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(
+      String(navigator.userAgent || "")
+    );
+  }
+
   function stopTracks(stream) {
     if (!stream) return;
     stream.getTracks().forEach(function (track) {
@@ -97,13 +102,10 @@
     root.setAttribute("data-barcode-scan-overlay", "");
     root.setAttribute("role", "dialog");
     root.setAttribute("aria-modal", "true");
-    root.setAttribute(
-      "aria-label",
-      labels.scanTitle || "Scan barcode"
-    );
+    root.setAttribute("aria-label", labels.scanTitle || "Scan barcode");
 
     root.innerHTML =
-      '<div class="barcode-scan-overlay__shade"></div>' +
+      '<div class="barcode-scan-overlay__shade" data-scan-shade></div>' +
       '<div class="barcode-scan-overlay__panel">' +
       '<button type="button" class="barcode-scan-overlay__close" data-scan-close aria-label="' +
       escapeAttr(labels.close || "Close") +
@@ -196,6 +198,28 @@
     }
   }
 
+  function videoConstraints() {
+    // Laptop webcams usually have no "environment" camera — prefer any device.
+    if (!isLikelyMobile()) {
+      return {
+        audio: false,
+        video: {
+          facingMode: { ideal: "user" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      };
+    }
+    return {
+      audio: false,
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    };
+  }
+
   function startBarcodeDetector(session) {
     var video = session.video;
     var formats = [
@@ -217,13 +241,12 @@
     }
 
     return navigator.mediaDevices
-      .getUserMedia({
-        audio: false,
-        video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
+      .getUserMedia(videoConstraints())
+      .catch(function () {
+        return navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: true,
+        });
       })
       .then(function (stream) {
         if (active !== session) {
@@ -280,35 +303,40 @@
       session.html5 = scanner;
 
       var config = {
-        fps: 10,
+        fps: 12,
         qrbox: function (viewfinderWidth, viewfinderHeight) {
           var edge = Math.floor(
-            Math.min(viewfinderWidth, viewfinderHeight) * 0.72
+            Math.min(viewfinderWidth, viewfinderHeight) * 0.78
           );
-          return { width: edge, height: Math.floor(edge * 0.55) };
+          return { width: edge, height: Math.floor(edge * 0.45) };
         },
         aspectRatio: 1.333,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true,
+        },
       };
 
-      return scanner
-        .start(
-          { facingMode: "environment" },
-          config,
-          function (decoded) {
-            handleCode(session, decoded);
-          },
-          function () {}
-        )
-        .catch(function () {
-          return scanner.start(
-            { facingMode: "user" },
-            config,
-            function (decoded) {
-              handleCode(session, decoded);
-            },
-            function () {}
-          );
+      var cameraConfig = isLikelyMobile()
+        ? { facingMode: "environment" }
+        : { facingMode: "user" };
+
+      function onSuccess(decoded) {
+        handleCode(session, decoded);
+      }
+
+      return scanner.start(cameraConfig, config, onSuccess, function () {}).catch(function () {
+        return scanner.start({ facingMode: "environment" }, config, onSuccess, function () {});
+      }).catch(function () {
+        return scanner.start({ facingMode: "user" }, config, onSuccess, function () {});
+      }).catch(function () {
+        // Last resort: first available camera id
+        return Html5Qrcode.getCameras().then(function (cameras) {
+          if (!cameras || !cameras.length) {
+            throw new Error("No cameras");
+          }
+          return scanner.start(cameras[0].id, config, onSuccess, function () {});
         });
+      });
     });
   }
 
@@ -318,6 +346,29 @@
       session.video.removeAttribute("src");
       session.video.srcObject = null;
     }
+  }
+
+  function bindDismissHandlers(session) {
+    var overlay = session.overlay;
+    qs("[data-scan-close]", overlay).addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      closeSession();
+    });
+
+    // Ignore the opening tap that created the overlay (mobile ghost-click).
+    var armedAt = Date.now() + 450;
+    overlay.addEventListener("click", function (event) {
+      if (Date.now() < armedAt) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      var shade = event.target.closest("[data-scan-shade]");
+      if (shade || event.target === overlay) {
+        closeSession();
+      }
+    });
   }
 
   function open(options) {
@@ -335,7 +386,9 @@
     var overlay = buildOverlay(labels);
     var readerEl = qs("[data-scan-reader]", overlay);
     readerEl.id =
-      "judi-barcode-reader-" + String(Date.now()) + Math.floor(Math.random() * 1000);
+      "judi-barcode-reader-" +
+      String(Date.now()) +
+      Math.floor(Math.random() * 1000);
 
     var session = {
       overlay: overlay,
@@ -353,32 +406,28 @@
     active = session;
     document.body.appendChild(overlay);
     document.documentElement.classList.add("is-barcode-scanning");
+    bindDismissHandlers(session);
 
-    qs("[data-scan-close]", overlay).addEventListener("click", function () {
-      closeSession();
-    });
-
-    overlay.addEventListener("click", function (event) {
-      if (event.target === overlay || event.target.classList.contains("barcode-scan-overlay__shade")) {
-        closeSession();
-      }
-    });
-
-    var starter = supportsBarcodeDetector()
+    // Prefer html5-qrcode for 1D product barcodes (especially laptop webcams).
+    // Use BarcodeDetector first only on mobile when available.
+    var preferDetector = supportsBarcodeDetector() && isLikelyMobile();
+    var starter = preferDetector
       ? startBarcodeDetector(session).catch(function () {
           return startHtml5Qrcode(session);
         })
-      : startHtml5Qrcode(session);
+      : startHtml5Qrcode(session).catch(function () {
+          if (supportsBarcodeDetector()) {
+            return startBarcodeDetector(session);
+          }
+          throw new Error("Scanner unavailable");
+        });
 
     return starter.catch(function () {
-      setHint(
-        session,
-        labels.scanCameraError || "Camera could not start."
-      );
+      setHint(session, labels.scanCameraError || "Camera could not start.");
       if (typeof options.onUnsupported === "function") {
         options.onUnsupported();
       }
-      window.setTimeout(closeSession, 1600);
+      window.setTimeout(closeSession, 1800);
       return false;
     });
   }

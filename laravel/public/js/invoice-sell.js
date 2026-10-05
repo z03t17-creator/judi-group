@@ -1104,6 +1104,7 @@
   if (scanBtn) {
     scanBtn.addEventListener("click", function (event) {
       event.preventDefault();
+      event.stopPropagation();
       openCameraScanner();
     });
   }

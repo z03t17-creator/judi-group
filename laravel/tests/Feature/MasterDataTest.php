@@ -145,6 +145,64 @@ class MasterDataTest extends TestCase
             ->assertDontSee('JsBarcode', false);
     }
 
+    public function test_lookup_barcode_returns_found_product_and_create_prefills_unknown(): void
+    {
+        $admin = User::factory()->create([
+            'role' => Role::Admin,
+            'collector_channel' => null,
+        ]);
+
+        $category = Category::query()->create(['name' => 'تاقیکردنەوە', 'sort_order' => 1, 'is_active' => true]);
+        $product = Product::query()->create([
+            'sku' => 'LOOK-001',
+            'barcode' => '6285555444333',
+            'name' => 'کاڵای ناسنامە',
+            'pieces_per_packet' => 1,
+            'pieces_per_carton' => 1,
+            'category_id' => $category->id,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson(route('products.lookup-barcode', ['barcode' => '6285555444333']))
+            ->assertOk()
+            ->assertJson([
+                'found' => true,
+                'id' => $product->id,
+                'name' => 'کاڵای ناسنامە',
+                'barcode' => '6285555444333',
+            ])
+            ->assertJsonPath('edit_url', route('products.edit', $product));
+
+        $this->actingAs($admin)
+            ->getJson(route('products.lookup-barcode', ['barcode' => '9990001112223']))
+            ->assertOk()
+            ->assertJson([
+                'found' => false,
+                'barcode' => '9990001112223',
+            ]);
+
+        $this->actingAs($admin)
+            ->get(route('products.create', ['barcode' => '9990001112223']))
+            ->assertOk()
+            ->assertSee('value="9990001112223"', false);
+    }
+
+    public function test_office_nav_includes_barcode_scan_shortcut(): void
+    {
+        $admin = User::factory()->create([
+            'role' => Role::Admin,
+            'collector_channel' => null,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('home'))
+            ->assertOk()
+            ->assertSee('data-open-product-barcode-scan', false)
+            ->assertSee('data-product-barcode-scan', false)
+            ->assertSee('product-barcode-scan.js', false);
+    }
+
     public function test_accountant_can_create_store(): void
     {
         $accountant = User::factory()->create([

@@ -46,6 +46,15 @@
             'badge' => 0,
         ],
         [
+            'route' => null,
+            'match' => [],
+            'label' => __('ui.barcode_scan'),
+            'icon' => 'barcode',
+            'enabled' => $user->canAccess('products'),
+            'badge' => 0,
+            'scan' => true,
+        ],
+        [
             'route' => 'collections.index',
             'match' => ['collections.*'],
             'label' => __('ui.collections'),
@@ -65,15 +74,39 @@
     ];
 @endphp
 
-<nav class="office-bottom-nav" aria-label="{{ __('ui.home') }}">
+<nav
+    class="office-bottom-nav"
+    aria-label="{{ __('ui.home') }}"
+    @if ($user->canAccess('products'))
+        data-product-barcode-scan
+        data-lookup-url="{{ route('products.lookup-barcode') }}"
+        data-create-url="{{ $user->canAccess('products.manage') ? route('products.create') : '' }}"
+        data-can-manage="{{ $user->canAccess('products.manage') ? '1' : '0' }}"
+        data-label-scan="{{ __('ui.barcode_scan') }}"
+        data-label-hint="{{ __('ui.barcode_scan_hint') }}"
+        data-label-error="{{ __('ui.barcode_scan_error') }}"
+        data-label-found="{{ __('ui.barcode_product_found') }}"
+        data-label-missing="{{ __('ui.barcode_product_missing') }}"
+        data-label-view="{{ __('ui.view') }}"
+        data-label-edit="{{ __('ui.edit') }}"
+        data-label-create="{{ __('ui.product_new') }}"
+        data-label-close="{{ __('ui.back') }}"
+        data-label-brand="{{ __('ui.brand_short') }}"
+    @endif
+>
     <ul class="office-bottom-nav__list">
         @foreach ($tabs as $tab)
             @if (empty($tab['enabled']))
                 @continue
             @endif
             <li>
-                @if (!empty($tab['menu']))
+                @if (! empty($tab['menu']))
                     <button type="button" class="office-tab" data-office-menu-open>
+                        @include('partials.icons.'.$tab['icon'], ['class' => 'office-tab__icon'])
+                        <span>{{ $tab['label'] }}</span>
+                    </button>
+                @elseif (! empty($tab['scan']))
+                    <button type="button" class="office-tab" data-open-product-barcode-scan>
                         @include('partials.icons.'.$tab['icon'], ['class' => 'office-tab__icon'])
                         <span>{{ $tab['label'] }}</span>
                     </button>

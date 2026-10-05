@@ -83,6 +83,7 @@ Route::middleware(['auth', 'active', 'device'])->group(function () {
 
     Route::middleware('perm:products')->group(function () {
         Route::get('products', [ProductController::class, 'index'])->name('products.index');
+        Route::get('products/lookup-barcode', [ProductController::class, 'lookupBarcode'])->name('products.lookup-barcode');
     });
 
     Route::middleware('perm:products.manage')->group(function () {

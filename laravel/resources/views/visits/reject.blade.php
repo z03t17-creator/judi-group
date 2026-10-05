@@ -116,6 +116,6 @@
     };
     window.JudiBarcodeScannerFallbackSrc = @json(asset('js/vendor/html5-qrcode.min.js'));
 </script>
-<script src="{{ asset('js/barcode-scanner.js') }}?v=2" defer></script>
+<script src="{{ asset('js/barcode-scanner.js') }}?v=3" defer></script>
 <script src="{{ asset('js/visit-reject.js') }}?v=5" defer></script>
 @endsection

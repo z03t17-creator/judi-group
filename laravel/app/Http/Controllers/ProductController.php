@@ -133,8 +133,11 @@ class ProductController extends Controller
     {
         $this->authorizeManage($request);
 
+        $barcode = trim((string) $request->query('barcode', ''));
+
         return view('products.form', [
             'product' => new Product([
+                'barcode' => $barcode !== '' ? $barcode : null,
                 'pieces_per_packet' => 6,
                 'pieces_per_carton' => 24,
                 'is_active' => true,
@@ -142,6 +145,43 @@ class ProductController extends Controller
             'unitKinds' => ProductUnitKind::ordered(),
             'prices' => $this->emptyPrices(),
             'categories' => $this->categoryOptions(),
+        ]);
+    }
+
+    public function lookupBarcode(Request $request)
+    {
+        $barcode = trim((string) $request->query('barcode', ''));
+        if ($barcode === '') {
+            return response()->json([
+                'found' => false,
+                'barcode' => '',
+            ]);
+        }
+
+        $product = Product::query()
+            ->where('barcode', $barcode)
+            ->first();
+
+        if (! $product) {
+            return response()->json([
+                'found' => false,
+                'barcode' => $barcode,
+                'create_url' => $request->user()?->canAccess(\App\Enums\PagePermission::ProductsManage)
+                    ? route('products.create', ['barcode' => $barcode])
+                    : null,
+            ]);
+        }
+
+        $canManage = (bool) $request->user()?->canAccess(\App\Enums\PagePermission::ProductsManage);
+
+        return response()->json([
+            'found' => true,
+            'id' => $product->id,
+            'name' => $product->name,
+            'sku' => $product->sku,
+            'barcode' => $product->barcode,
+            'view_url' => route('products.index', ['q' => $product->barcode]),
+            'edit_url' => $canManage ? route('products.edit', $product) : null,
         ]);
     }
 
