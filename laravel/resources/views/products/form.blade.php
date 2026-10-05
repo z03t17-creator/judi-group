@@ -92,12 +92,18 @@
                     </div>
                 </div>
 
-                <label class="field">
-                    <span class="field__label">{{ __('ui.barcode_company') }}</span>
-                    <input class="field__input field__input--mono" type="text" name="barcode" id="product-barcode"
-                        value="{{ old('barcode', $product->barcode) }}" required inputmode="numeric" autocomplete="off"
-                        spellcheck="false" placeholder="{{ __('ui.barcode_company_hint') }}">
-                </label>
+                <div class="field">
+                    <span class="field__label">{{ __('ui.barcode_carton') }}</span>
+                    <div class="field-row">
+                        <input class="field__input field__input--mono" type="text" name="barcode" id="product-barcode"
+                            value="{{ old('barcode', $product->barcode) }}" required inputmode="numeric" autocomplete="off"
+                            spellcheck="false" placeholder="{{ __('ui.barcode_carton_hint') }}" data-barcode-input>
+                        <button type="button" class="btn btn--gen" data-scan-into="#product-barcode" aria-label="{{ __('ui.barcode_scan') }}">
+                            {{ __('ui.barcode_scan') }}
+                        </button>
+                    </div>
+                    <p class="field__hint">{{ __('ui.barcode_carton_nav_hint') }}</p>
+                </div>
             </section>
 
             <section class="form-section">
@@ -145,6 +151,7 @@
                         <thead>
                             <tr>
                                 <th scope="col">{{ __('ui.unit') }}</th>
+                                <th scope="col">{{ __('ui.barcode') }}</th>
                                 <th scope="col">{{ __('ui.price_wholesale') }}</th>
                                 <th scope="col">{{ __('ui.price_retail') }}</th>
                             </tr>
@@ -155,6 +162,24 @@
                                     <th scope="row" class="price-matrix__unit">
                                         <strong>{{ __('ui.'.$kind->value) }}</strong>
                                     </th>
+                                    <td>
+                                        @if ($kind->value === 'carton')
+                                            <span class="muted">{{ __('ui.barcode_uses_carton') }}</span>
+                                            <input type="hidden" name="prices[{{ $kind->value }}][barcode]" value="{{ old('barcode', $product->barcode) }}">
+                                        @else
+                                            <div class="field-row field-row--tight">
+                                                <input class="field__input field__input--mono" type="text"
+                                                    name="prices[{{ $kind->value }}][barcode]"
+                                                    id="unit-barcode-{{ $kind->value }}"
+                                                    value="{{ old("prices.{$kind->value}.barcode", $prices[$kind->value]['barcode'] ?? '') }}"
+                                                    inputmode="numeric" autocomplete="off" spellcheck="false"
+                                                    data-barcode-input>
+                                                <button type="button" class="btn btn--gen btn--sm"
+                                                    data-scan-into="#unit-barcode-{{ $kind->value }}"
+                                                    aria-label="{{ __('ui.barcode_scan') }}">{{ __('ui.barcode_scan_short') }}</button>
+                                            </div>
+                                        @endif
+                                    </td>
                                     <td>
                                         <input
                                             class="field__input"
@@ -211,7 +236,17 @@
     @endif
 </section>
 
-<script src="{{ asset('js/product-form.js') }}?v=7" defer></script>
+<script>
+    window.JudiBarcodeScannerFallbackSrc = @json(asset('js/vendor/html5-qrcode.min.js'));
+    window.JudiProductFormLabels = {
+        barcodeScan: @json(__('ui.barcode_scan')),
+        barcodeScanHint: @json(__('ui.barcode_scan_hint')),
+        barcodeScanError: @json(__('ui.barcode_scan_error')),
+        close: @json(__('ui.back')),
+    };
+</script>
+<script src="{{ asset('js/barcode-scanner.js') }}?v=3" defer></script>
+<script src="{{ asset('js/product-form.js') }}?v=8" defer></script>
 @php
     $categoryTree = $categories->map(function ($c) {
         return [

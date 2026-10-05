@@ -42,8 +42,8 @@ class MasterDataTest extends TestCase
             'subcategory_id' => $sub->id,
             'is_active' => '1',
             'prices' => [
-                'piece' => ['wholesale' => 100, 'retail' => 120],
-                'packet' => ['wholesale' => 550, 'retail' => 650],
+                'piece' => ['wholesale' => 100, 'retail' => 120, 'barcode' => '6281111111116'],
+                'packet' => ['wholesale' => 550, 'retail' => 650, 'barcode' => '6282222222220'],
                 'carton' => ['wholesale' => 6000, 'retail' => 7200],
             ],
         ]);
@@ -59,7 +59,9 @@ class MasterDataTest extends TestCase
         $this->assertSame(6, $product->unit(\App\Enums\ProductUnitKind::Packet)?->conversion_to_piece);
         $this->assertSame('100.00', (string) $product->unit(\App\Enums\ProductUnitKind::Piece)?->price_wholesale);
         $this->assertSame('120.00', (string) $product->unit(\App\Enums\ProductUnitKind::Piece)?->price_retail);
-        $this->assertNull($product->unit(\App\Enums\ProductUnitKind::Piece)?->barcode);
+        $this->assertSame('6281111111116', $product->unit(\App\Enums\ProductUnitKind::Piece)?->barcode);
+        $this->assertSame('6282222222220', $product->unit(\App\Enums\ProductUnitKind::Packet)?->barcode);
+        $this->assertSame('6281234567890', $product->unit(\App\Enums\ProductUnitKind::Carton)?->barcode);
     }
 
     public function test_product_requires_company_barcode(): void
@@ -127,7 +129,7 @@ class MasterDataTest extends TestCase
         $this->assertDatabaseMissing('products', ['sku' => 'DUP-BAR']);
     }
 
-    public function test_product_form_requires_company_barcode_and_hides_generator(): void
+    public function test_product_form_requires_carton_barcode_and_unit_scan_buttons(): void
     {
         $admin = User::factory()->create([
             'role' => Role::Admin,
@@ -137,12 +139,13 @@ class MasterDataTest extends TestCase
         $this->actingAs($admin)
             ->get(route('products.create'))
             ->assertOk()
-            ->assertSee(__('ui.barcode_company'), false)
+            ->assertSee(__('ui.barcode_carton'), false)
             ->assertSee('name="barcode"', false)
-            ->assertSee('required', false)
+            ->assertSee('data-scan-into="#product-barcode"', false)
+            ->assertSee('data-scan-into="#unit-barcode-piece"', false)
+            ->assertSee('data-scan-into="#unit-barcode-packet"', false)
             ->assertDontSee('data-generate-barcode', false)
-            ->assertDontSee('data-barcode-preview', false)
-            ->assertDontSee('JsBarcode', false);
+            ->assertDontSee('data-barcode-preview', false);
     }
 
     public function test_lookup_barcode_returns_found_product_and_create_prefills_unknown(): void

@@ -272,5 +272,5 @@
     window.JudiBarcodeScannerFallbackSrc = @json(asset('js/vendor/html5-qrcode.min.js'));
 </script>
 <script src="{{ asset('js/barcode-scanner.js') }}?v=3" defer></script>
-<script src="{{ asset('js/invoice-sell.js') }}?v=40" defer></script>
+<script src="{{ asset('js/invoice-sell.js') }}?v=41" defer></script>
 @endsection

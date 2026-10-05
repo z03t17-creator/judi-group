@@ -246,6 +246,36 @@
         skuInput.value = generateSkuFromName(nameInput.value);
         skuInput.dispatchEvent(new Event("input", { bubbles: true }));
         skuInput.focus();
+        return;
+      }
+
+      var scanBtn = event.target.closest("[data-scan-into]");
+      if (scanBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        var target = qs(scanBtn.getAttribute("data-scan-into"), form);
+        if (!target) return;
+        var labels = window.JudiProductFormLabels || {};
+        if (!window.JudiBarcodeScanner || typeof window.JudiBarcodeScanner.open !== "function") {
+          window.alert(labels.barcodeScanError || "Camera could not start.");
+          return;
+        }
+        window.JudiBarcodeScanner.open({
+          labels: {
+            scanTitle: labels.barcodeScan || "Scan barcode",
+            scanHint: labels.barcodeScanHint || "Place the code inside the frame",
+            scanCameraError: labels.barcodeScanError || "Camera could not start.",
+            close: labels.close || "Close",
+          },
+          onDetected: function (code) {
+            target.value = String(code || "").trim();
+            target.dispatchEvent(new Event("input", { bubbles: true }));
+            target.focus();
+          },
+          onUnsupported: function () {
+            window.alert(labels.barcodeScanError || "Camera could not start.");
+          },
+        });
       }
     });
   }

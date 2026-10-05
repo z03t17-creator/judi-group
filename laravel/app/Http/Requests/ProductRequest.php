@@ -51,9 +51,35 @@ class ProductRequest extends FormRequest
             'is_active' => ['sometimes', 'boolean'],
         ];
 
+        $unitIds = [];
+        if ($product) {
+            foreach ($product->units()->get(['id', 'unit']) as $unit) {
+                $key = $unit->unit instanceof \BackedEnum ? $unit->unit->value : (string) $unit->unit;
+                $unitIds[$key] = $unit->id;
+            }
+        }
+
+        $cartonBarcode = $this->filled('barcode') ? trim((string) $this->input('barcode')) : null;
+
         foreach (ProductUnitKind::ordered() as $kind) {
+            $unitId = $unitIds[$kind->value] ?? null;
+
             $rules["prices.{$kind->value}.wholesale"] = ['required', 'numeric', 'min:0', 'max:999999999'];
             $rules["prices.{$kind->value}.retail"] = ['required', 'numeric', 'min:0', 'max:999999999'];
+
+            // Carton identity lives on products.barcode; packet/piece may have their own codes.
+            if ($kind === ProductUnitKind::Carton) {
+                $rules["prices.{$kind->value}.barcode"] = ['nullable', 'string', 'max:32'];
+                continue;
+            }
+
+            $rules["prices.{$kind->value}.barcode"] = [
+                'nullable',
+                'string',
+                'max:32',
+                Rule::unique('product_units', 'barcode')->ignore($unitId),
+                Rule::notIn(array_filter([$cartonBarcode])),
+            ];
         }
 
         return $rules;
@@ -64,24 +90,37 @@ class ProductRequest extends FormRequest
         return [
             'sku.required' => 'کۆدی کاڵا پێویستە.',
             'sku.unique' => 'ئەم کۆدە پێشتر بەکارهاتووە.',
-            'barcode.required' => 'بارکۆدی کۆمپانیا پێویستە.',
+            'barcode.required' => 'بارکۆدی کارتۆن پێویستە.',
             'barcode.unique' => 'ئەم بارکۆدە پێشتر بەکارهاتووە.',
             'name.required' => 'ناوی کاڵا پێویستە.',
             'pieces_per_packet.required' => 'ژمارەی دانە لە پاکەت پێویستە.',
             'pieces_per_carton.required' => 'ژمارەی دانە لە کارتۆن پێویستە.',
+            'prices.piece.barcode.unique' => 'ئەم بارکۆدی دانەیە پێشتر بەکارهاتووە.',
+            'prices.packet.barcode.unique' => 'ئەم بارکۆدی پاکەتە پێشتر بەکارهاتووە.',
+            'prices.piece.barcode.not_in' => 'بارکۆدی دانە نابێت وەک بارکۆدی کارتۆن بێت.',
+            'prices.packet.barcode.not_in' => 'بارکۆدی پاکەت نابێت وەک بارکۆدی کارتۆن بێت.',
         ];
     }
 
     protected function prepareForValidation(): void
     {
+        $cartonBarcode = $this->filled('barcode') ? trim((string) $this->input('barcode')) : null;
         $prices = $this->input('prices', []);
+
         if (is_array($prices)) {
             foreach ($prices as $key => $row) {
                 if (! is_array($row)) {
                     continue;
                 }
-                // One company barcode on the product — unit barcodes are no longer collected.
-                $prices[$key]['barcode'] = null;
+
+                if ($key === ProductUnitKind::Carton->value) {
+                    $prices[$key]['barcode'] = $cartonBarcode;
+                } else {
+                    $prices[$key]['barcode'] = isset($row['barcode']) && trim((string) $row['barcode']) !== ''
+                        ? trim((string) $row['barcode'])
+                        : null;
+                }
+
                 if (isset($row['wholesale'])) {
                     $prices[$key]['wholesale'] = str_replace(',', '', (string) $row['wholesale']);
                 }
@@ -94,28 +133,31 @@ class ProductRequest extends FormRequest
         $this->merge([
             'is_active' => $this->boolean('is_active'),
             'pack_spec' => $this->filled('pack_spec') ? trim((string) $this->input('pack_spec')) : null,
-            'barcode' => $this->filled('barcode') ? trim((string) $this->input('barcode')) : null,
+            'barcode' => $cartonBarcode,
             'prices' => $prices,
         ]);
     }
 
-    /** @return array{sku: string, barcode: string, name: string, pack_spec: ?string, pieces_per_packet: int, pieces_per_carton: int, is_active: bool, prices: array<string, array{wholesale: float, retail: float, barcode: null}>} */
+    /** @return array{sku: string, barcode: string, name: string, pack_spec: ?string, pieces_per_packet: int, pieces_per_carton: int, is_active: bool, prices: array<string, array{wholesale: float, retail: float, barcode: ?string}>} */
     public function productData(): array
     {
         $validated = $this->validated();
         $prices = [];
+        $cartonBarcode = $validated['barcode'];
 
         foreach (ProductUnitKind::ordered() as $kind) {
             $prices[$kind->value] = [
                 'wholesale' => $validated['prices'][$kind->value]['wholesale'],
                 'retail' => $validated['prices'][$kind->value]['retail'],
-                'barcode' => null,
+                'barcode' => $kind === ProductUnitKind::Carton
+                    ? $cartonBarcode
+                    : ($validated['prices'][$kind->value]['barcode'] ?? null),
             ];
         }
 
         return [
             'sku' => $validated['sku'],
-            'barcode' => $validated['barcode'],
+            'barcode' => $cartonBarcode,
             'name' => $validated['name'],
             'pack_spec' => $validated['pack_spec'] ?? null,
             'pieces_per_packet' => (int) $validated['pieces_per_packet'],

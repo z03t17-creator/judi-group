@@ -618,6 +618,11 @@
   function productMatches(product, needle) {
     if (!needle) return true;
     var hay = [product.name, product.sku, product.barcode || ""]
+      .concat(
+        (product.units || []).map(function (u) {
+          return u.barcode || "";
+        })
+      )
       .join(" ")
       .toLowerCase();
     return hay.indexOf(needle) !== -1;
@@ -627,18 +632,36 @@
     return String(value || "").trim();
   }
 
-  function findProductByBarcode(code) {
-    var needle = normalizeBarcode(code);
-    if (!needle) return null;
+  function cartonUnit(product) {
+    if (!product || !product.units) return null;
     return (
-      catalog.find(function (p) {
-        return normalizeBarcode(p.barcode) === needle;
+      product.units.find(function (u) {
+        return u.unit === "carton";
       }) || null
     );
   }
 
-  function scanUnit(product) {
-    return pieceUnit(product) || preferredUnit(product);
+  /** Match carton (product.barcode) or packet/piece unit barcodes. */
+  function findScanMatch(code) {
+    var needle = normalizeBarcode(code);
+    if (!needle) return null;
+
+    var i;
+    var product;
+    var unit;
+
+    for (i = 0; i < catalog.length; i += 1) {
+      product = catalog[i];
+      if (normalizeBarcode(product.barcode) === needle) {
+        unit = cartonUnit(product) || preferredUnit(product);
+        if (unit) return { product: product, unit: unit };
+      }
+      unit = (product.units || []).find(function (u) {
+        return normalizeBarcode(u.barcode) === needle;
+      });
+      if (unit) return { product: product, unit: unit };
+    }
+    return null;
   }
 
   function flashScanMessage(message) {
@@ -685,23 +708,15 @@
     var code = normalizeBarcode(raw);
     if (!code) return false;
 
-    var product = findProductByBarcode(code);
-    if (!product) {
+    var match = findScanMatch(code);
+    if (!match) {
       flashScanMessage(
         labels.barcodeNotFound || "No product with this barcode."
       );
       return false;
     }
 
-    var unit = scanUnit(product);
-    if (!unit) {
-      flashScanMessage(
-        labels.barcodeNotFound || "No product with this barcode."
-      );
-      return false;
-    }
-
-    addLine(product.id, unit.id, 1, 0, 0);
+    addLine(match.product.id, match.unit.id, 1, 0, 0);
     if (productFilter) {
       productFilter.value = "";
       renderCatalog();
@@ -1100,7 +1115,7 @@
         return;
       }
       // Some wedges send Tab after the code
-      if (event.key === "Tab" && findProductByBarcode(code)) {
+      if (event.key === "Tab" && findScanMatch(code)) {
         event.preventDefault();
         tryScanBarcode(code);
       }

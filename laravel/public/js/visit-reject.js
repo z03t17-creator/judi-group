@@ -83,22 +83,40 @@
     return String(value || "").trim();
   }
 
-  function findProductByBarcode(code) {
-    var needle = normalizeBarcode(code);
-    if (!needle) return null;
+  function cartonUnit(product) {
+    if (!product || !product.units) return null;
     return (
-      catalog.find(function (p) {
-        return normalizeBarcode(p.barcode) === needle;
+      product.units.find(function (u) {
+        return u.unit === "carton";
       }) || null
     );
   }
 
-  function scanUnit(product) {
-    var piece = pieceUnit(product);
-    if (piece && maxAvailable(piece) - cartQtyForUnit(piece.id) > 0) {
-      return piece;
+  /** Match carton (product.barcode) or packet/piece unit barcodes. */
+  function findScanMatch(code) {
+    var needle = normalizeBarcode(code);
+    if (!needle) return null;
+
+    var i;
+    var product;
+    var unit;
+
+    for (i = 0; i < catalog.length; i += 1) {
+      product = catalog[i];
+      if (normalizeBarcode(product.barcode) === needle) {
+        unit = cartonUnit(product) || preferredUnit(product);
+        if (unit && maxAvailable(unit) - cartQtyForUnit(unit.id) > 0) {
+          return { product: product, unit: unit };
+        }
+        // Prefer carton even if empty so we can show no-stock toast.
+        if (unit) return { product: product, unit: unit };
+      }
+      unit = (product.units || []).find(function (u) {
+        return normalizeBarcode(u.barcode) === needle;
+      });
+      if (unit) return { product: product, unit: unit };
     }
-    return preferredUnit(product);
+    return null;
   }
 
   function flashScanMessage(message) {
@@ -145,23 +163,22 @@
     var code = normalizeBarcode(raw);
     if (!code) return false;
 
-    var product = findProductByBarcode(code);
-    if (!product) {
+    var match = findScanMatch(code);
+    if (!match) {
       flashScanMessage(
         labels.barcodeNotFound || "No product with this barcode."
       );
       return false;
     }
 
-    var unit = scanUnit(product);
-    if (!unit || maxAvailable(unit) - cartQtyForUnit(unit.id) < 1) {
+    if (maxAvailable(match.unit) - cartQtyForUnit(match.unit.id) < 1) {
       flashScanMessage(
         labels.barcodeNoStock || "No returnable stock for this product."
       );
       return false;
     }
 
-    addLine(product.id, unit.id, 1);
+    addLine(match.product.id, match.unit.id, 1);
     if (filterEl) {
       filterEl.value = "";
       renderCatalog("");
@@ -406,6 +423,11 @@
       if (!hasAvail) return false;
       if (!q) return true;
       var hay = [product.name, product.sku, product.barcode || ""]
+        .concat(
+          (product.units || []).map(function (u) {
+            return u.barcode || "";
+          })
+        )
         .join(" ")
         .toLowerCase();
       return hay.indexOf(q) !== -1;
@@ -642,7 +664,7 @@
         tryScanBarcode(code);
         return;
       }
-      if (event.key === "Tab" && findProductByBarcode(code)) {
+      if (event.key === "Tab" && findScanMatch(code)) {
         event.preventDefault();
         tryScanBarcode(code);
       }
